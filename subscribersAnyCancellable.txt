@@ -1,0 +1,82 @@
+#title "AnyCancellable"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The `.sink` command makes a Subscribers.Sink object, and the `.assign` command makes a Subscribers.Assign object. However, both `.sink` and `.assign` wrap that object up in an AnyCancellable instance, returning that instance.
+
+I talked [earlier](startCompletions) about what AnyCancellable is. It's a class that acts as a _type eraser_ so that you don't have to deal with the nitty-gritty of what a Sink object or an Assign object really is; in effect, it provides a common type that could be a Sink or an Assign. Both Sink and Assign conform to the Cancellable protocol, meaning that they have a `cancel` method. AnyCancellable, too, has a `cancel` method, which calls `cancel` on the wrapped subscriber, giving us the ability to cancel the wrapped subscriber (and thus the entire pipeline) by way of the AnyCancellable wrapper.
+
+Moreover, AnyCancellable has the remarkable property that it *automatically* calls `cancel()` on its wrapped subscriber when it itself goes out of existence. This means that the whole pipeline right back up to the publisher is cancelled when the wrapper is released. In effect, AnyCancellable gives us memory management for the entire pipeline, along with coherent messaging to the publisher that it no longer needs to produce any values.
+
+Conversely, you need to _retain_ the AnyCancellable object produced by `.sink` or `.assign` if you don't want to risk having the pipeline cancel itself prematurely. That's just what will happen if we write a pipeline like this, and stop:
+
+~~~
+let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data}
+    .replaceError(with: Data())
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .assign(to: \.image, on: self.iv)
+~~~
+
+When the app runs, no image is assigned to our image view, and we get an error message in the console:
+
+    Error Domain=NSURLErrorDomain Code=-999 "cancelled"
+
+That's because our AnyCancellable (which we didn't even bother to capture) went out of existence and sent a `cancel()` call to the data task publisher before it had a chance to do any networking.
+
+That is why, as I've been at pains to demonstrate already, you should always follow a `.sink` or `.assign` call with a call to `.store(in:)`, so as to retain the AnyCancellable. `.store(in:)` is an AnyCancellable method. The parameter can be the address of a RangeReplaceableCollection, such as an Array, or of a Set. Typically, you will have prepared this as an instance property beforehand, thus guaranteeing that the subscriber will live as long as the owner of the instance property (typically a view controller).
+
+So, real code would look like this:
+
+~~~
+let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data}
+    .replaceError(with: Data())
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .assign(to: \.image, on: self.iv)
+    .store(in:&self.storage)
+~~~
+
+In that code, `self.storage` could be declared like this (this is what I usually do):
+
+    var storage = Set<AnyCancellable>()
+
+But alternatively it could be declared, for instance, like this:
+
+    var storage = [AnyCancellable]()
+
+Just as an exercise, let's demonstrate to ourselves how the `.assign` operator wraps the Assign object in an AnyCancellable by doing the wrapping ourselves. (The `.sink` operator is obviously completely parallel.) First, I'll create the publisher end of the pipeline.
+
+~~~
+let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+let pub : AnyPublisher<UIImage?,Never> =
+    URLSession.shared.dataTaskPublisher(for: url)
+        .map {$0.data}
+        .replaceError(with: Data())
+        .compactMap { UIImage(data:$0) }
+        .receive(on: DispatchQueue.main)
+        .eraseToAnyPublisher()
+~~~
+
+> (I'll talk about `eraseToAnyPublisher` later. It has the advantage of type-erasing the pipeline so that we don't have to deal with its real type, which is often quite complicated and ugly.)
+
+{::comment}
+For example, our pipeline up through the `receive` operator is of type Publishers.ReceiveOn<Publishers.CompactMap<Publishers.ReplaceError<Publishers.Map<URLSession.DataTaskPublisher, Data>\>, UIImage>, DispatchQueue>, which is hardly the sort of thing one wants to know about!
+{:/comment}
+
+Now I'll manually create an Assign object, subscribe it to my publisher, and wrap it in an AnyCancellable. You may imagine that that is just the sort of thing the `.assign` operator really does behind the scenes! Finally, I'll store the AnyCancellable in an instance property as usual, and the entire pipeline is now built and operates correctly:
+
+~~~
+let assign = Subscribers.Assign(object: self.iv, keyPath: \UIImageView.image)
+pub.subscribe(assign)
+let any = AnyCancellable(assign)
+any.store(in:&self.storage)
+~~~
+

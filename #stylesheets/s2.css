@@ -1,0 +1,41 @@
+body {
+    font: 13pt Georgia, "Times New Roman", Times, serif;
+    line-height: 18pt;
+    margin: 30px;
+    background: #FFFFEE;
+}
+h1 {
+  text-align: center;
+}
+a:hover {
+  background-color: #e1e4ec;
+}
+a:active {
+  background-color: purple;
+}
+pre code {
+    background: #FDFDFD;
+    white-space: pre;
+    word-wrap: break-word;
+    overflow: auto;
+    border-radius: 4px;
+    border: 1px solid #292929;
+    position: relative;
+    font-family: "Inconsolata","Monaco","Consolas","Andale Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    display: block;
+    margin: 10px;
+    padding: 15px 16px 14px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 19px;
+    color: black;
+}
+blockquote {
+    border: 1px solid #292929;
+    padding: 15px 16px 14px;
+}
+dt {
+    font-style: italic;
+    margin-top: 20px;
+}
+

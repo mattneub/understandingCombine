@@ -1,0 +1,92 @@
+#title "Built-in Publishers"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+Now let's talk about built-in publishers. Scattered around the Swift language and the Foundation framework are various `publisher` properties and methods that produce a publisher from a useful common object. Thus, something that happens in the Cocoa / object world can function as the gateway to send a signal down a pipeline.
+
+My examples are not going to be particularly compelling. That isn't surprising, since everything we're doing here can already be done in some other way without the Combine framework. But the point is not the existence of these publishers on their own; the point is that these are _publishers_ and can therefore be incorporated into a powerful pipeline. A publisher is just a starting point for a signal, not an end in itself.
+
+<%= section("Published") %>
+
+The `@Published` property wrapper turns any stored instance property of a class (but not, alas, of a struct or enum) into a publisher. Whenever the property's value is set to a new value, the publisher publishes the new value. It also publishes its current value at the moment it is subscribed to. In this way, you can use a pipeline to keep widely remote values coordinated with one another.
+
+The syntax for obtaining the publisher is to use the property's dollar-sign value. For example, if the property is called `string`, the publisher is a property of the same instance, called `$string`.
+
+Here's an example of the syntax:
+
+~~~
+class ViewController: UIViewController {
+    class Thing {
+        @Published var string : String = ""
+    }
+    @IBOutlet weak var label: UILabel!
+    var storage = Set<AnyCancellable>()
+    let thing = Thing()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.thing.$string
+            .assign(to: \UILabel.text!, on: self.label)
+            .store(in:&storage)
+}
+~~~
+
+When the `string` value of `self.thing` is changed, the text of `self.label` changes.
+
+**NOTE:** Related to the `@Published` property wrapper is the ObservableObject class protocol, whose `objectWillChange` property is a publisher that sends a signal when any of its `@Published` properties is about to change. This is used primarily in conjunction with SwiftUI and I'm not going to go into any further detail here.
+
+<%= section("KVO") %>
+
+Key-value observing of an instance property is similar to `@Published`, but it's a Cocoa feature whereas `@Published` is a Swift feature. Therefore it's also in some ways more restricted than `@Published`, since the class in question must derive from NSObject and the property in question must be marked `@objc dynamic`.
+
+The syntax is to call the `publisher(for:)` method on the class instance, giving the key path of instance property:
+
+~~~
+class ViewController: UIViewController {
+    class Thing : NSObject {
+        @objc dynamic var string : String = ""
+    }
+    @IBOutlet weak var label: UILabel!
+    var storage = Set<AnyCancellable>()
+    let thing = Thing()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.thing.publisher(for: \.string)
+            .assign(to: \UILabel.text!, on: self.label)
+            .store(in:&storage)
+}
+~~~
+
+KVO, as you probably know, has NSKeyValueObservingOptions; you can supply these in an optional `options:` parameter. The default is `[.initial, .new]`. But let's say you didn't want to receive the current value at subscription time, but _only_ each new value as it is set. Then you could say (for example):
+
+        self.thing.publisher(for: \.string, options:[.new])
+
+<%= section("Sequence") %>
+
+Any Swift Sequence, such as an array or an integer range, has a publisher, its `publisher` property, which publishes its elements in turn and stops. Similarly, an IndexSet publishes its elements, and a Data object, which is effectively a sequence of UInt8 values, publishes those values. So the Output type is the element type; the Failure type is Never.
+
+For example:
+
+~~~
+(1...4).publisher
+    .sink {print($0)}
+    .store(in:&self.storage)
+~~~
+
+That prints `1`, then `2`, then `3`, then `4`, and stops. Well, the example is pretty silly, obviously. But the ability to inject sequential values into a pipeline could be useful in real life.
+
+<%= section("Notification Center") %>
+
+The notification center has a method `publisher(for:object:)`. This is just like registering to receive a notification with a certain name (the first parameter) from a certain object (the second parameter, which can be omitted if you want to receive all notifications by the name specified in the first parameter). A Notification object is produced, so the Output type is Notification; the Failure type is Never.
+
+~~~
+let pub = NotificationCenter.default.publisher(
+    for: UIApplication.didBecomeActiveNotification)
+pub.sink {print($0)}.store(in:&storage) // prints the notification
+~~~
+
+As usual, the real power
+
+

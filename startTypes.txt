@@ -1,0 +1,73 @@
+#title "Types"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+As I've said [before](startOperators), each operator in a pipeline is both a subscriber and a publisher: it's a subscriber insofar as it looks upstream and subscribes to its immediate upstream publisher (which might be an operator), but it's a publisher insofar as it looks downstream and is subscribed to by its immediate downstream subscriber (which might be an operator). Each step along the pipeline is a publisher–subscriber pair. We can illustrate using the example pipeline we've [just created](startFailures):
+
+~~~
+data task publisher  ⬇️ publish
+map                  ⬆️ subscribe ⬇️ publish
+replaceError                      ⬆️ subscribe ⬇️ publish 
+compactMap                                     ⬆️ subscribe ⬇️ publish
+receive                                                     ⬆️ subscribe ⬇️ publish
+assign                                                                   ⬆️ subscribe
+~~~
+
+Now, think about the _types_ of thing that can from a publisher to its subscriber at any step along the pipeline. A publisher might publish a value; that value is of some type. Or, a publisher might emit a failure message; that message wraps an instance of some Error adopter type. Thus, for every publisher–subscriber pair, we can always specify _two types_ — the value type and the failure type — that can pass across this pair from the publisher to the subscriber.
+
+The formal expression of that fact is that the Publisher and Subscriber types are themselves _generics:_
+
+* A publisher is a generic, parameterized on an Output type and a Failure type. (The Failure type must conform to the Error protocol, or it may be Never to signify that no failure message can ever be emitted.)
+
+* A subscriber is a generic, parameterized on an Input type and a Failure type.
+
+In general, then, for a publisher and a subscriber to be hooked directly to each other, the types must match: 
+
+* The subscriber's Input type must match the publisher's Output type.
+
+* The subscriber's Failure type must match the publisher's Failure type.
+
+The implication is that, at every point along a pipeline where a subscriber meets its upstream publisher, we can state the types represented at that junction — the publisher's Output type (which is also the subscriber's Input type) and the publisher's Failure type. To illustrate, let's analyze our example pipeline purely in terms of the value (Output) and error (Failure) types at every step along the pipeline:
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data}
+    .replaceError(with: Data())
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .assign(to: \.image, on: self.iv)
+~~~
+
+* The data task publisher's Output type is a tuple of two values, `(data: Data, response: URLResponse)`. Its Failure type is URLError.
+
+* The `map` operator matches its Input to the Output of its upstream object; here, the upstream object is the data task publisher, so the input is `(data: Data, response: URLResponse)`. Its Output type is determined by the type it returns from its function; here, that is Data. Its Failure type is the same as its upstream object; here, that is URLError.
+
+* The `replaceError` operator matches its Input to the Output of its upstream object, and its Output is the same type. Here, the Input is a Data so the Output is a Data. Its Failure type is Never; we have turned failure into some form of success.
+
+* The `compactMap` operator matches its Input to the Output of its upstream object; here, that's Data. Its Output is determined by the type it returns from its function; in particular, its function must return an Optional, and its Output is the wrapped type. Here, we return an Optional wrapping a UIImage, so the Output type is UIImage. Its Failure type matches that of its upstream object; here, that is Never.
+
+* The `receive` operator matches its Input to the upstream's Output; its Output type is the same as its Input, and its Failure type is the same as that of its upstream object. That's because it just passes along unchanged whatever it receives from its upstream.
+
+* The `assign` operator matches its Input to the upstream's Output; here, that is UIImage. The `assign` operator's upstream's Failure must be Never (and here, it is). It is a final subscriber, so that is the end of the pipeline.
+
+We can summarize all of that with a little chart showing the Output and Failure types that flow down this pipeline at every stage:
+
+~~~
+data task (publisher)
+  ⬇️ <(data: Data, response: URLResponse), URLError>
+map
+  ⬇️ <Data, URLError>
+replaceError
+  ⬇️ <Data, Never>
+compactMap
+  ⬇️ <UIImage, Never>
+receive
+  ⬇️ <UIImage, Never>
+assign (subscriber)
+~~~
+
+The chart summarizes compactly how the types are transmuted over the course of the pipeline. That sort of summary can be very useful when you're trying to reason about what your pipeline does.
+

@@ -1,0 +1,115 @@
+#title "Unifying Asynchronicity"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+One of the most serious issues you face when you're programming iOS with Cocoa Touch is the asynchronous event-driven nature of iOS programming. Signals come to you in different places at different times, and your app has to be ready to receive them and cope with them in a coherent way. In a view controller with a table view, you might implement `viewDidLoad`, `viewDidAppear`, `supportedInterfaceOrientations`, `tableView(_:cellForRowAt:)`, `deinit`, and many others, just to cope with the fact that you get different signals telling you about different events at different times.
+
+The issue is particularly severe with regard to signals that affect the _state_ of your application. For example, your application is probably maintaining some data. If that data needs to change in response to a signal, and if you don't manage that change coherently, you can end up with bad data and your app will behave incorrectly. Moreover, you typically have interface whose job is to reflect your data. You have to keep your interface synchronized with the data. If the data gets into a bad state or the synchronization between data and interface breaks down, your app will look wrong.
+
+If you've ever written an iOS app of any complexity at all — if you've ever said to yourself, "All these instance properties! How do I keep them all coordinated!?" — you know just what I'm talking about. You may find yourself confused about what your code does; you may find your code difficult to read and understand; you may find yourself doubting that your app really works as intended under all circumstances.
+
+The job of the Combine framework is to help solve that problem:
+
+> <b>The Combine framework provides a _unified publish-and-subscribe API for channelling and processing asynchronous signals._</b>
+
+Consider a familiar example of how you do things _without_ the Combine framework. Suppose you're writing an iOS app, and you want your view controller to save its data whenever the app goes into the background. That's a very likely thing to want to do. You might use code like this:
+
+~~~
+override func viewDidLoad() {
+    super.viewDidLoad()
+    NotificationCenter.default.addObserver( // 1
+        self,
+        selector: #selector(doSaveData),
+        name: UIWindowScene.didEnterBackgroundNotification,
+        object: nil)
+}
+@objc func doSaveData(_ n : Notification) { // 2
+    // do something here
+}
+~~~
+
+That code is very typical; you've probably written something just like it. The structure of the code is in two parts:
+
+1. In our view controller's `viewDidLoad`, by saying `addObserver`, we register for a notification that will tell us when the app is going into the background. 
+
+2. We also have a method `doSaveData` that is to be called when we receive that notification.
+
+Think for a moment about the way the method `doSaveData` slots into the life of our app. We ourselves will never call it. Instead, it just sits there doing nothing, on the offchance that at some time in the future the runtime might call it for us. All that sort of talk — _at some time in the future_ something _might_ happen — indicates the _asynchronous_ nature of our code. We don't know when or if this method will actually be called.
+
+Now here's a completely different bit of code. When our view controller loads, we want to fetch an image from across the network and, if it arrives, to show it in our interface. Again, I bet this is something you've done in your own code. You might do it like this:
+
+~~~
+@IBOutlet weak var iv: UIImageView!
+override func viewDidLoad() {
+    super.viewDidLoad()
+    let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+    URLSession.shared.dataTask(with: url) { data, response, error in // 2
+        if let data = data, let im = UIImage(data: data) { 
+            DispatchQueue.main.async {
+                self.iv.image = im
+            }
+        }
+    }.resume() // 1
+}
+~~~
+
+That code is doing much the same sort of thing as the previous example — even though it appears to have a completely different structure:
+
+1. By forming a data task and telling it to `resume`, we initiate some internet communication that is supposed to fetch an image for us. 
+
+2. We also have a function — the completion handler, using "trailing closure" syntax, starting with `data, response, error` — that is to be called when we receive that image.
+
+Again, think about how the trailing closure slots into the life of our app. We ourselves will never call it. At the time `viewDidLoad` runs, the trailing closure does nothing at all. But later on, at some unknown future time, maybe our internet communication will succeed: the URL session will connect to the remote site and download the image data, the image data will arrive intact, and the runtime will call the trailing closure for us. Again, _at some time in the future_ something _might_ happen.
+
+So those are two very different bits of code, but with something profoundly similar underlying them. They both involve arranging to receive information through a signal that might or might not come at some indeterminate future time. 
+
+The Combine framework puts a _unified API_ in front of many different types of asynchronous signal. By "unified API" I mean simply that it makes both sorts of situation _look the same syntactically._
+
+To illustrate what I mean, I'll rewrite both the preceding sets of code to use the Combine framework. First, the notification that we're going into the background:
+
+~~~
+var storage = Set<AnyCancellable>()
+override func viewDidLoad() {
+    super.viewDidLoad()
+    NotificationCenter.default.publisher( // 1
+        for: UIWindowScene.didEnterBackgroundNotification)
+        .sink { _ in // 2
+            // do something here
+    }.store(in:&self.storage)
+~~~
+
+Second, the downloading and displaying of the image file:
+
+~~~
+@IBOutlet weak var iv: UIImageView!
+var storage = Set<AnyCancellable>()
+override func viewDidLoad() {
+    super.viewDidLoad()
+    let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+    URLSession.shared.dataTaskPublisher( // 1
+        for: url)
+        .sink(receiveCompletion: {_ in}) { // 2
+            if let im = UIImage(data: $0.data) {
+                DispatchQueue.main.async {
+                    self.iv.image = im
+                }
+            }
+    }.store(in:&self.storage)
+}
+~~~
+
+Using the Combine framework, both bits of code now have exactly the same structure:
+
+1. They start with the creation of a _publisher_.
+
+2. The publisher creation is followed by a call to a `sink` method. This is the _subscriber_. The `sink` method takes a function, provided here using "trailing closure" syntax, where we _respond_ to the signal generated by the publisher.
+
+(The `sink` call is also followed in both my examples by a `store` call, but I'll explain that in due course.)
+
+So there is a plainly a *single uniform syntax* being wrapped around the two different notions of registering for and receiving a notification, on the one hand, and performing a network operation, on the other.
+
+Now, if that were _all_ that the Combine framework did, it still wouldn't be terribly interesting. Nothing is happening here that you can't do equally well in some other way, so why bother? Well, what I've said so far is only the beginning. Let's dive further into the _architecture_ of the Combine framework. I'll start by saying more about publishers and subscribers.
+

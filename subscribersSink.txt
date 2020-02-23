@@ -1,0 +1,52 @@
+#title "Sink"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The `.sink` subscriber (Subscribers.Sink) is sort of an all-purpose subscriber. In its fullest form, it is created with this method:
+
+    func sink(receiveCompletion: f1, receiveValue: f2) -> AnyCancellable
+
+(I'll deal [later](AnyCancellable) with the significance of the fact that the `sink` method produces an object typed as AnyCancellable rather than Subscribers.Sink.)
+
+In my notation, `f1` and `f2` are functions. They will usually be anonymous functions, and the second function will usually be written using trailing closure syntax, so the `receiveValue` label will be omitted. A typical call will therefore look more or less like this:
+
+~~~
+.sink(receiveCompletion: {
+    comp in // ...
+}) {
+    val in // ...
+}
+~~~
+
+In the first function, the incoming parameter is a _completion_. This, as I explained [earlier](startCompletions), is actually a Subscribers.Completion enum specifying the completion message. There are two possible cases:
+
+* `.finished` — The publisher is telling us that there will be no more values forthcoming because it has finished producing values <%= xref("SECCompletion", "in good order") %>. For example, a data task publisher sends a `.finished` completion after it has done whatever networking we asked it to do.
+
+* `.failure` — The publisher is telling us that there will be no more values forthcoming because it has encountered an 
+<%= xref("SECFailureMessage", "unrecoverable failure") %>. 
+The nature of that failure is expressed as an Error object which is this enum case's associated value.
+
+In the second function, the incoming parameter is an actual value that came down the pipeline.
+
+Here's a minimal `.sink` implementation that acknowledges all possible outcomes:
+
+~~~
+.sink(receiveCompletion: {
+    switch $0 {
+        case .finished: print("finished in good order")
+        case let .failure(err): print("failure!", err)
+    }
+}) { print($0) }
+~~~
+
+If the failure type of the publisher just upstream of the sink is Never, meaning that no failure can occur, it is permitted to omit the `receiveCompletion` parameter entirely. You don't _have_ to omit it; but if you have no use for a `.finished` completion, you might prefer to do so. In that case, we can rewrite our `.sink` implementation more simply:
+
+~~~
+.sink() { print($0) }
+~~~
+
+The salient feature of `.sink` is that you can do anything you want in its functions, especially the `receiveValue` function. A value has arrived at the end of the pipeline; what would you like to do with it? A `.sink` subscriber is the most flexible way to answer that question by responding to the arrival of a value.
+

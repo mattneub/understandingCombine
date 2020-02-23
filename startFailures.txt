@@ -1,0 +1,147 @@
+#title "Failures"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+In addition to [cancellation and completion](startCompletions), there's another way a publisher can stop publishing: it can _fail._ This means that the publisher has hit a snag from which it can't recover. There is no point going on; the publisher is effectively dead in the water.
+
+<%= section("Failure Message") %>
+
+When a publisher fails, it needs a way to inform its downstream subscriber of this fact. It does this by passing a _failure message_ to the subscriber. This message is parallel to a <%= xref("SECCompletion", "completion message")%> — in fact, it _is_ a kind of completion message. That makes sense, because the failure means that the publisher is done, every bit as much as if it had completed in good order.
+
+Recall that a completion message is actually an instance of the Subscribers.Completion enum, namely the `.finished` case. Well, a failure message is *also* an instance of the Subscribers.Completion enum, namely the `.failure` case. This case has an associated value which is an Error, thus giving the publisher a way to tell its subscriber _what_ the snag is.
+
+When a publisher fails, two things actually happen:
+
+* The publisher cancels itself. Thus, as I explained in the [previous section](startCompletions), it stops publishing, and if this publisher is an operator and is subscribed to another publisher, a `cancel` message is sent _up_ the pipeline, unsubscribing all subscribers and cancelling all publishers.
+
+* The publisher emits a failure message. In general, a downstream operator, when it receives a failure message, will just pass that message further downstream. Therefore, by default, the failure message propagates all the way _down_ the pipeline to the final subscriber.
+
+Thus, by default, as soon as _any_ publisher or operator anywhere along the chain produces an error, the entire pipeline is effectively dead. All publishers (and operators) upstream from the point of failure are cancelled, and the pipeline will not produce a value after that. Downstream, the failure message reaches the final subscriber, and that is typically the last signal it will receive.
+
+> **NOTE:** Actually, because of the asynchronous nature of publishers, it is possible that an already published value may arrive at the end of a pipeline some time after an error. But that's just a detail. One way or another, a pipeline that has propagated an error all the way to the final subscriber is essentially finished.
+
+To demonstrate, let's go back to our example pipeline:
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .compactMap { UIImage(data:$0.data) }
+    .receive(on: DispatchQueue.main)
+    .sink(receiveCompletion: {_ in}) {
+        self.iv.image = $0
+    }
+    .store(in:&self.storage)
+~~~
+
+A data task publisher can fail with a URLError. (For example, the URL might be bad, or the network might be down.) Thus there are _three_ possible scenarios for what this pipeline might do:
+
+Fetching succeeds, conversion to UIImage succeeds
+: If the data task succeeds in fetching data, and if that data is in fact image data, then it is transformed into a UIImage which arrives at the `sink` subscriber.
+
+Fetching succeeds, conversion to UIImage fails
+: If the data task succeeds in fetching data, but that data is _not_ image data, then the signal stops at the `compactMap` operator and nothing arrives at the `sink` subscriber.
+
+Fetching fails
+: If the data task fails with an error, it emits a failure message, a `.failure` completion wrapping the error, which is propagated right down the pipeline to the `sink` subscriber. Currently, our `sink` subscriber is ignoring completions, including failures; that is the significance of the empty `receiveCompletion` function! But if we wanted to, we could have the `sink` do something with this error.
+
+<%= section("Transmutation of Failures") %>
+
+Just as an operator is not obliged to republish downstream identically the same value it receives from its upstream publisher, so an operator is not obliged to pass a received failure message downstream unchanged. The failure message wraps some kind of Error; well, an operator can _change_ this into a different type of Error, wrap that in a failure, and send it on downstream. An operator is itself a publisher, so it can _generate_ an error of its own. It is also possible for an operator to effectively _block_ errors from proceeding down the chain.
+
+To illustrate, let's say for purposes of demonstration that we don't care about any errors at the subscriber end of the pipeline. If the data task fails, we don't even want to hear about it. That way, the subscriber gets an image or nothing, no matter what; it will _never_ receive a failure message. To block any failure message that comes down the pipeline, we'll use the `replaceError(with:)` operator:
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data} // *
+    .replaceError(with: Data()) // *
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .sink() { // *
+        self.iv.image = $0
+    }
+    .store(in:&self.storage)
+~~~
+
+Let's analyze that code. First, we use the `map` operator to eliminate the `response` part of the data task publisher's value, so that all we have, if we have anything at all, is some Data. But we might _not_ have anything at all; we might have a failure instead. So we now use the `replaceError` operator so that a failure, too, is transformed into some Data — some empty Data. Now no failure can proceed down the pipeline from this point! We are guaranteed that _some_ Data object will emerge from the `replaceError` operator, either the data from the data task or an empty Data that we produced with the `replaceError` operator.
+
+> **NOTE:** The failure Error type from this point on downstream is said to be Never, meaning that the pipeline as a whole _cannot fail_.
+
+{::comment}
+But I do not understand the ontological status of this Never, since the only Never I know of is not an Error adopter. I've asked about this on SO.
+{:/comment}
+
+Okay, so now the pipeline proceeds as before. We have reached the `compactMap` operator. Here, either we've got data from the data task or we've got data from the `replaceError` operator, but either way, we've got a Data object and we try to turn it into a UIImage. If the data from the data task is image data, we succeed, and the UIImage passes on down the pipeline. If the data from the data task is _not_ image data, or if there was an error so that the data is empty, we are unable to make a UIImage from it and _no_ value proceeds down the pipeline.
+
+This means that, when we reach the `sink`, we are guaranteed that there is no failure coming our way; therefore we are permitted to eliminate the `receiveCompletion` parameter from the `sink` call. It is required if a failure is possible, but not if no failure is possible. And as you can see, I've done that in my code.
+
+But now we can go even further. Because no failure is possible, we are allowed to replace the `sink` subscriber with a different subscriber — the `assign` subscriber. We can use this to assign the incoming image *directly* to the image view's `image` property:
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data}
+    .replaceError(with: Data())
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .assign(to: \.image, on: self.iv) // *
+    .store(in:&self.storage)
+~~~
+
+There is something extraordinarily beautiful about what we've just done. We've created a pipeline all the way from the URLSession to our image view! If the URLSession's data task succeeds in fetching an image from the network, that image just flows right into our image view, _automatically_. The operators are doing all the work; our pipeline functions as a direct connection from the network to the `image` property of our image view in the interface. In a sense, our interface is constructing itself by means of the pipeline. This illustrates the essence of the Combine framework.
+
+{::comment}
+Not sure what I was getting at with this note.
+> **NOTE:** The `.replaceError` operator doesn't change what happens _before_ the operator operates. If the `.replaceError` operator receives an error from upstream, that means that the upstream publishers have all been cancelled; that part of the pipeline will never emit another value. Moreover, the `.replaceError` operator tells its _subscriber_ about that, by informing the subscriber that it is _finished:_ the value that replaces the error is the _last_ value that will come from the `.replaceError` operator.
+{:/comment}
+
+{::comment}
+With tremendous difficulty I worked out a pipeline that would deduce all of that, and here it is.
+
+    let collection = (1 ... 10).map {
+        Just($0).delay(
+            for: .seconds(Double.random(in:1...5)),
+            scheduler: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+    let collection2 = (1 ... 10).map {
+        Just($0).delay(
+            for: .seconds(Double.random(in:1...5)),
+            scheduler: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+    let collection2Publisher = collection2.publisher
+        .flatMap(maxPublishers:.max(1)) {$0}
+        .tryMap { (i:Int) -> Int in
+            if i > 100 {
+                throw NSError(domain: "ouch", code: 0)
+            }
+            return i
+    }
+    .replaceError(with: 1000)
+    .eraseToAnyPublisher()
+    collection.publisher
+        .handleEvents(receiveOutput: {print("after publisher", $0)},
+                      receiveCompletion: {print("after publisher", $0)},
+                      receiveCancel: {print("after publisher", "cancel")})
+        .flatMap(maxPublishers:.max(1)) {$0}
+        .tryMap {
+            if $0 > 2 {
+                throw NSError(domain: "ouch", code: 0)
+            }
+            return $0
+    }
+    .handleEvents(receiveOutput: {print("before replace", $0)},
+                  receiveCompletion: {print("before replace", $0)},
+                  receiveCancel: {print("before replace", "cancel")})
+        .replaceError(with: 1000)
+        .handleEvents(receiveOutput: {print("before merge", $0)},
+                      receiveCompletion: {print("before merge", $0)},
+                      receiveCancel: {print("before merge", "cancel")})
+        .merge(with:collection2Publisher)
+        .handleEvents(receiveOutput: {print("after merge", $0)},
+                      receiveCompletion: {print("after merge", $0)},
+                      receiveCancel: {print("after merge", "cancel")})
+        .sink (receiveCompletion:{print("completion", $0)}){print($0)}.store(in:&self.storage)
+{:/comment}
+

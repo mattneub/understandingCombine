@@ -1,0 +1,19 @@
+#title "Summary"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+Let's summarize what this chapter has shown about the nature and purpose of the Combine framework.
+
+In the standard model of Cocoa programming, an event occurs, and if a corresponding method exists in your code, it is called by the runtime and runs, executing a sequence of commands. This makes for clumsy and tricky programming: you have to know the special name of the method corresponding to the event you want to hear about, and even if you get that right, you can never be quite sure when your method will be called.
+
+Moreover, you often have to get a _reference_ from one object to another, and move _data_ between different objects. If you've done any serious iOS programming at all, you know that getting a proper reference between objects, and maintaining your object's data and your interface in a consistent and well-determined state as your code is bombarded by different events calling different methods, can be difficult and confusing.
+
+The Combine framework provides a different model for connecting objects and passing data between them. A pipeline may be compared to a slide in a children's playground, or (better) to a chute in a game of chutes and ladders. Once the pipeline is configured, it just sits there, ready for a value to be dropped in at one end by the publisher — and poof, a value pops out (or doesn't, because it is blocked instead) at the other end. A pipeline is both a connection between objects and a passageway for transmitting data to exactly where it needs to go at any time.
+
+Ultimately, the Combine framework is about _asynchronous data flow._ It ties remote objects together and provides a passage for data to flow from one to the other. And the wonderful thing is that, once a pipeline is constructed, that data flow is automatic. Instead of the imperative architecture of commands, we erect an automatic flow of data from one place to another. This flow responds automatically to asynchronous signals: whenever data appears at the publisher end of the pipeline, it flows on down the pipeline. Thus our data is correctly maintained at the subscriber end of the pipeline, automatically. And this can readily be turned into automatic maintenance of the interface as well.
+
+Clearly this can be a whole new way for you to construct, reason about, and understand the architecture and behavior of your app. That's the reason you should be interested in the Combine framework.
+

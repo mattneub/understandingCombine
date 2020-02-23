@@ -1,0 +1,29 @@
+#title "Assign"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The `.assign` subscriber (Subscribers.Assign) is legal only with a publisher whose error type is Never (because it has no means of coping with a failure message):
+
+    func assign(to:on:) -> AnyCancellable
+
+(I'll deal [later](AnyCancellable) with the significance of the fact that the `assign` method produces an object typed as AnyCancellable rather than Subscribers.Assign.)
+
+The first parameter is a property, designated as a Swift keypath; the second parameter is an object. The outcome is that the incoming value will be assign to that property of that object.
+
+The example I gave [earlier](startFailures) was of a UIImage coming down the pipeline and being assigned to an image view's `image` property:
+
+~~~
+.assign(to: \.image, on: self.iv)
+~~~
+
+It isn't clear to me that the `.assign` subscriber does anything you couldn't do with the `.sink` subscriber; after all, you could assign the image to an image view's `image` property in the `.sink` function:
+
+~~~
+.sink { self.iv.image = $0 }
+~~~
+
+However, `.assign` is a nice way of expressing the common case where the purpose of the pipeline is to use the value to set a property of some object.
+

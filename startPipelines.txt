@@ -1,0 +1,76 @@
+#title "Pipelines"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The entire chain of operators linking the subscriber and with the publisher is called a _pipeline_. Look again at the little diagram of how the data flows:
+
+~~~
+publisher [upstream]
+⬇️ operator
+⬇️ operator
+⬇️ ...
+subscriber [downstream]
+~~~
+
+That's a picture of a pipeline.
+
+Let's create an example of an actual pipeline. First, recall this earlier code for fetching an image remotely from the internet:
+
+~~~
+let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+URLSession.shared.dataTaskPublisher(
+    for: url)
+    .sink(receiveCompletion: {_ in}) {
+        if let im = UIImage(data: $0.data) {
+            DispatchQueue.main.async {
+                self.iv.image = im
+            }
+        }
+}.store(in:&self.storage)
+~~~
+
+That is a very short pipeline — it has no operators between the publisher and the subscriber. And it works, in the sense that we do in fact end up with a UIImage and assign it to an image view. But it is not very good Combine style. In real life, we would use some operators to transform the output of the data task publisher into an image _before_ we reach the `sink`, perhaps something like this:
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .compactMap { UIImage(data:$0.data) }
+    .receive(on: DispatchQueue.main)
+    .sink(receiveCompletion: {_ in}) {
+        self.iv.image = $0
+    }
+    .store(in:&self.storage)
+~~~
+
+Now _that_ is a good example of a pipeline. What you see in that code is a chain of method calls. What you _don't_ see is that each operator method produces an operator *object* and *subscribes* it to the preceding publisher. (That is in fact identical to what I said [before](startPublishAndSubscribe) about what the `sink` method does.) From the `dataTaskPublisher` call to the `sink` call, there is actually a chain of four objects:
+
+~~~
+DataTaskPublisher  ⬇️ publish
+CompactMap         ⬆️ subscribe ⬇️ publish
+ReceiveOn                       ⬆️ subscribe ⬇️ publish 
+Sink                                         ⬆️ subscribe
+~~~
+
+In general, however, the actual type of the operator objects will be of no interest to you. You'll just chain the _methods_ together and think of the methods themselves as the operators. When we call the operator methods "operators," that's really just a shorthand, but it's a very convenient shorthand.
+
+So what we have now is a pipeline of four objects: the data task publisher, the `compactMap` operator, the `receive(on:)` operator, and the `sink` subscriber. Let's trace what each of them does:
+
+1. The data task publisher outputs two pieces of information as a tuple, a `data` (Data) and a `response` (URLResponse).
+
+2. The `compactMap` operator throws away the `response` and tries to turn the `data` from the data task publisher into a UIImage — and if it fails (because, for example, the data is not image data), it stops the signal and nothing arrives at the `receive(on:)` operator or the `sink` subscriber.
+
+3. The `receive(on:)` operator passes along whatever value it receives, but it makes sure to pass it along on the given queue (here, the main queue).
+
+4. When we reach the `sink`, we are guaranteed of receiving an image on the main queue, and we can just plop it directly into the image view.
+
+We are now using the Combine framework in the way it is intended to be used! In particular, the signal emitted by the original publisher is _transmuted_ as it passes down the pipeline:
+
+* The data task publisher emits a tuple of Data and URLResponse, but the `sink` subscriber receives a UIImage (if it receives anything at all). That's because the `compactMap` operator changes the `(Data, URLResponse)` tuple into the Data alone, and then changes that Data into a UIImage — and if it can't do that, the signal goes no further.
+
+* The data task publisher may (and probably does) emit its signal on a background thread, but the `sink` subscriber receives the signal on the main thread. That's because the `receive(on:)` operator has ensured this. So the `sink` operator has no hesitation in talking to the interface to assign the image into an image view.
+
+The result is that the work to be done by the `sink` operator is greatly simplified. I like to say that the real work has been _pushed up_ into the pipeline by means of the transmutation of the signal. This transmutation of the signal over the course of the pipeline is the heart and soul of the power of the Combine framework.
+
+Observe also that the pipeline effectively "flows" the data directly from the network into the image view. Once the pipeline is formed and stored, everything happens by itself. The image view either will or won't be populated with an image, depending on whether or not the network is able to provide us with image data at the given URL. This sense of data flowing between disparate endpoints — the network on the one hand, an image view in our interface on the other — gives us a feeling of confidence and certainty as we construct the behavior of our app.

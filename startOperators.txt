@@ -1,0 +1,47 @@
+#title "Operators"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+You now know that the Combine framework unifies various forms of asynchronous signal into a single uniform API using a publish-and-subscribe architecture. Nonetheless, if that were _all_ the Combine framework did, it _still_ might not be sufficiently interesting and powerful for you to be motivated to learn about it.
+
+Well, I've been keeping something up my sleeve. I've left out the most important part of the story — _operators._ This is where things start to get really impressive. To put it another way: the fun is about to begin!
+
+An operator is an object that is _both_ a publisher _and_ a subscriber. This means that it can sit within a _chain_ of objects running between our original publisher (such as `NotificationCenter.default.publisher`) and our original subscriber (such as `sink`). We end up with a graph of objects in a structure that I can show schematically like this:
+
+~~~
+publisher [upstream]
+⬇️ operator
+⬇️ operator
+⬇️ ...
+subscriber [downstream]
+~~~
+
+In the schema above, I've called the publisher end of the chain the "upstream" direction and the subscriber end of the chain the "downstream" direction. The signal produced by the publisher passes from the upstream object, through each operator, in turn, and on out to the downstream object, on its way to the subscriber. The way this works is that each operator inside the chain subscribes to whatever is immediately upstream of it, and is in turn subscribed to by whatever is immediately downstream of it, like this:
+
+~~~
+publisher [upstream]  ⬇️ publish
+⬇️ operator           ⬆️ subscribe ⬇️ publish
+⬇️ operator                        ⬆️ subscribe ⬇️ publish 
+⬇️ ...                                          ⬆️ subscribe ⬇️ publish
+subscriber [downstream]                                      ⬆️ subscribe
+~~~
+
+So each operator in the chain _receives_ a signal from upstream and can respond by _sending_ a signal downstream.
+
+But why would you want to do that? Well, I didn't say that the signal produced downstream by an operator has to be identically the same signal that the operator received from upstream. An operator doesn't have to _echo_ the signal it receives. On the contrary, each operator in the chain, in turn, has a chance to _transform_ the signal as it passes down the chain. The signal is a value of some sort. An operator do things with that value. For instance:
+
+* It can _change_ that value. 
+
+* It can change the value's _type_. 
+
+* It can _block_ a value so that it never flows any further down the chain. 
+
+As a result, what ultimately comes out at the subscriber end of the chain can be something quite different from what went in at the publisher end. Do you remember what I said [earlier](startUnifyingAsynchronicity) about what the Combine framework is?
+
+> <b>The Combine framework provides a _unified publish-and-subscribe API for channelling and processing asynchronous signals._</b>
+
+We have come at last to the "processing" part of that definition.
+

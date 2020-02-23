@@ -1,0 +1,27 @@
+#title "My First Web Page"
+#smartypants true
+
+<h1><%= title %></h1>
+
+<div style="text-align:center">
+
+<%= imageref("rubyFrontierLogo") %>
+
+<p>Wow, I made a cool Web page!</p>
+
+</div>
+
+<p>
+ To render this as a Web page and see it in your browser,
+ choose RubyFrontier > Publish Page.
+</p>
+
+<p>
+ Even better, choose RubyFrontier > Publish Site
+ to see all three example pages.
+</p>
+
+<p>
+ This is an example of a page whose HTML is created "by hand". 
+ We use SmartyPants, though, to get the curly quotes in that previous sentence.
+</p>

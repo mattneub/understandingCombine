@@ -1,0 +1,6 @@
+#bgcolor "#84E1FF"
+<%= pageheader() %>
+<p id="bodytext"></p>
+<hr />
+<%= nextprevlinks() %>
+<%= pagefooter() %>

@@ -1,0 +1,75 @@
+#title "Publish and Subscribe"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The architecture of the Combine framework revolves around the notion of _publish and subscribe_:
+
+* There is always, at the start, an object called a _publisher_ (adopting the Publisher protocol). It is characterized by its ability, at some future time, to emit a _signal_.
+
+* And there is always, at the end, a _subscriber_ (adopting the Subscriber protocol) that subscribes to the publisher. It is characterized by its ability to _receive_ the signal from the publisher it subscribes to.
+
+The examples at the end of the [previous section](startUnifyingAsynchronicity) exemplify this architecture clearly, so let's look more closely at one of them. I'll rewrite it slightly:
+
+~~~
+NotificationCenter.default.publisher(
+    for: UIWindowScene.didEnterBackgroundNotification)
+    .sink { _ in
+        print("we're going into the background!")
+    }
+    .store(in:&self.storage)
+~~~
+
+The first two lines call the notification center's `publisher(for:)` method, which returns an actual publisher object:
+
+~~~
+NotificationCenter.default.publisher(
+    for: UIWindowScene.didEnterBackgroundNotification) // returns a publisher object
+~~~
+
+The publisher object that we get happens to be a NotificationCenter.Publisher struct instance, but its precise type is of no particular interest; what's important about it is that it conforms to the Publisher protocol. We could capture that object into a variable if we needed to (and in that case we would probably erase its type, as I'll explain later), but in this example we don't bother with that. Instead, we go right on and attach a subscriber to that publisher:
+
+~~~
+    .sink { _ in
+        print("we're going into the background!")
+    }
+~~~
+
+When we call `.sink` on a publisher, we actually do two things:
+
+1. We generate a subscriber object. In this case it happens to be a Subscribers.Sink class instance, but again its precise type is of no great interest; what's important is that it conforms to the Subscriber protocol. And that's not the only protocol it conforms to; it also conforms to the Cancellable protocol. That fact will be important in a moment.
+
+2. We cause the subscriber object actually to subscribe to the publisher we've attached it to.
+
+> **NOTE:** A publisher and a subscriber must communicate in accordance with a strict dance involving a third object, a _subscription_, adopting the Subscription protocol. In general, however, you won't need to know anything about that, so I won't say more about it at this point. Merely attaching a subscriber to a publisher performs the dance for us, so you don't have to worry about the details of the dance.
+
+The publisher now knows it has a subscriber, and it prepares to send signals to subscriber. But we'll never get any signals if we don't perform a further step, and here it is:
+
+~~~
+    .store(in:&self.storage)
+~~~
+
+That's very important. What is `storage`? Here, it's an _instance property_ of the surrounding view controller where all this code is running. The `store` call really does store the Sink object in that instance property. The `storage` property is a Set variable, declared like this:
+
+~~~
+    var storage = Set<AnyCancellable>()
+~~~
+
+The `store` call inserts the Sink object into that Set. Doing that accomplishes two things:
+
+1. It *retains* the Sink object. That's important because the Sink object is our subscriber; if it is permitted to go out of existence, there will be no subscriber, and later on, no signals will arrive, because they will have no place to arrive to, so we won't get any notifications from our publisher — we'll never hear when the app goes into the background, which was the whole purpose of the exercise.
+
+2. It will later *release* the Sink object when the view controller goes out of existence. That's the same thing seen from the opposite point of view. When the view controller is released, the Set will be released, and the Sink object will be released — and it is a feature of these built-in subscribers such as Sink that, when they are released while in the middle of subscribing to a publisher, they send a message to the publisher _cancelling the subscription_. (That is the significance of the fact that the Sink is a Cancellable adopter.) Thus the publisher is notified in good order that its job is over. We could cancel the subscription _any_ time ourselves, by saying `cancel()` explicitly to the subscriber; the important thing here, though, is that the *runtime* will send `cancel()` to the subscriber *for us* if the subscriber itself is about to go out of existence.
+
+The pattern that I've just shown is the core pattern for using the Combine framework, and I'll be using it consistently throughout the discussion from now on, so let's pause to specify what it is:
+
+1. We make a publisher.
+
+2. We attach a subscriber to the publisher.
+
+3. We store the subscriber in an instance property so that it is retained (and so that it will be released automatically at the latest when the surrounding instance goes out of existence).
+
+> NOTE: There are other ways besides `store(in:)` to retain a subscriber, but I'll use the `store(in:)` method routinely, effectively as boilerplate, in the vast majority of my examples.
+
