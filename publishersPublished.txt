@@ -1,0 +1,70 @@
+#title "Published"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+In general, the key–value observing publisher discussed in the [previous section](publishersKVO) is useful primarily in a situation where you'd be using key–value observing even if the Combine framework didn't exist — that is, because the Cocoa framework asks you to. You are unlikely to use key–value observing on properties that you create, not least because it is so restricted: it only works on a property of a class, that class must be an NSObject subclass, and the property must be marked `@objc dynamic`. In short, key–value observing is an Objective-C Cocoa technology.
+
+The Swift equivalent of key–value observing is the `@Published` property wrapper. This, too, works only on a (stored) property of a class. To obtain a publisher for this property (Published.Publisher), use the property wrapper's dollar-sign value (its `projectedValue`). For example, if a `@Published` instance property is called `string`, the publisher is a property of the same instance, called `$string`.
+
+Like a KVO publisher, the values emitted will be the initial value at subscription time followed by new values when the property changes, and if you want to distinguish them, that's up to you (as I described when discussing [KVO publishers](publishersKVO)).
+
+Typically, you'll use a Published.Publisher to cause a property in one object, such as a view controller, always to reflect the value of a property in another object, such as another view controller. This can be a simple alternative to a protocol-and-delegate architecture. For example, let's say I'm going to present or push a view controller ViewController2 and track its `count` property as the user interacts with the view controller's view and the `count` increments. I'll make `count` a `@Published` property:
+
+~~~
+class ViewController2 : UIViewController {
+    @Published var count = 0
+    @IBAction func doButton(_ sender:Any) {
+        // stuff happens...
+        self.count += 1
+    }
+}
+~~~
+
+When I present or push the ViewController2, I'll use `prepare(for:sender:)` to configure a simple Published.Publisher pipeline from its `count` property to my own `count` property:
+
+~~~
+class ViewController: UIViewController {
+    var storage = Set<AnyCancellable>()
+    var count : Int = 0
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc2 = segue.destination as? ViewController2 {
+            vc2.count = self.count
+            vc2.$count.assign(to: \.count, on: self).store(in:&self.storage)
+        }
+    }
+}
+~~~
+
+The result is that my `count` property always takes on the same value as the ViewController2's `count` property, and _vice versa_. If both properties are reflected in the interface, the user will return to ViewController to find ViewController's interface updated to reflect what happened in ViewController2.
+
+It is also possible that you'll use `@Published` within a single view controller. For example, you might use it to take the place of a property observer. This can be an elegant approach, particularly when your state or interface depends upon a combination of properties. In this simple example, we have two options that the user can choose, where the second option is meaningful only if the first option has been chosen; to reflect this in the interface, we represent the options by UISwitches, where the second UISwitch is enabled only if the first UISwitch is on:
+
+~~~
+@IBOutlet weak var sw1: UISwitch!
+@IBOutlet weak var sw2: UISwitch!
+@Published var sw1on = true
+@Published var sw2on = true
+@IBAction func doSw1(_ sender: UISwitch) {
+    self.sw1on = sender.isOn
+}
+@IBAction func doSw2(_ sender: UISwitch) {
+    self.sw2on = sender.isOn
+}
+var storage = Set<AnyCancellable>()
+override func viewDidLoad() {
+    super.viewDidLoad()
+    $sw1on.assign(to: \.isEnabled, on: self.sw2)
+        .store(in:&self.storage)
+    $sw1on.sink {
+        if !$0 { self.sw2.setOn(false, animated: true) }
+    }.store(in:&self.storage)
+}
+~~~
+
+We're not doing anything here that we couldn't have done with property observers, but the expression of the relationship between the two UISwitches as two pipelines is clean and self-contained. (We could eliminate the two `@IBAction` methods if a UISwitch itself vended a publisher; later, I'll show how to make it do that.)
+
+Related to the `@Published` property wrapper is the ObservableObject class protocol, whose `objectWillChange` property is a publisher that sends a signal when any of its `@Published` properties is about to change. This is used primarily in conjunction with SwiftUI.
+

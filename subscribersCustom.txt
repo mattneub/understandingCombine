@@ -40,7 +40,7 @@ Most `receive(subscription)` implementations will also perform a second job: the
 
 > **NOTE:** The architecture of the Combine framework leaves it up to the subscriber to "pull" values from the publisher. The subscriber can thus _prevent_ the publisher from sending values by _not_ pulling values. This ability of the subscriber to regulate the publisher's rate of value production is called _backpressure._
 
-The way you tell the publisher you'd like to receive values is by calling the Subscriber's `request` method. The parameter is a Subscribers.Demand enum, whose cases are `.unlimited`, `.none`, and `.max()` which takes an Int associated value. I'll signal interest in unlimited values:
+The way you tell the publisher you'd like to receive values is by calling the Subscriber's `request` method. The parameter is a Subscribers.Demand struct, with static members `.unlimited`, `.none`, and `.max()` which takes an Int associated value. I'll signal interest in unlimited values:
 
 ~~~
 func receive(subscription: Subscription) {

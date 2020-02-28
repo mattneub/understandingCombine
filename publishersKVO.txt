@@ -1,0 +1,104 @@
+#title "Key–Value Observing Publisher"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+Key–value observing (KVO) is an architecture used by some areas of Cocoa instead of notifications or delegates. If you are already using KVO, you can adapt your code to use the Combine framework instead, by means of an NSObject.KeyValueObservingPublisher. To get one, send `publisher(for:options:)` to an NSObject instance:
+
+    func publisher<Value>(for: Swift.KeyPath<Self, Value>, 
+        options: Foundation.NSKeyValueObservingOptions = [.initial, .new]) 
+        -> NSObject.KeyValueObservingPublisher<Self, Value>
+
+The parameters when you obtain a publisher with `publisher(for:options:)` are like the first two parameters of `observe(_:options:changeHandler:)`, which you were probably using to begin with — namely, a Swift keypath and an optional list of observing options. When forming the keypath, you can omit the class name because it is known from the class of the object to which you're sending this message.
+
+For example, a WKWebView is KVO-observable for properties such as `isLoading`. Your code might take advantage of this to put up a UIActivityView during the time it takes for the web view to load its content:
+
+~~~
+self.obs.insert(wv.observe(\.isLoading, options: .new) { [unowned self] wv, ch in
+    if let val = ch.newValue {
+        if val {
+            self.activity.startAnimating()
+        } else {
+            self.activity.stopAnimating()
+        }
+    }
+}
+~~~
+
+If you like, you can replace that with a KVO publisher:
+
+~~~
+wv.publisher(for: \.isLoading, options: .new)
+    .sink { [unowned self] val in
+        if val {
+            self.activity.startAnimating()
+        } else {
+            self.activity.stopAnimating()
+        }
+    }.store(in:&self.storage)
+~~~
+
+Unfortunately, the KeyValueObservingPublisher implementation is nowhere near as sophisticated as real key–value observing. 
+
+With real key–value observing, you use the `options` to specify what sorts of value you want to receive, and when you receive a value it has a dictionary with NSKeyValueChangeKey keys, or an NSKeyValueObservedChange struct, so that you can distinguish whether this is the `.initial` value or a `.new` value and, if it _is_ a `.new` value, you can find out what the `.old` value was if you asked for that to be included.
+
+But a KeyValueObservingPublisher doesn't work like that. First, the `options` can include `.initial` or `.new` or both (the default), but it is pointless to include `.old`, as the old value will never be received. Second, the values you receive into the pipeline are simply the value that the observed property has at the time of subscription (if you included `.initial`) followed by the values that it has after each change; you have no way of distinguishing the `.initial` value from the subsequent `.new` values, except that it is the first value that arrives.
+
+Here's a workaround (I owe this idea to [Tyler Prevost](https://stackoverflow.com/a/60390057/341994)): you can use the fact that the `.initial` value _is_ the first value to distinguish it yourself. A clean approach is to wrap each value in an enum with associated values, along these lines:
+
+~~~
+enum KVO<T> {
+    case initial(T)
+    case new(T)
+}
+~~~
+
+You then use operators to break up the series of received values into the first value and all the rest of the values, wrapping them up into respective cases of that enum:
+
+~~~
+let kvop = self.thingy.publisher(for: \.string, options: [.initial, .new])
+let initial = kvop.first()
+    .map { KVO.initial($0) }
+let subsequent = kvop.dropFirst()
+    .map { KVO.new($0) }
+let realkvop = initial.merge(with: subsequent).eraseToAnyPublisher()
+~~~
+
+Now when you subscribe to the operator at the end of that pipeline (here, `realkvop`), what you get are instances of the enum, telling you whether they are `.initial` or `.new` values:
+
+~~~
+initial("first value")
+new("second value")
+new("last value")
+~~~
+
+An even more sophisticated solution is to take advantage of the little-used `.prior` option. This causes every change in the observed property to emit _two_ values in succession, the old value followed by the new value. Knowing this, you can capture those pairs and re-emit them as, say, a tuple that marks which is which. We'll rewrite our enum in preparation:
+
+~~~
+enum KVO<T> {
+    case initial(T)
+    case subsequent(prior: T, new: T)
+}
+~~~
+
+And we'll change the start of our pipeline accordingly:
+
+~~~
+let kvop = self.thingy.publisher(for: \.string, options: [.initial, .new, .prior])
+let initial = kvop.first()
+    .map { KVO.initial($0) }
+let subsequent = kvop.dropFirst().collect(2)
+    .map { KVO.subsequent(prior:$0[0], new:$0[1])}
+let realkvop = initial.merge(with: subsequent).eraseToAnyPublisher()
+~~~
+
+Now the values emitted from `kvop` look like this:
+
+~~~
+initial("first value")
+subsequent(prior: "first value", new: "second value")
+subsequent(prior: "second value", new: "last value")
+~~~
+

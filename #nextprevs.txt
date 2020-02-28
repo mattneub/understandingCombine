@@ -13,3 +13,9 @@ subscribersAssign
 subscribersAnyCancellable
 subscribersCustom
 publishers
+publishersNotification
+publishersDataTask
+publishersTimer
+publishersKVO
+publishersPublished
+publishersCustom

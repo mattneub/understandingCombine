@@ -1,0 +1,22 @@
+#title "Data Task Publisher"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+A URLSession data task (URLSessionDataTask) is matched by a URLSession's data task publisher (URLSession.DataTaskPublisher). If you were using a data task with a completion handler — that is, if this is not a URLSession with a delegate — you can use a data task publisher instead. You can supply a URL or a URLRequest:
+
+    func dataTaskPublisher(for: URL)
+    func dataTaskPublisher(for: URLRequest)
+
+I'll just repeat the example I developed in the [previous chapter](startTypes):
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data}
+    .replaceError(with: Data())
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .assign(to: \.image, on: self.iv)
+~~~

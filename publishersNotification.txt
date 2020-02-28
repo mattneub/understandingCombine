@@ -1,0 +1,33 @@
+#title "Notification Center Publisher"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The notification center is a broadcast mechanism used to post messages agnostically, to be received by conceptually distant objects. A notification center publisher (NotificationCenter.Publisher) is — you guessed it — a publisher vended by the NotificationCenter. To obtain one, you'll typically call this method on the `NotificationCenter.default` instance:
+
+    func publisher(for: Notification.Name, object: AnyObject? = nil)
+
+Instead of _registering_ for a notification by calling some form of `addObserver`, you'll obtain a publisher and construct a pipeline. Here's an example from my own code:
+
+~~~
+NotificationCenter.default.publisher(for: .zipCodeDidChange)
+    .compactMap { $0.userInfo?["zip"] as? String }
+    .assign(to: \.currentZip, on: self)
+    .store(in:&storage)
+~~~
+
+That code illustrates several advantages of using the Combine framework, as opposed to registering an observer:
+
+Logic
+: The logic of analyzing and responding to the notification is pushed up into the pipeline. In my example, the notification's `userInfo` dictionary is expected to contain a `"zip"` key whose value is a string. We have to examine the notification to see whether that's the case, and if so we extract the value and assign it directly into an instance property. With registration, we would have to do all that work in a separate function that is called when the notification arrives. With the Combine framework, there is no separate function; the pipeline takes care of everything.
+
+Memory management
+: With registration, if we call `addObserver(forName:...)`, there is a great deal of memory management to do. The call returns an observer object; we have to retain it, or we won't get any notifications, and we need to retain it in such a way that it will be released when we ourselves are released, such as an instance property. The call also takes a function as its last parameter; we have to remember to declare `self` as `weak` or `unowned` in that function, or we risk forming a retain cycle and causing `self` to be leaked. With the Combine framework, the boilerplate `store(in:)` strategy takes care of memory management.
+
+Unregistration
+: If we register an observer with the notification center, we should unregister that observer before it goes out of existence. The penalty for failing to do that is not as severe as it used to be — the notification center's reference to the observer is ARC-weak in modern iOS systems, so there is no danger of crashing from a dangling pointer. Nevertheless, unregistration is a still a good thing to do. With the Combine framework, the `store(in:)` strategy takes care of unregistering when we go out of existence and the pipeline is torn down, and if we want to unregister earlier, we just release the retained AnyCancellable or tell it to `cancel`.
+
+Notifications can be used by the runtime to let your app know of certain events, such as the app going into the background or the music player proceeding to the next song in the queue. You can also use them yourself to allow conceptually distant objects to communicate agnostically. In the latter case especially, I find myself using notifications more than I used to, thanks to the Combine framework. Configuring a notification center publisher pipeline is a very simple way to establish a communication path, compared to, say, a protocol-and-delegate architecture; in particular, the receiving object never needs to form a reference to the sending object.
+
