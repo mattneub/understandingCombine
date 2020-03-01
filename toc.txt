@@ -1,0 +1,9 @@
+#title "Table of Contents"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+#breadcrumbs false
+
+# <%= title %>
+
+<%= breadcrumbs() %>

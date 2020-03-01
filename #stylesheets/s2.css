@@ -38,4 +38,22 @@ dt {
     font-style: italic;
     margin-top: 20px;
 }
-
+div.breadcrumbs {
+    border: 2px solid;
+    margin: 10px;
+    padding: 10px;
+    font-size: 11pt;
+    float: left;
+}
+div.breadcrumbs p {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+p.header {
+    font-size: 11pt;
+    text-align: center;
+}
+div.toc {
+    margin-left: 50px;
+    margin-right: 50px;
+}

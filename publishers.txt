@@ -1,4 +1,4 @@
-#title "Publishers"
+#title "Chapter: Publishers"
 #kramdown 1
 #template "secondtemplate"
 #embedstylesheet "s2"

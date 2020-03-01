@@ -1,0 +1,8 @@
+#title "Chapter: Operators"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+**The Operators chapter is not yet written.**

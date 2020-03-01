@@ -1,0 +1,87 @@
+#title "Future and Deferred"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+A Future is a publisher that generalizes the sort of thing a [data task publisher](publishersDataTask) does: it launches some asynchronous task, and when it is subscribed to and the task has completed (or there is an error), it publishes.
+
+Anything that takes a _completion function_ (also known as a completion handler) is a good candidate for encapsulation into a Future. When you initialize the Future, you hand it a function. That function takes one parameter, called a _promise._ The promise function itself is, in fact, a completion function. When _your_ completion function is called, your job is to call the _promise_ completion function, thus signalling to the Future that it is time to publish.
+
+The promise function takes one parameter: a Result. As you know, a Result is an enum with a `.success` case and a `.failure` case, each of which can have an associated value:
+
+* If you call the promise function with a `.success` Result, the Future emits that case's associated value, publishing it on down to the downstream subscriber. It then sends a `.finished` [completion](startCompletions).
+
+* If you call the promise function with a `.failure` Result, the associated value is an Error; the Future treats that as a failure, and it sends that Error down the pipeline as a failure [in the usual way](startFailures). 
+
+An example will clarify instantly. I can't use a data task as my example, because there's already a built-in publisher for that; so I'll use Core Location geocoding. You've probably written code along these lines:
+
+~~~
+let s = "Nordhoff High School, Ojai, California"
+CLGeocoder().geocodeAddressString(s) { placemarks, error in
+    guard let placemarks = placemarks else { return }
+    let p = placemarks[0]
+    let mp = MKPlacemark(placemark:p)
+    if let coord = mp.location?.coordinate {
+        // latitude: 34.4418801, longitude: -119.2671168
+        // ...
+    }
+}
+~~~
+
+That's an asynchronous task; everything starting with `placemarks, error in` is the completion function, which is not called until the CLGeocoder has gone out on the network and tried to obtain location information from an online database. Let's express that as a Future.
+
+Our Future will either publish a CLLocationCoordinate2D, if the geocoding succeeds, or it will emit an Error if the geocoding fails. The important thing is that in our completion function we _must_ call the promise function with a Result, no matter what. The elegant way to ensure that is to wrap all of our code in a Result initializer and then just call the promise function _once_ with that Result — because the compiler will ensure that every path of execution inside the Result initializer will either throw an error or return a coordinate:
+
+~~~
+enum MyError : Error { case oops }
+let future = Future<CLLocationCoordinate2D, Error> { promise in
+    let s = "Nordhoff High School, Ojai, California"
+    CLGeocoder().geocodeAddressString(s) { placemarks, error in
+        let result = Result<CLLocationCoordinate2D, Error> {
+            if let error = error { throw error }
+            guard let placemarks = placemarks else { throw MyError.oops }
+            let p = placemarks[0]
+            let mp = MKPlacemark(placemark:p)
+            if let coord = mp.location?.coordinate { return coord }
+            throw MyError.oops
+        }
+        promise(result)
+    }
+}
+~~~
+
+We have now formed a Future publisher called `future`. If we attach a Sink to `future`, we find that the Sink receives the CLLocationCoordinate2D followed by a `.finished` completion. If any of the `throw` statements had executed, it would have received a `.failure` completion instead.
+
+However, there's a potential problem. What happens if we _don't_ attach a Sink to `future`? The answer is that the Future's function _runs anyway._ We go out on the network with our geocoder and try to get a coordinate for our address, even though we have no subscriber. That is _not_ the way a data task publisher behaves; it waits to start operating until it actually has a subscriber. If we want our Future to behave like that, we can wrap it in a Deferred publisher.
+
+A Deferred publisher is extremely simple: it is initialized with a function that returns another publisher, but it doesn't run that function, and thus doesn't create that publisher, until it is subscribed to. To turn any publisher into a deferred publisher, simply write
+
+    Deferred {
+        // publisher goes here
+    }
+
+So let's turn our Future into a Deferred Future:
+
+~~~
+let deferredFuture = Deferred {
+    Future<CLLocationCoordinate2D, Error> { promise in
+        let s = "Nordhoff High School, Ojai, California"
+        CLGeocoder().geocodeAddressString(s) { placemarks, error in
+            let result = Result<CLLocationCoordinate2D, Error> {
+                if let error = error { throw error }
+                guard let placemarks = placemarks else { throw MyError.oops }
+                let p = placemarks[0]
+                let mp = MKPlacemark(placemark:p)
+                if let coord = mp.location?.coordinate { return coord }
+                throw MyError.oops
+            }
+            promise(result)
+        }
+    }
+}
+~~~
+
+If we run that code, nothing happens. And that's exactly what we want! It isn't until we actually attach a subscriber to `deferredFuture` that the geocoder springs into action and we start networking.
+

@@ -1,0 +1,82 @@
+#title "Value Publishers"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+The term *value publisher* is something I've made up to cover several publishers provided by the Combine framework. In my categorization, a value publisher is a simple publisher that publishes a hard-coded value — that is, the value to be published is baked into the publisher itself.
+
+Here are the publishers that I categorize in this way:
+
+Just
+: Just is a publisher initialized with a value. It publishes that value and stops. For example, `Just(10)` publishes the integer `10` (followed by a `.finished` completion).
+
+Optional
+: Optional.Publisher is a publisher initialized with an Optional value. It publishes the value wrapped by that Optional and stops. If the Optional is `nil`, the publisher does nothing. For example, `Optional.Publisher(Optional(10))` publishes `10` (followed by a `.finished` completion). But `Optional.Publisher(Optional<Int>.none)` just sends the `.finished` completion.
+
+Result
+: A Result vends a publisher (Result.Publisher) through its `publisher` property. If the Result is `.success`, the publisher publishes the associated value. If the Result is `.failure`, the publisher sends a failure message with the associated Error value. For example, `Result.success(10).publisher` publishes `10` (followed by a `.finished` completion).
+
+Sequence
+: A Sequence vends a publisher (Publisher.Sequence) through its `publisher` property. The publisher publishes all elements of the sequence. For example, `[1,2,3].publisher` publishes `1`, then `2`, then `3` (followed by a `.finished` completion).
+
+Empty
+: Empty is a publisher that does nothing. It is initialized with a `completeImmediately` parameter; if this parameter is `true`, then the publisher emits a `.finished` completion, but if it is `false`, it emits nothing whatever.
+
+Fail
+: Fail is a publisher that emits a `.failure` completion. It is initialized with an `error` parameter expressing the associated value of the `.failure`.
+
+You might wonder what's the good of these publishers, as they are all extremely simple and their output is hard-coded. Well, for one thing, they are useful for *testing* a pipeline, to see what comes down the pipeline with this publisher at its start. But they also have a use you might not think of at first: they are valuable in the _middle_ of a pipeline.
+
+To understand why, you need to know about the `flatMap` operator. It takes a function that accepts a value from upstream and returns a publisher — which then publishes to the next subscriber downstream. In other words, the output from `flatMap` is the output from the publisher that its function produces.
+
+Thus, inside the `flatMap` function, we can create a publisher based on _what_ value came to us from upstream. So, for example, even though the value published by a Just is hard-coded to the value with which the Just is initialized, that value _itself_ doesn't need to be hard-coded (a literal); it can be the value we received from upstream.
+
+To illustrate, I'll create an artifical toy example; this is probably not the way you'd do this in real life, but it demonstrates how value publishers can pop up in the middle of a pipeline:
+
+~~~
+enum MyError : Error { case tooBig }
+(1...10).publisher
+    .setFailureType(to: Error.self)
+    .flatMap { (i:Int) -> AnyPublisher<Int,Error> in
+        if i < 5 {
+            return Just(i).setFailureType(to: Error.self).eraseToAnyPublisher()
+        } else {
+            return Fail<Int,Error>(error: MyError.tooBig).eraseToAnyPublisher()
+        }
+}.sink(receiveCompletion: {print($0)}, receiveValue: {print($0)})
+.store(in:&self.storage)
+~~~
+
+We start with a publisher that emits the sequence of Ints `1` thru `10`. We want to pass these values down the pipeline as they arrive, but after we've received `4` we want to pass an error instead. A Sequence publisher's error type is Never, so we start by using `.setFailureType` to change the downstream pipeline's Failure type to Error. Now we're ready for `.flatMap`.
+
+In the `flatMap` function, we receive an Int, which we call `i`. Our plan is to produce a publisher — either a publisher that repeats the value of `i`, or a publisher that signals a failure. Those will be a Just and a Fail:
+
+        if i < 5 {
+            // produce a Just(i)
+        } else {
+            // produce a Fail
+        }
+
+Everything else is simply a matter of getting our code to compile. First, Just and Fail are two different kinds of publisher, so we need to erase the difference between them with `.eraseToAnyPublisher`, so that both wings of the condition produce the same type, namely an `AnyPublisher<Int,Error>`:
+
+        if i < 5 {
+            // produce Just(i).eraseToAnyPublisher()
+        } else {
+            // produce a Fail.eraseToAnyPublisher()
+        }
+
+
+But our code still doesn't compile, because we need the AnyPublishers produced by the two wings to be parameterized on the same Output and Failure types; the Output will obviously be `Int`, and we've already decided the Failure type will be Error. Configuring the Fail is easy: we just declare that it is a `Fail<Int,Error>`. But our Just's types are `<Int, Never>`; a Just's Failure type is _always_ Never. So we use `.setFailureType` _again_ to change the Failure type to Error _again_. Now our code compiles!
+
+And the result is exactly as we hoped:
+
+    1
+    2
+    3
+    4
+    failure(MyError.tooBig)
+
+As I've said, that example is artificial; in real life, if you wanted to do that sort of thing, you'd use `.tryMap`, not `.flatMap`. Nevertheless, this use of value publishers, injecting them into the pipeline and causing them to publish, is highly characteristic of Combine framework techniques.
+

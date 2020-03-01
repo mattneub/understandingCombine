@@ -1,21 +1,26 @@
 start
-startUnifyingAsynchronicity
-startPublishAndSubscribe
-startOperators
-startPipelines
-startCompletions
-startFailures
-startTypes
-startSummary
+  startUnifyingAsynchronicity
+  startPublishAndSubscribe
+  startOperators
+  startPipelines
+  startCompletions
+  startFailures
+  startTypes
+  startSummary
 subscribers
-subscribersSink
-subscribersAssign
-subscribersAnyCancellable
-subscribersCustom
+  subscribersSink
+  subscribersAssign
+  subscribersAnyCancellable
+  subscribersCustom
 publishers
-publishersNotification
-publishersDataTask
-publishersTimer
-publishersKVO
-publishersPublished
-publishersCustom
+  publishersNotification
+  publishersDataTask
+  publishersFuture
+  publishersTimer
+  publishersKVO
+  publishersPublished
+  publishersSubject
+  publishersValue
+  publishersRecord
+  publishersCustom
+operatorsStart

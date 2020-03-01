@@ -1,0 +1,96 @@
+#title "Subject"
+#kramdown 1
+#template "secondtemplate"
+#embedstylesheet "s2"
+
+# <%= title %>
+
+A Subject publisher is rather similar to a [`@Published`](publishersPublished) publisher, in this sense: they are both ways of emitting a single value whenever you say to do so. A `@Published` publisher emits a single value when the instance it is attached to is set, while a Subject publisher emits a single value when you tell it to do so. However, there is an important difference: a `@Published` publisher is a feature of a class property instance. A Subject is just a publisher, plain and simple, so it works everywhere. You might look at a `@Published` publisher as a special case of a Subject publisher, a convenience that lets you do automatically in one situation what a Subject publisher always does manually.
+
+To make a Subject emit a value, you tell it to `send(_:)` that value.
+
+Subject itself is a protocol; there are two built-in Subject adopter classes:
+
+PassthroughSubject
+: A PassthroughSubject emits what it is told to `send`, and no more.
+
+CurrentValueSubject
+: A CurrentValueSubject is initialized with a value, and it maintains that value its `value` property. It emits when it is subscribed to, and when its `value` is set. You can set its `value` directly, or you can tell it to `send`, which also changes its `value`; both ways amount to the same thing.
+
+To illustrate, here's the [example](publishersPublished) of a `@Published` property rewritten to use a CurrentValueSubject:
+
+~~~
+class ViewController2 : UIViewController {
+    let countPublisher = CurrentValueSubject<Int,Never>(0)
+    @IBAction func doButton(_ sender:Any) {
+        self.countPublisher.value += 1
+    }
+}
+class ViewController: UIViewController {
+    var storage = Set<AnyCancellable>()
+    var count : Int = 0
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc2 = segue.destination as? ViewController2 {
+            vc2.countPublisher.value = self.count
+            vc2.countPublisher.assign(to: \.count, on: self).store(in:&self.storage)
+        }
+    }
+}
+~~~
+
+The real power of a Subject doesn't really emerge from that example, however, as we're not doing anything we couldn't have done with `@Published`. In the first place, _any_ object, including a struct or an enum, can vend a Subject, and it doesn't have to be vended through a property. In the second place, a Subject can be different from a value being maintained, and the Subject publisher can be vended publicly while keeping the value manipulation private:
+
+~~~
+class ViewController2 : UIViewController {
+    private var count = 0
+    private let countPublisher = PassthroughSubject<Int, Never>()
+    func publishCount(startingAt:Int) -> PassthroughSubject<Int, Never> {
+        self.count = startingAt
+        return self.countPublisher
+    }
+    @IBAction func doButton(_ sender:Any) {
+        self.count += 1
+        self.countPublisher.send(self.count)
+    }
+}
+class ViewController: UIViewController {
+    var storage = Set<AnyCancellable>()
+    var count : Int = 0
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc2 = segue.destination as? ViewController2 {
+            let pub = vc2.publishCount(startingAt:self.count)
+            pub.assign(to: \.count, on: self).store(in:&self.storage)
+        }
+    }
+}
+~~~
+
+Even though that's still largely a toy example, you can see that we've made `count` a private property; the publisher is separated from the maintenance of state. And it is up to us when and how we tell the Subject to emit a value; for example, we might emit only when `count` is an even number. And of course there is no law that says that a Subject's value needs to reflect _any_ property; we could be doing anything at all behind the scenes and publishing values for any reason whatever.
+
+Another important feature of a Subject is that it is a class. This means that a single Subject can be subscribed to by many subscribers simultaneously; it will broadcast its value to all of them.
+
+Finally, a Subject has the remarkable feature that it is also an operator, in the sense that you can subscribe it to another publisher. The dance is a little tricky because when you tell a publisher to `subscribe` a Subject you get an AnyCancellable that you need to retain if you don't want it to go out of existence.
+
+To demonstrate, here's an artificial example:
+
+~~~
+var storage = Set<AnyCancellable>()
+let topSubject = PassthroughSubject<String,Never>()
+override func viewDidLoad() {
+    super.viewDidLoad()
+    let sub1 = PassthroughSubject<String,Never>()
+    topSubject.subscribe(sub1).store(in:&self.storage)
+    sub1.sink { print("sub1", $0)}.store(in:&self.storage)
+    let sub12 = PassthroughSubject<String,Never>()
+    topSubject.subscribe(sub12).store(in:&self.storage)
+    sub1.sink { print("sub2", $0)}.store(in:&self.storage)
+}
+~~~
+
+Now if we tell our `topSubject` to `send("howdy")`, we see in the console:
+
+    sub1 howdy
+    sub2 howdy
+
+So we have shown both that `topSubject` can broadcast to multiple pipelines simultaneously and that the `sub1` and `sub2` Subjects can be subscribed to a publisher.
+
