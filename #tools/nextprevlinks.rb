@@ -6,5 +6,5 @@ def nextprevlinks()
   prev = "Prev: " + html.getLink(ptitle, ppath) if p
   nxt = ""
   nxt = "Next: " + html.getLink(ntitle, npath) if n
-  "<p style='float:left'>#{prev}</p><p style='float:right'>#{nxt}</p>\n<div style='clear:both' />\n"
+  "<p style='float:left; width:45%'>#{prev}</p><p style='float:right; text-align:right; width:45%'>#{nxt}</p>\n<div style='clear:both' />\n"
 end
