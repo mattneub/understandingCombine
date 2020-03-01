@@ -1,7 +1,4 @@
 #title "Publish and Subscribe"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 
@@ -71,5 +68,5 @@ The pattern that I've just shown is the core pattern for using the Combine frame
 
 3. We store the subscriber in an instance property so that it is retained (and so that it will be released automatically at the latest when the surrounding instance goes out of existence).
 
-> NOTE: There are other ways besides `store(in:)` to retain a subscriber, but I'll use the `store(in:)` method routinely, effectively as boilerplate, in the vast majority of my examples.
+> **NOTE:** There are other ways besides `store(in:)` to retain a subscriber, but I'll use the `store(in:)` method routinely, effectively as boilerplate, in the vast majority of my examples.
 

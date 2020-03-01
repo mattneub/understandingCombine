@@ -22,9 +22,13 @@ def doOneLevel(node, thisnode)
     name = line["text"]
     title, path = html.getTitleAndPaths(name)
     link = html.getLink(title, path)
-    s << "<p>" + link + "</p>\n"
+    if line == thisnode
+      s << "<p><b>" + link + "</b></p>\n"
+    else
+      s << "<p>" + link + "</p>\n"
+    end
     if line.children.count > 0 && (thisnode.nil? || thisnode == line || thisnode.ancestors.include?(line))
-      s << "<div style='padding-left:5em;'>\n"
+      s << "<div class='toc_level'>\n"
       s << doOneLevel(line, thisnode)
       s << "</div>\n"
     end

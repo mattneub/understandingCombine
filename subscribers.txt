@@ -1,11 +1,10 @@
 #title "Chapter: Subscribers"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 
 A Combine pipeline is built from a publisher, some operators, and a subscriber. We're now ready to talk about the details and describe what publishers, operators, and subscribers exist, built in to the framework. (You can also write your own publishers, operators, and subscribers, but in real life you're not very likely to need to do that.)
 
-I'm going to start with the subscribers. This might seem backwards, but there are very few built-in subscribers and they are extremely simple, so we may as well get them out of the way.
+I'm going to start with the subscribers. This might seem backwards, but there are only a couple of built-in subscribers and they are extremely simple, so we may as well get them out of the way.
+
+I'll also talk about what it would take to write your own subscriber. It isn't very likely that you'd need to do that, but if you do, a rudimentary subscriber is not difficult to write.
 

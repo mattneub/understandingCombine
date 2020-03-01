@@ -1,8 +1,17 @@
+$normal-font: Georgia, "Times New Roman", Times, serif;
+
+$code-font-family: "Inconsolata","Monaco","Consolas","Andale Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+
+$breadcrumbs-width: 220px;
+
 body {
-    font: 13pt Georgia, "Times New Roman", Times, serif;
-    line-height: 18pt;
+    font: 13pt $normal-font;
+    line-height: 1.4;
     margin: 30px;
     background: #FFFFEE;
+}
+div.normal_page {
+    margin-left: $breadcrumbs-width + 30;
 }
 h1 {
   text-align: center;
@@ -13,26 +22,30 @@ a:hover {
 a:active {
   background-color: purple;
 }
+code {
+    font-family: $code-font-family;
+    font-size: 95%;
+}
 pre code {
     background: #FDFDFD;
     white-space: pre;
-    word-wrap: break-word;
-    overflow: auto;
+    word-wrap: none;
+    overflow-x: auto;
+    overflow-y: hidden;
     border-radius: 4px;
     border: 1px solid #292929;
     position: relative;
-    font-family: "Inconsolata","Monaco","Consolas","Andale Mono","Bitstream Vera Sans Mono","Courier New",Courier,monospace;
+    font-family: $code-font-family;
     display: block;
     margin: 10px;
     padding: 15px 16px 14px;
-    overflow-x: auto;
-    font-size: 13px;
-    line-height: 19px;
+    font-size: 80%;
+    line-height: 1.4;
     color: black;
 }
 blockquote {
     border: 1px solid #292929;
-    padding: 15px 16px 14px;
+    padding: 6px 16px 6px;
 }
 dt {
     font-style: italic;
@@ -42,18 +55,43 @@ div.breadcrumbs {
     border: 2px solid;
     margin: 10px;
     padding: 10px;
-    font-size: 11pt;
-    float: left;
-}
-div.breadcrumbs p {
-    margin-top: 5px;
-    margin-bottom: 5px;
+    font-size: 10.5pt;
+    position: fixed;
+    top:0;
+    left:0;
+    z-index: 1;
+    background: white;
+    width: $breadcrumbs-width;
+    
+    p {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding-left: 22px;
+        text-indent: -22px;
+    }
 }
 p.header {
     font-size: 11pt;
     text-align: center;
 }
 div.toc {
-    margin-left: 50px;
-    margin-right: 50px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 300px;
+}
+div.toc_level {
+    padding-left: 3em;
+}
+div.bottom_nav {
+    font-size: 90%;
+}
+@media only screen and (max-width: 1000px) {
+    div.breadcrumbs {
+        visibility: hidden;
+    }
+    div.normal_page {
+        margin-left: 0px;
+    }
 }

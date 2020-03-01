@@ -1,9 +1,8 @@
-#title "Table of Contents"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
+#title "Understanding Combine"
 #breadcrumbs false
 
 # <%= title %>
+
+<p style="text-align:right">by Matt Neuburg</p>
 
 <%= breadcrumbs() %>

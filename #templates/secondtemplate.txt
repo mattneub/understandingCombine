@@ -1,7 +1,14 @@
 #bgcolor "#84E1FF"
 <%= pageheader() %>
+
+<% if adrObject.simplename.to_s != "toc" %>
+<div class="normal_page" markdown="1">
+<% else %>
+<div class="toc_page" markdown="1">
+<% end %>
+
 <p class="header">
-This is an introduction to Apple’s Combine framework, written by Matt Neuburg.
+This is <b><em>Understanding Combine</em></b>, written by Matt Neuburg.
 <em>It is a work in progress.</em>
 Corrections and suggestions are greatly appreciated.
 So are donations; please consider keeping me going by funding this work at
@@ -14,13 +21,21 @@ and
 Thank you!
 </p>
 <hr />
+
 <% if adrObject.simplename.to_s != "toc" %>
 <%= breadcrumbs() %>
 <% end %>
+
 <p id="bodytext"></p>
+
+</div>
+
 <% if adrObject.simplename.to_s != "toc" %>
+<div class="bottom_nav">
 <hr />
 <%= nextprevlinks() %>
 <p style="text-align:center;"><a href="toc">Table of Contents</a></p>
+</div>
 <% end %>
+
 <%= pagefooter() %>

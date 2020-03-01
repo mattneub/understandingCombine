@@ -1,7 +1,4 @@
 #title "Custom Publishers"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 

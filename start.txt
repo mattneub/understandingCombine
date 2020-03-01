@@ -1,11 +1,10 @@
 #title "Introduction: The Combine Framework"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 
 The Combine framework was introduced by Apple in iOS 13 in Xcode 11 along with Swift 5.1. What is it, why would you want to use it, and how do you use it? That's what this little book will explain.
 
 There are lots of tutorials about the Combine framework, and there's no particular reason why another one is needed. However, in studying the Combine framework for my own use, I've arrived at my own way of understanding it and explaining it to myself, so perhaps the results of my investigations and my approach to thinking about Combine will be useful to others as well.
+
+If you haven't already used some form of reactive framework (such as [RxSwift](https://github.com/ReactiveX/RxSwift)), the Combine framework will require you to think in a whole new way. Logic that you are accustomed to expressing with lines of code, such as ordinary `if` conditions, may have to be expressed through a clever choice of [operators](startOperators). Don't be discouraged! The mindset you have to adopt in order to use the Combine framework is fascinating and fun. You'll be entering a whole new world of wonders. It's just a matter of _understanding_ what the Combine framework is and how it works. That's what I'm here to help with.
 

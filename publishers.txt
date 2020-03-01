@@ -1,9 +1,14 @@
 #title "Chapter: Publishers"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 
-Now that we've talked about subscribers, we can turn to publishers. The Combine framework provides quite a few built-in publishers. I divide these into several types. I'll start with what I call _Foundation_ publishers. These are publishers that are tacked on to various existing Foundation facilities that you've probably been using already to receive asynchronous signals. Thanks to these publishers, you can easily adapt your existing code to use the Combine framework instead.
+Now that we've talked about subscribers, we can turn to publishers. The Combine framework provides quite a few built-in publishers. In my own thinking, I divide these into several types; I don't insist upon this categorization, but I'll tell you what they are, to give you some notion of what to expect.
+
+First, there are what I call _Foundation_ publishers. These are publishers that are tacked on to various existing Foundation facilities that you've probably been using already to receive asynchronous signals. Thanks to these publishers, you can easily adapt your existing code to use the Combine framework instead. For example, are you using the NotificationCenter and Notifications? There's a publisher for that. Are you using URLSession data tasks? There's a publisher for that. Timers? KVO? There's a publisher for that.
+
+Second, there are _general_ publishers. For example, Future is a publisher that generalizes any asynchronous operation into a publisher. Published and Subject are publishers that generalize the KVO notion of publishing a value on demand.
+
+Finally, there _value_ publishers. These are extremely simple publishers that have a value baked into them; they simply publish that value. They are useful for testing and debugging, but some of them can also come in handy as part of a pipeline, as I'll demonstrate in due course.
+
+After I've listed the built-in publishers, I'll talk about what it might take to write a publisher of your own. For example, the Combine framework unaccountably lacks a publisher for UIControl events, so we'll write one.
 

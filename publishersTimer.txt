@@ -1,7 +1,4 @@
 #title "Timer Publisher"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 

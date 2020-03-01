@@ -1,7 +1,4 @@
 #title "Key–Value Observing Publisher"
-#kramdown 1
-#template "secondtemplate"
-#embedstylesheet "s2"
 
 # <%= title %>
 
