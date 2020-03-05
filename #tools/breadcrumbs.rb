@@ -21,9 +21,9 @@ def doOneLevel(node, thisnode)
   node.children.each do |line|
     name = line["text"]
     title, path = html.getTitleAndPaths(name)
-    link = html.getLink(title, path)
+    link = html.getLink(title, name)
     if line == thisnode
-      s << "<p><b>" + link + "</b></p>\n"
+      s << "<p><b>" + title + "</b></p>\n"
     else
       s << "<p>" + link + "</p>\n"
     end
