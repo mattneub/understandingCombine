@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.scan` (Publishers.Scan) is like [`.map`](operatorsMap), except that the map function takes _two_ parameters: it receives the value emitted by the upstream publisher, but it also receives the value that the map function itself produced _previously._ The first time `scan` is called, there is no previously produced value, so you have to supply that in the initializer.
+`.scan` (Publishers.Scan) is like [`.map`](operatorsMap), except that the map function takes _two_ parameters: it receives the value emitted by the upstream publisher, but it also receives the value that the map function itself produced _previously._ The first time `scan` is called, there is no previously produced value, so you have to supply that as the first parameter.
 
 For example, [recall](publishersTimer) that a Timer publisher publishes the current date–time. Suppose that instead what we're interested in is a count of how many times the Timer has fired. We can do that with `.scan`:
 
@@ -38,7 +38,7 @@ A particularly common thing to do is to make a tuple consisting of the current a
 
 In that code, the `scan` operator pairs the current and previous values, and the subsequent `map` operator extracts the time difference between them; so what arrives at the end of that pipeline is the _interval_ since the previous firing of the Timer.
 
-In situations where you can't coherently provide an initial value for the `scan` initializer, you can use an Optional and provide `nil`. For example, in the preceding code, the first interval reported is with respect to now — `Date()` — at the time the pipeline starts operating, and I use a fake value, `Date.distantPast`, as the initial previous value. Instead of that, we might like the first value to report that there is no previous value, leaving the downstream to draw its own conclusions:
+In situations where you can't coherently provide an initial value for the `scan` first parameter, you can use an Optional and provide `nil`. For example, in the preceding code, the first interval reported is with respect to now — `Date()` — at the time the pipeline starts operating, and I use a fake value, `Date.distantPast`, as the initial previous value. Instead of that, we might like the first value to report that there is no previous value, leaving the downstream to draw its own conclusions:
 
     Timer.publish(every: 1, on: .main, in: .default)
         .autoconnect()

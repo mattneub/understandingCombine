@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.reduce` (Publishers.Reduce) is just like the `.reduce` sequence method. You initialize it with an initial output value and a function. The function takes two parameters: the output value, and an input value. The function is called as each input value received from upstream, in order, and returns a new output value, which is remembered and supplied to the next call to the function. This goes on until a `.finished` completion is received. At that point, the value that was returned from the last call to the function is emitted downstream.
+`.reduce` (Publishers.Reduce) is just like the `.reduce` sequence method. You supply two parameters: an initial output value and a function. The function itself takes two parameters: the output value, and an input value. The function is called as each input value received from upstream, in order, and returns a new output value, which is remembered and supplied to the next call to the function. This goes on until a `.finished` completion is received. At that point, the value that was returned from the last call to the function is emitted downstream.
 
 `.reduce` thus produces at most just one value and stops. It signals this by sending a `.finished` completion after producing its value.
 

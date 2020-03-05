@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.compactMap` (Publisher.CompactMap) is closely related both to `.map` and to `.filter`. Like `.map`, it has the power to transform the value received from upstream into a different value. Like `.filter`, it has the power to prevent a value from proceeding further down the pipeline. Its function is both a map function and a filter function.
+`.compactMap` (Publishers.CompactMap) is closely related both to `.map` and to `.filter`. Like `.map`, it has the power to transform the value received from upstream into a different value. Like `.filter`, it has the power to prevent a value from proceeding further down the pipeline. Its function is both a map function and a filter function.
 
 So this function has to say two things at once: *what* value should proceed down the pipeline, and _should_ that value proceed down the pipeline. It does that by following a rule that the value it produces must be an Optional. If that Optional is not `nil`, _it is unwrapped_ and the unwrapped value proceeds down the pipeline. But if it _is_ `nil`, the value stops and doesn't proceed further.
 

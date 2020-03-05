@@ -16,7 +16,7 @@ Result
 : A Result vends a publisher (Result.Publisher) through its `publisher` property. If the Result is `.success`, the publisher publishes the associated value. If the Result is `.failure`, the publisher sends a failure message with the associated Error value. For example, `Result.success(10).publisher` publishes `10` (followed by a `.finished` completion).
 
 Sequence
-: A Sequence vends a publisher (Publisher.Sequence) through its `publisher` property. The publisher publishes all elements of the sequence. For example, `[1,2,3].publisher` publishes `1`, then `2`, then `3` (followed by a `.finished` completion).
+: A Sequence vends a publisher (Publishers.Sequence) through its `publisher` property. The publisher publishes all elements of the sequence. For example, `[1,2,3].publisher` publishes `1`, then `2`, then `3` (followed by a `.finished` completion).
 
 Empty
 : Empty is a publisher that does nothing. It is initialized with a `completeImmediately` parameter; if this parameter is `true`, then the publisher emits a `.finished` completion, but if it is `false`, it emits nothing whatever.

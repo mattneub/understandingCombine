@@ -1,0 +1,13 @@
+#title "Contains and AllSatisfy"
+
+# <%= title %>
+
+`.contains` (Publishers.Contains) reports, as a Bool, whether a certain value, which you supply as the parameter, is present among the values arriving from upstream. The value type must be an Equatable so that normal equality comparison can be used. As you might expect, it is short-circuited: that is, if that target value arrives from upstream, the operator immediately knows that the answer is `true`, so it cancels the upstream and emits `true` followed by a `.finished` completion. But the only way to know that the answer is `false` is to wait until all the upstream values have arrived and a `.finished` completion has been received.
+
+`.contains(where:)` (Publishers.ContainsWhere) is similar to `.contains`, but instead of a value to compare to, you supply a function that receives the incoming value from upstream, and you return a Bool: `true` means short-circuit the test and return `true` now, and `false` means wait for the next value. The operator will emit `false` only when a `.finished` completion has been received.
+
+`.tryContains(where:)` (Publishers.TryContainsWhere) is just like `.contains(where:)` except that the function can throw, in which case the error is sent down the pipeline as a failure.
+
+`.allSatisfy` (Publishers.AllSatisfy) reports, as a Bool, whether all the values arriving from upstream pass a certain test. It takes a function that receives the value from upstream and returns a Bool. As you might expect, it is short-circuited: if the function returns `false`, the operator immediately knows that the answer is `false`, so it cancels the upstream and emits `false` followed by a `.finished` completion. But if the function returns `true`, the operator has to wait for the next value, and will emit `true` only when a `.finished` completion has been received.
+
+`.tryAllSatisfy` (Publishers.TryAllSatisfy) is just like `.allSatisfy` except that the function can throw, in which case the error is sent down the pipeline as a failure.
