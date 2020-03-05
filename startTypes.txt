@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-As I've said [before](startOperators), each operator in a pipeline is both a subscriber and a publisher: it's a subscriber insofar as it looks upstream and subscribes to its immediate upstream publisher (which might be an operator), but it's a publisher insofar as it looks downstream and is subscribed to by its immediate downstream subscriber (which might be an operator). Each step along the pipeline is a publisher–subscriber pair. We can illustrate using the example pipeline we've [just created](startFailures):
+As I've said [before](startOperators), each operator in a pipeline acts both as a publisher and as a subscriber. It's a subscriber insofar as it looks upstream and effectively subscribes to its immediate upstream publisher (which might be an operator); and it's a publisher insofar as it can be subscribed to, and produces signals that it passes to its immediate downstream object. Each step along the pipeline involves a publisher–subscriber pair. We can illustrate using the example pipeline we've [just created](startFailures):
 
 ~~~
 data task publisher  ⬇️ publish
@@ -13,7 +13,7 @@ receive                                                     ⬆️ subscribe ⬇
 assign                                                                   ⬆️ subscribe
 ~~~
 
-Now, think about the _types_ of thing that can from a publisher to its subscriber at any step along the pipeline. A publisher might publish a value; that value is of some type. Or, a publisher might emit a failure message; that message wraps an instance of some Error adopter type. Thus, for every publisher–subscriber pair, we can always specify _two types_ — the value type and the failure type — that can pass across this pair from the publisher to the subscriber.
+Now, think about the _types_ of thing that can pass from a publisher to its subscriber at any step along the pipeline. A publisher might publish a value; that value is of some type. Or, a publisher might emit a failure message; that message wraps an instance of some Error adopter type. Thus, for every publisher–subscriber pair, we can always specify _two types_ — the value type and the failure type — that can pass across this pair from the publisher to the subscriber.
 
 The formal expression of that fact is that the Publisher and Subscriber types are themselves _generics:_
 

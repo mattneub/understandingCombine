@@ -6,13 +6,13 @@ In addition to [cancellation and completion](startCompletions), there's another 
 
 <%= section("Failure Message") %>
 
-When a publisher fails, it needs a way to inform its downstream subscriber of this fact. It does this by passing a _failure message_ to the subscriber. This message is parallel to a <%= xref("SECCompletion", "completion message")%> — in fact, it _is_ a kind of completion message. That makes sense, because the failure means that the publisher is done, every bit as much as if it had completed in good order.
+When a publisher fails, it needs a way to inform its downstream object of this fact. It does this by passing a _failure message_ to the downstream object. This message is parallel to a <%= xref("SECCompletion", "completion message")%> — in fact, it _is_ a kind of completion message. That makes sense, because the failure means that the publisher is done, every bit as much as if it had completed in good order.
 
-Recall that a completion message is actually an instance of the Subscribers.Completion enum, namely the `.finished` case. Well, a failure message is *also* an instance of the Subscribers.Completion enum, namely the `.failure` case. This case has an associated value which is an Error, thus giving the publisher a way to tell its subscriber _what_ the snag is.
+Recall that a completion message is actually an instance of the Subscribers.Completion enum, namely the `.finished` case. Well, a failure message is *also* an instance of the Subscribers.Completion enum, namely the `.failure` case. This case has an associated value which is an Error, thus giving the publisher a way to tell its downstream object _what_ the snag is.
 
 When a publisher fails, two things actually happen:
 
-* The publisher cancels itself. Thus, as I explained in the [previous section](startCompletions), it stops publishing, and if this publisher is an operator and is subscribed to another publisher, a `cancel` message is sent _up_ the pipeline, unsubscribing all subscribers and cancelling all publishers.
+* The publisher cancels itself. Thus, as I explained in the [previous section](startCompletions), it stops publishing, and if this publisher is an operator so that its upstream object is another publisher, a `cancel` message is sent _up_ the pipeline, unsubscribing all subscribers and cancelling all publishers.
 
 * The publisher emits a failure message. In general, a downstream operator, when it receives a failure message, will just pass that message further downstream. Therefore, by default, the failure message propagates all the way _down_ the pipeline to the final subscriber.
 

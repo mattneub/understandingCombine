@@ -1,0 +1,53 @@
+#title "Scan"
+
+# <%= title %>
+
+`.scan` (Publishers.Scan) is like [`.map`](operatorsMap), except that the map function takes _two_ parameters: it receives the value emitted by the upstream publisher, but it also receives the value that the map function itself produced _previously._ The first time `scan` is called, there is no previously produced value, so you have to supply that in the initializer.
+
+For example, [recall](publishersTimer) that a Timer publisher publishes the current date–time. Suppose that instead what we're interested in is a count of how many times the Timer has fired. We can do that with `.scan`:
+
+    Timer.publish(every: 1, on: .main, in: .common)
+        .autoconnect()
+        .scan(0) { count, date in count + 1 }
+
+That causes `1`, `2`, `3` and so on to be produced at 1-second intervals.
+
+In that example, we're ignoring the incoming value completely. Sometimes, however, what you want is to pass along the incoming value (possibly transformed in some way) along with a secondary piece of information injected by the `scan`. The usual technique is to produce a tuple:
+
+    Timer.publish(every: 1, on: .main, in: .common)
+    .autoconnect()
+        .scan((count:0, date:Date.distantPast)) {
+            tuple, date in (count:tuple.count + 1, date:date)
+        }
+
+That produces tuples pairing the count of times the Timer has fired with the Date when the Timer last fired:
+
+    (count: 1, date: 2020-03-02 15:39:50 +0000)
+    (count: 2, date: 2020-03-02 15:39:51 +0000)
+    (count: 3, date: 2020-03-02 15:39:52 +0000)
+    ...
+
+The downstream can then extract and manipulate that information as desired.
+
+A particularly common thing to do is to make a tuple consisting of the current and previous values, allowing the downstream to draw from these whatever conclusions it likes. I gave an example [earlier](publishersTimer):
+
+    Timer.publish(every: 1, on: .main, in: .default)
+        .autoconnect()
+        .scan((prev:Date.distantPast, now:Date())) { (prev:$0.now, now:$1) }
+        .map { $0.now.timeIntervalSince($0.prev) }
+
+In that code, the `scan` operator pairs the current and previous values, and the subsequent `map` operator extracts the time difference between them; so what arrives at the end of that pipeline is the _interval_ since the previous firing of the Timer.
+
+In situations where you can't coherently provide an initial value for the `scan` initializer, you can use an Optional and provide `nil`. For example, in the preceding code, the first interval reported is with respect to now — `Date()` — at the time the pipeline starts operating, and I use a fake value, `Date.distantPast`, as the initial previous value. Instead of that, we might like the first value to report that there is no previous value, leaving the downstream to draw its own conclusions:
+
+    Timer.publish(every: 1, on: .main, in: .default)
+        .autoconnect()
+        .scan((prev:Optional<Date>.none, now:Optional<Date>.none)) {
+            (prev:$0.now, now:$1)
+        }
+        .map { (prev:$0.prev, now:$0.now!)}
+
+In that code we follow `.scan` with a `.map` that force-unwraps the `.now` value, which is known always to exist by the time we get here. Thus what emerges from the pipeline is a tuple consisting of `prev`, which is an Optional Date reporting the previous occasion when the Timer fired, but might be `nil` to indicate that this is the first time, along with `now`, which is a Date reporting when the Timer fired on this occasion. (I owe that idea to [Rob Mayoff](https://stackoverflow.com/a/60403722/341994)).
+
+In addition to `.scan`, there is also `.tryScan` (Publishers.TryScan); it works [similarly](operatorsMap) to `.tryMap`, so I won't say more about it.
+

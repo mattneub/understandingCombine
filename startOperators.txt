@@ -6,7 +6,7 @@ You now know that the Combine framework unifies various forms of asynchronous si
 
 Well, I've been keeping something up my sleeve. I've left out the most important part of the story — _operators._ This is where things start to get really impressive. To put it another way: the fun is about to begin!
 
-An operator is an object that is _both_ a publisher _and_ a subscriber. This means that it can sit within a _chain_ of objects running between our original publisher (such as `NotificationCenter.default.publisher`) and our original subscriber (such as `sink`). We end up with a graph of objects in a structure that I can show schematically like this:
+An operator is an object that acts _both_ as a publisher _and_ as a subscriber. This means that it can sit within a _chain_ of objects running between our original publisher (such as `NotificationCenter.default.publisher`) and our original subscriber (such as `sink`). We end up with a graph of objects in a structure that I can show schematically like this:
 
 ~~~
 publisher [upstream]
@@ -16,7 +16,9 @@ publisher [upstream]
 subscriber [downstream]
 ~~~
 
-In the schema above, I've called the publisher end of the chain the "upstream" direction and the subscriber end of the chain the "downstream" direction. The signal produced by the publisher passes from the upstream object, through each operator, in turn, and on out to the downstream object, on its way to the subscriber. The way this works is that each operator inside the chain subscribes to whatever is immediately upstream of it, and is in turn subscribed to by whatever is immediately downstream of it, like this:
+In the schema above, I've called the publisher end of the chain the "upstream" direction and the subscriber end of the chain the "downstream" direction. The arrows on the left indicate the downstream flow of signals. The signal produced by the publisher passes from the upstream object, through each operator, in turn, and on out to the downstream object, on its way to the subscriber.
+
+The way this works is that each operator inside the chain effectively subscribes to whatever is immediately upstream of it, and is in turn subscribed to by whatever is immediately downstream of it, like this:
 
 ~~~
 publisher [upstream]  ⬇️ publish

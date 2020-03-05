@@ -1,0 +1,72 @@
+#title "Map"
+
+# <%= title %>
+
+`.map` (Publishers.Map) takes a function (the _map function_) that accepts a value published from upstream, and produces a new value, which may be of some other type. It is frequently used to focus the incoming published value down to the part of that value you're really after: 
+
+    URLSession.shared.dataTaskPublisher(for: url!)
+        .map {$0.data}
+
+The upstream URLSession.DataTaskPublisher produces a tuple of type `(data: Data, response: URLResponse)`. It happens that we are not interested in the `response` part, so we strip it, leaving the `data` part, which is a Data object.
+
+If the map function is of any complexity — anything more than a simple return statement — you have to provide an `in` line stating the output type. For example, this won't compile:
+
+    let pub = URLSession.shared.dataTaskPublisher(for: url!)
+        .map {
+            let resp = $0.response
+            if (resp as? HTTPURLResponse)?.statusCode != 200 {
+                return Data()
+            }
+            return $0.data
+    }
+
+You know that the map function produces a Data object, but the compiler takes no chances; it stops you with an error message. In the map function, you have to state the output type explicitly, and in order to do that, you have to give the map function's incoming parameter a name — you can't use `$0` any more:
+
+    let pub = URLSession.shared.dataTaskPublisher(for: url!)
+        .map { tuple -> Data in
+            let resp = tuple.response
+            if (resp as? HTTPURLResponse)?.statusCode != 200 {
+                return Data()
+            }
+            return tuple.data
+    }
+
+That's a common thing to have to do with operators that take functions, so get used to it.
+
+A variant on `.map` is `.tryMap` (Publishers.TryMap). It gives the map function the opportunity to throw an error; this error will proceed down the pipeline as a failure. The produced error type does _not_ have to be the same as the error type arriving from upstream; in fact, it is typed simply as Error. Again, that's a common fact about operators with `try` in their name.
+
+So `tryMap` is an opportunity to change downstream's error type as well as its value type:
+
+    enum MyError : Error { case oops }
+    let pub = URLSession.shared.dataTaskPublisher(for: url!)
+        .tryMap { tuple -> Data in
+            let resp = tuple.response
+            if (resp as? HTTPURLResponse)?.statusCode != 200 {
+                throw MyError.oops
+            }
+            return tuple.data
+    }
+
+In that example, the upstream publisher's error type is URLError, but if the TryMap throws, it throws a MyError. This is not a problem for the downstream, which expects an Error of some sort. And it isn't a problem for the TryMap itself; if the publisher throws a URLError, the TryMap passes it on down the pipeline and the map function doesn't run. Even if the upstream failure type is Never, you can use TryMap to produce an error.
+
+On the other hand, if you want to characterize the produced error as being of some specific type, you'll need another operator. For example, here the data task publisher throws a URLError; and let's suppose your `tryMap` also throws a URLError (if it throws). Then you could follow the `.tryMap` operator with a `.mapError` operator that force-downcasts the Error to a URLError:
+
+    .mapError{$0 as! URLError}
+
+That causes the downstream to expect a URLError. But of course that's a forced downcast, so you'd better not be lying or you'll crash.
+
+{::comment}
+There is also an operator `.replaceNil(with:)`, but it is hardly worth talking about, as it is nothing but a convenience form of `.map` (and what it produces is in fact a Map operator). For instance, if the values from upstream are of type `Int?`, it makes no difference whether you say:
+
+    .replaceNil(with: 0)
+
+or:
+
+    .map { $0 == nil ? 0 : $0 }
+
+The `.replaceNil` operator doesn't even unwrap the resulting Optional, which is probably what you wanted to do, since otherwise why would you be replacing `nil` in the first place? Thus you are more likely in any case to say:
+
+    .map { $0 ?? 0 }
+
+Or possibly you'd use [`.compactMap`](operatorsCompactMap) to eliminate `nil` altogether.
+{:/comment}

@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-We now know how to construct a pipeline and start it going: in general, simply constructing the entire pipeline, including the final subscriber, _does_ start it going (although there are some types of subscriber where it takes a little more than that). But how does a pipeline, or part of a pipeline, come to a stop?
+We now know how to construct a pipeline and start it going: in general, simply constructing the entire pipeline, including the final subscriber, _does_ start it going (although there are some types of publisher where it takes a little more than that). But how does a pipeline, or part of a pipeline, come to a stop?
 
 There are three chief ways: cancellation, completion, and error. I'll talk about cancellation and completion here, and I'll discuss error in [the next section](startFailures).
 
@@ -10,13 +10,13 @@ There are three chief ways: cancellation, completion, and error. I'll talk about
 
 The way that a publisher and a subscriber break their connection in good order is through _cancellation:_ the subscriber _cancels_ its subscription to the publisher. (Once again, the actual medium of communication is the [subscription object](startPublishAndSubscribe) that they share.) This causes the subscriber to be unsubscribed, and causes the publisher to stop publishing.
 
-If the publisher is an operator, meaning that it too is a subscriber subscribed to a publisher, it turns around and uses the same mechanism, sending a `cancel` message to unsubscribe from _that_ publisher. And so the `cancel` message percolates _up the pipeline,_ until it reaches the ultimate publisher, which stops publishing.
+If the publisher is an operator, meaning that it has an upstream publisher, it turns around and uses the same mechanism, sending a `cancel` message to _that_ publisher. And so the `cancel` message percolates _up the pipeline,_ until it reaches the ultimate publisher, which stops publishing.
 
 It turns out that _you_ are allowed to participate directly in mechanism. You can turn off a pipeline manually by telling the subscriber at the end of the pipeline to `cancel`, thus causing the `cancel` message to percolate up through the entire pipeline all the way to the ultimate publisher, and terminating the whole pipeline, permanently, in good order. You can do that, provided the subscriber adopts the Cancellable protocol, which means it has a `cancel` method. A Sink object _does_ adopt the Cancellable protocol.
 
 However, we have no direct access to any Sink object. As I mentioned [earlier](startPublishAndSubscribe), we are storing our Sink object in a Set called `storage` by calling `store(in:)` on it. How does that work? Well, it turns out that the `.sink` method does not merely produce a Sink object; it also wraps that object in an instance of a type-erasing wrapper class called AnyCancellable. The `store(in:)` method is an AnyCancellable method; it stores the AnyCancellable object in the collection we designate. Here, that's a Set whose elements are typed (appropriately enough) as AnyCancellable.
 
-Well, AnyCancellable also has a `cancel` method! So we can tell an AnyCancellable to `cancel`, it passes that message along to its wrapped Cancellable subscriber, and the pipeline is terminated and the subscribers are unsubscribed, in good order, all the way up to the publisher, which stops publishing.
+Well, AnyCancellable also has a `cancel` method! So we can tell an AnyCancellable to `cancel`, it passes that message along to its wrapped Cancellable subscriber, and the pipeline is terminated and the operators are cancelled, in good order, all the way up to the publisher, which stops publishing.
 
 We're keeping our AnyCancellable wrapper inside the `self.storage` Set. So all we have to do is find it and tell it to `cancel`. If we have only one pipeline, it will be the first element of the Set:
 
@@ -30,7 +30,7 @@ Another way to do the same thing would be to _remove_ the AnyCancellable wrapper
 
 The reason that works is that an AnyCancellable object, which is a reference type (a class), automatically cancels _itself_ when it goes out of existence — which is just what happens when we remove it from its Set and nothing is retaining it any longer.
 
-That, indeed, is one of the main reasons why `store(in:)` is a good thing: it means that when `self` (here, a view controller) goes out of existence, any pipelines it is retaining in a property such as our `self.storage` are terminated in good order. When our view controller goes out of existence, its properties will be released, the AnyCancellables inside our `storage` Set will be released, the AnyCancellables will all get `cancel` messages automatically, they'll pass those along to their wrapped subscribers, the messages will percolate up the respective pipelines, and all the corresponding publishers will stop publishing and all subscribers will be released.
+That, indeed, is one of the main reasons why `store(in:)` is a good thing: it means that when `self` (here, a view controller) goes out of existence, any pipelines it is retaining in a property such as our `self.storage` are terminated in good order. When our view controller goes out of existence, its properties will be released, the AnyCancellables inside our `storage` Set will be released, the AnyCancellables will all get `cancel` messages automatically, they'll pass those along to their wrapped subscribers, the messages will percolate up the respective pipelines, and all the corresponding publishers will stop publishing and all the objects in the pipeline will be released.
 
 Return, for example, to our notification center publisher and its pipeline:
 
@@ -74,7 +74,7 @@ URLSession.shared.dataTaskPublisher(for: url)
 
 That publisher, by default, is going to go out on the Internet _once_ and try to download the data from the URL it is given. The publisher either succeeds or fails in providing an image, but either way, having made the attempt, its job is done.
 
-When a publisher has done its job, it needs to let its downstream subscriber know that no more values are to be expected. It does that by passing a _completion message_ to the subscriber. This message is actually an enum; it is the `.finished` case of the Subscribers.Completion enum. (The medium of communication is once more the subscription object that I mentioned [earlier](startPublishAndSubscribe), but that's just an implementation detail you usually won't need to worry about). If this subscriber is an operator, it usually finishes doing whatever it's doing and passes a completion message to _its_ subscriber — and so on, _down the pipeline._
+When a publisher has done its job, it needs to let its downstream object know that no more values are to be expected. It does that by passing a _completion message_ to the downstream object. This message is actually an enum; it is the `.finished` case of the Subscribers.Completion enum. (The medium of communication is once more the subscription object that I mentioned [earlier](startPublishAndSubscribe), but that's just an implementation detail you usually won't need to worry about). If this object is an operator, it usually finishes doing whatever it's doing and passes a completion message to _its_ downstream object — and so on, _down the pipeline._
 
 Typically, in this way, the completion message reaches the final subscriber, and the pipeline is now terminated in good order. The effect is the same as cancellation. A subsequent attempt to cancel the pipeline will do nothing; the pipeline has already been torn down.
 

@@ -1,0 +1,20 @@
+#title "Reduce"
+
+# <%= title %>
+
+`.reduce` (Publishers.Reduce) is just like the `.reduce` sequence method. You initialize it with an initial output value and a function. The function takes two parameters: the output value, and an input value. The function is called as each input value received from upstream, in order, and returns a new output value, which is remembered and supplied to the next call to the function. This goes on until a `.finished` completion is received. At that point, the value that was returned from the last call to the function is emitted downstream.
+
+`.reduce` thus produces at most just one value and stops. It signals this by sending a `.finished` completion after producing its value.
+
+Here's a toy example, just to show the syntax:
+
+    [1,2,3].publisher
+        .reduce(0) {
+            return $0 + $1
+        }
+
+That function returns `1`, then `3`, then `6` — and then the `.finished` completion arrives from upstream, so the operator sends `6` downstream, followed by a `.finished` completion.
+
+`.reduce` is pointless if the upstream doesn't send a `.finished` completion; in that case, the function is never called and no value is ever emitted downstream.
+
+Similar to `.reduce` is `.tryReduce` (Publishers.TryReduce), which adds the ability for the function to throw.  This can happen at any point during the arrival of incoming values. If it does throw, it cancels the upstream publisher and sends the resulting error downstream as a failure.

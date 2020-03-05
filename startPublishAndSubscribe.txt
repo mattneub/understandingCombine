@@ -29,9 +29,9 @@ NotificationCenter.default.publisher(
 The publisher object that we get happens to be a NotificationCenter.Publisher struct instance, but its precise type is of no particular interest; what's important about it is that it conforms to the Publisher protocol. We could capture that object into a variable if we needed to (and in that case we would probably erase its type, as I'll explain later), but in this example we don't bother with that. Instead, we go right on and attach a subscriber to that publisher:
 
 ~~~
-    .sink { _ in
-        print("we're going into the background!")
-    }
+.sink { _ in
+    print("we're going into the background!")
+}
 ~~~
 
 When we call `.sink` on a publisher, we actually do two things:
@@ -45,13 +45,13 @@ When we call `.sink` on a publisher, we actually do two things:
 The publisher now knows it has a subscriber, and it prepares to send signals to subscriber. But we'll never get any signals if we don't perform a further step, and here it is:
 
 ~~~
-    .store(in:&self.storage)
+.store(in:&self.storage)
 ~~~
 
 That's very important. What is `storage`? Here, it's an _instance property_ of the surrounding view controller where all this code is running. The `store` call really does store the Sink object in that instance property. The `storage` property is a Set variable, declared like this:
 
 ~~~
-    var storage = Set<AnyCancellable>()
+var storage = Set<AnyCancellable>()
 ~~~
 
 The `store` call inserts the Sink object into that Set. Doing that accomplishes two things:

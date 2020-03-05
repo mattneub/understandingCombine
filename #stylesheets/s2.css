@@ -12,6 +12,7 @@ body {
 }
 div.normal_page {
     margin-left: $breadcrumbs-width + 30;
+    // min-height: 80vh; // 80% of viewport height, move footer down to bottom
 }
 h1 {
   text-align: center;

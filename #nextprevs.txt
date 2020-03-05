@@ -24,3 +24,13 @@ publishers
   publishersRecord
   publishersCustom
 operatorsStart
+  operatorsTransformational
+    operatorsMap
+    operatorsScan
+    operatorsFilter
+    operatorsCompactMap
+    operatorsFlatMap
+  operatorsAccumulators
+    operatorsReduce
+    operatorsTBD
+  operatorsDebugging

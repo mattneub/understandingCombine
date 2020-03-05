@@ -1,0 +1,17 @@
+#title "Compact Map"
+
+# <%= title %>
+
+`.compactMap` (Publisher.CompactMap) is closely related both to `.map` and to `.filter`. Like `.map`, it has the power to transform the value received from upstream into a different value. Like `.filter`, it has the power to prevent a value from proceeding further down the pipeline. Its function is both a map function and a filter function.
+
+So this function has to say two things at once: *what* value should proceed down the pipeline, and _should_ that value proceed down the pipeline. It does that by following a rule that the value it produces must be an Optional. If that Optional is not `nil`, _it is unwrapped_ and the unwrapped value proceeds down the pipeline. But if it _is_ `nil`, the value stops and doesn't proceed further.
+
+`.compactMap` is useful particularly when you need to cast down safely.
+A common use case is in connection with a Notification that is supposed to wrap a value in its `userInfo` dictionary. The `userInfo` dictionary itself is an Optional, and fetching a value by its key from a dictionary produces an Optional. Moreover, the `userInfo` value type is Any, so we need to cast it down safely to whatever it's supposed to be. All of that can be elegantly expressed using `.compactMap`. In this example, my Notification's `userInfo` is supposed to contain a `"zip"` key whose value is a String, which is what we're really interested in:
+
+    NotificationCenter.default.publisher(for: .zipCodeDidChange)
+        .compactMap { $0.userInfo?["zip"] as? String }
+
+If the Notification has no `userInfo`, or if it doesn't contain a `"zip"` key, or if the `"zip"` key's value is not a String, we'll get `nil` and the value just won't proceed down the pipeline. Conversely, if everything happens the way we expect, what proceeds down the pipeline _is_ that String.
+
+There is also a `.tryCompactMap` (Publishers.TryCompactMap); it works [similarly](operatorsMap) to `.tryMap`, so I won't say more about it.

@@ -1,0 +1,11 @@
+#title "Accumulators"
+
+# <%= title %>
+
+Accumulators
+: By _accumulators_, I mean operators that accumulate values from upstream without letting them pass through, waiting until something happens; typically, this is that they receive a `.finished` completion. They analyze the resulting collection of accumulated values, and when they _do_ receive a `.finished` completion, they emit a single value in response.
+The accumulator _par excellence_ is `.reduce`; it combines all received values to generate a single value and emits it.
+
+By definition, most accumulators need to receive a `.finished` completion before they emit a value. This means that they are useless unless the upstream is a finite series that will in fact emit a `.finished` completion. 
+
+Usually you'll also expect the upstream to emit more than one value; otherwise, there would be nothing of interest to accumulate.

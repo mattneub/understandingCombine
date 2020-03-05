@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-The entire chain of operators linking the subscriber and with the publisher is called a _pipeline_. Look again at the little diagram of how the data flows:
+The entire chain of operators linking the ultimate downstream subscriber with the ultimate upstream publisher is called a _pipeline_. Look again at the little diagram of how the data flows:
 
 ~~~
 publisher [upstream]
@@ -41,7 +41,7 @@ URLSession.shared.dataTaskPublisher(for: url)
     .store(in:&self.storage)
 ~~~
 
-Now _that_ is a good example of a pipeline. What you see in that code is a chain of method calls. What you _don't_ see is that each operator method produces an operator *object* and *subscribes* it to the preceding publisher. (That is in fact identical to what I said [before](startPublishAndSubscribe) about what the `sink` method does.) From the `dataTaskPublisher` call to the `sink` call, there is actually a chain of four objects:
+Now _that_ is a good example of a pipeline. What you see in that code is a chain of method calls. What you _don't_ see is that each operator method produces an operator *object* which effectively *subscribes* to the preceding publisher when the pipeline is completed. From the `dataTaskPublisher` call to the `sink` call, there is actually a chain of four objects:
 
 ~~~
 DataTaskPublisher  ⬇️ publish
