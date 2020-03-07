@@ -2,11 +2,13 @@
 
 # <%= title %>
 
-`.max` (Publishers.Comparison) is just like the `.max` sequence method. In effect, it's just a specialized version of [`.reduce`](operatorsReduce): it maintains the previous value and receives the current value, and returns the larger of the two, so that at the end the output value is the largest value received. If the value type is a Comparable, you can omit the comparison function and let the operator use its default function; or you can supply a function and decide manually whether they are ordered smaller–larger, returning a Bool to indicate whether that's the case.
+`.max` (Publishers.Comparison) is just like the `.max` sequence method. In effect, it's a specialized version of [`.reduce`](operatorsReduce): it accumulates the previous output and receives the current upstream value, and returns the *larger* of the two, so that at the end the accumulated value is the largest value received from upstream.
+
+If the value type is a Comparable, you can omit the comparison function and let the operator use its default function, which uses `<` to determine relative order; or you can supply a function and decide manually whether they are ordered smaller–larger, returning a Bool to indicate whether that's the case.
 
 There is also `.tryMax`, which works as you would expect.
 
-`.min` (Publishers.Comparison) is just like `.min`, except that the maintained value is the smaller of the two compared values. Again, if the value type is a Comparable, you can omit the comparison function; if you supply it, your return a Bool indicating whether the current pair is ordered smaller–larger.
+`.min` (Publishers.Comparison) is just like `.max`, except that the maintained value is the *smaller* of the two compared values. Again, if the value type is a Comparable, you can omit the comparison function; if you supply it, you return a Bool indicating whether the current pair is ordered smaller–larger.
 
 And there is also `.tryMin`, which works as you would expect.
 
@@ -29,7 +31,7 @@ So for example:
             return names[$0-1] < names[$1-1]
         } // 1, because "one" is the "smallest" alphabetically
 
-`.count` (Publishers.Count) is much simpler; it just counts the incoming values and reports that count when a `.finished` completion is received (and then sends a `.finished` completion). So it is the equivalent of
+`.count` (Publishers.Count) just counts the incoming values, accumulating the count, and reports that count when a `.finished` completion is received (and then sends a `.finished` completion). So it is the equivalent of
 
     .reduce(0) {prev,_ in $0+1}
 

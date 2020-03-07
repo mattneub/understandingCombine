@@ -1,0 +1,25 @@
+#title "Prefix and Drop"
+
+# <%= title %>
+
+`.prefix(_:)` is actually a form of [`.output(in:)`](operatorsOutput). You supply an Int representing a count. This operator turns that into a Range starting at zero and behaves as if you had called `.output(in:)`. Thus, this operator passes along the first _n_ values received from upstream (where _n_ is the count you supplied), then cancels the upstream and sends a `.finished` completion.
+
+`.prefix(while:)` (Publishers.PrefixWhile) takes a function that receives a value from upstream and returns a Bool. If the function returns `true`, it passes the value along downstream. If the function returns `false`, it cancels the upstream and emits a `.finished` completion.
+
+`.tryPrefix(while:)` (Publishers.TryPrefixWhile) is like `.prefix(while)` except that the function can throw. If it does throw, this operator cancels the upstream and the error is passed downstream as a failure.
+
+`.dropFirst()` (Publishers.Drop) is the inverse of `.prefix(1)`: it swallows the first value received from upstream and then just passes along every subsequent value received from upstream.
+
+`.drop(while:)` (Publishers.DropWhile) takes a function that receives a value from upstream and returns a Bool. If the function returns `true`, it swallows the received value. If the function returns `false`, it passes the received value along downstream and never calls the function again; it just keeps passing received values downstream.
+
+`.tryDrop(while:)` (Publishers.TryDropWhile) is like `.drop(while:)` except that the function can throw. I think you know what happens if it does throw.
+
+You're probably wondering: what about `suffix(_:)`? How can we receive only the _last_ bunch of _n_ values emitted by the upstream publisher? There is no built-in `suffix` operator, but you could build one, sort of, using `collect`. Let's say we want only the last two values emitted by the upstream publisher:
+
+        [1,2,3,4].publisher
+            .collect()
+            .flatMap {$0.suffix(2).publisher} // 3, then 4, then `.finished`
+
+I say "sort of" because there's no way to implement `suffix` so as to pass along the last values _as they arrive,_ so this is not really comparable to what `prefix` does.
+
+

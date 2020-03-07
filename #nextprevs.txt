@@ -34,5 +34,13 @@ operatorsStart
     operatorsReduce
     operatorsMax
     operatorsContains
+    operatorsCollect
+  operatorsSplitters
+    operatorsFirst
+    operatorsOutput
+    operatorsPrefix
+  operatorsJoiners
+    operatorsMerge
+    operatorsZip
     operatorsTBD
   operatorsDebugging

@@ -33,7 +33,7 @@ You know that the map function produces a Data object, but the compiler takes no
 
 That's a common thing to have to do with operators that take functions, so get used to it.
 
-A variant on `.map` is `.tryMap` (Publishers.TryMap). It gives the map function the opportunity to throw an error; this error will proceed down the pipeline as a failure. The produced error type does _not_ have to be the same as the error type arriving from upstream; in fact, it is typed simply as Error. Again, that's a common fact about operators with `try` in their name.
+A variant on `.map` is `.tryMap` (Publishers.TryMap). It gives the map function the opportunity to throw an error; if it does throw, this operator cancels the upstream and passes the error down the pipeline as a failure. The produced error type does _not_ have to be the same as the error type arriving from upstream; in fact, it is typed simply as Error. Again, that's a common fact about operators with `try` in their name.
 
 So `tryMap` is an opportunity to change downstream's error type as well as its value type:
 

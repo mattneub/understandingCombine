@@ -65,3 +65,5 @@ We're not doing anything here that we couldn't have done with property observers
 
 Related to the `@Published` property wrapper is the ObservableObject class protocol, whose `objectWillChange` property is a publisher that sends a signal when any of its `@Published` properties is about to change. This is used primarily in conjunction with SwiftUI.
 
+> **Note:** When a `@Published` variable is changed, its publisher publishes the new value _before_ the variable itself is set to the new value. (I owe that observation to [Rob Mayoff](https://stackoverflow.com/a/60571151/341994).)
+

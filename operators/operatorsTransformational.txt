@@ -4,10 +4,12 @@
 
 Transformers
 : By _transformers_, I mean operators whose primary job is to take the incoming value from upstream and *replace* it with another value that passes downstream.
+
 The transformer _par excellence_ is `.map`, along with various other operators with `map` in their names.
 
 Blockers
 : By _blockers_, I mean operators whose primary job is to *prevent* an incoming value from passing downstream.
+
 The blocker _par excellence_ is `.filter`, which looks at each incoming value and either lets it through or stops it.
 
 The distinction between transformers and blockers is not always hard and fast, so it makes sense to treat them together. Some operators do both. For example, `.compactMap` is both a transformer and a blocker: it can stop a value, or it can replace it and let the replacement pass downstream.

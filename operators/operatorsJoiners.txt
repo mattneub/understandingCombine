@@ -1,0 +1,28 @@
+#title "Joiners"
+
+# <%= title %>
+
+Joiners
+: By _joiners_, I mean operators that join together the streams of values from multiple pipelines into a single stream. Each pipeline produces values; now we want those values to come together to form a single pipelines. The question is: How? What rule should be followed as we feed the values from multiple pipelines into one?
+
+The joiner _par excellence_ is `.merge`. Its rule is simple: if an upstream pipeline emits a value, pass it down this pipeline. We've already seen an example of a merge-like rule in action: that's what [`.flatMap`](operatorsFlatMap) does if it produces more than one publisher. For example:
+
+    [1,2].publisher
+        .flatMap { _ in
+            Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
+                .scan(0) {i,_ in i+1}
+        }
+
+That pipeline produces 
+
+    1
+    1
+    [one-second pause]
+    2
+    2
+    [one-second pause]
+    ...
+
+There are two timers, and they are both producing values simultaneously down the same pipeline. That's a merge.
+

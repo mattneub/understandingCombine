@@ -1,0 +1,17 @@
+#title "First and Last"
+
+# <%= title %>
+
+`.first` (Publishers.First) emits the first value received from upstream. Just before emitting its value, it cancels the upstream publisher; after emitting its value, it emits a `.finished` completion.
+
+`.first(where:)` (Publishers.FirstWhere) takes a function that receives a value from upstream and returns a Bool. As soon as the function returns `true` for some upstream value, this operator cancels the upstream publisher and emits that upstream value, followed by a `.finished` completion.
+
+`.tryFirst(where:)` (Publishers.TryFirstWhere) is like `.first(where:)` except that the function can throw. If it does, it cancels the upstream and that error is passed downstream as a failure.
+
+`.last` (Publishers.Last) emits the last value received from upstream, followed by a `.finished` completion. Obviously it doesn't know that it has received the last value until it receives a `.finished` completion from upstream, so this operator is also an accumulator, maintaining the most recently received value until the time comes to emit it.
+
+`.last(where:)` (Publishers.LastWhere) takes a function that receives a value from upstream and returns a Bool. It emits the last value received from upstream for which the function returned `true`, followed by a `.finished` completion. Obviously it doesn't know that it has received the last value until it receives a `.finished` completion from upstream, so this operator is also an accumulator, maintaining the most recently received value for which the function returned `true` until the time comes to emit it.
+
+`.tryLast(where:)` (Publishers.TryLastWhere) is like `.last(where:)` except that the function can throw. If it does, it cancels the upstream and that error is passed downstream as a failure.
+
+

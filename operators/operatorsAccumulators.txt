@@ -3,9 +3,34 @@
 # <%= title %>
 
 Accumulators
-: By _accumulators_, I mean operators that accumulate values from upstream without letting them pass through, waiting until something happens; typically, this is that they receive a `.finished` completion. They analyze the resulting collection of accumulated values, and when they _do_ receive a `.finished` completion, they emit a single value in response.
-The accumulator _par excellence_ is `.reduce`; it combines all received values to generate a single value and emits it.
+: By _accumulators_, I mean operators that accumulate values from upstream without letting them pass through, waiting until something happens. As values arrive from upstream, these operators _accumulate_ them in some way — storing them in a buffer, or maintaining some intermediate value between arrivals. Then when the thing they've been waiting for happens, they emit a single value in response.
 
-By definition, most accumulators need to receive a `.finished` completion before they emit a value. This means that they are useless unless the upstream is a finite series that will in fact emit a `.finished` completion. 
+The accumulator _par excellence_ is `.reduce`; it combines the received values into a single value and emits it when the upstream finishes.
 
-Usually you'll also expect the upstream to emit more than one value; otherwise, there would be nothing of interest to accumulate.
+In most cases, the "something" that the accumulator operator is waiting for is the end of the stream of values from upstream. This is signaled by the receipt of a `.finished` completion. The operator then emits its value, followed by a `.finished` completion of its own.
+
+Clearly an accumulator that is waiting for a `.finished` completion cannot generally emit a value at all unless the upstream generates a finite series and will in fact emit a `.finished` completion. However, some accumulators can short-circuit this process — that is, they know the answer early, because some value arrives from upstream that gives away the answer; if that happens, the accumulator operator cancels the upstream and emits its value (followed by a `.finished` completion).
+
+If an error arrives from upstream, an accumulator operator simply passes it on downstream. This means that the operator itself might never emits a value of its own. This raises an interesting question: what if that isn't what you want? For example, here's a publisher that emits its first three values and then fails:
+
+    [1,2,3,-1,4,5,6].publisher
+        .tryMap { (i:Int) -> Int in
+            if i < 0 { throw MyError.oops }
+            return i
+        }
+
+Now, suppose we attach a `.count` operator to that pipeline. This is an accumulator that reports how many values were received before completion. But in this case, all we get is an error; the count is never reported. But what if we really wanted to know that count? In other words, suppose what we want to know is how many values were received before the failure?
+
+One solution is to turn the `.failure` completion into a `.finished` completion, _before_ it reaches the accumulator. You can do that with `.catch` and Empty, like this:
+
+    [1,2,3,-1,4,5,6].publisher
+        .tryMap { (i:Int) -> Int in
+            if i < 0 { throw MyError.oops }
+            return i
+        }
+        .catch { _ in Empty<Int,MyError>(completeImmediately: true) }
+        .count()
+
+Now the `count` operator emits `3` and completes in good order.
+
+
