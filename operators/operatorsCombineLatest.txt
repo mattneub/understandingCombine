@@ -1,0 +1,51 @@
+#title "CombineLatest"
+
+# <%= title %>
+
+`.combineLatest` (Publishers.CombineLatest) takes a publisher as a parameter; it is also applied to a publisher (obviously). Both publishers must have the same Failure generic types, but their Output types can be different. It is sort of like [`.zip`](operatorsZip) turned upside-down:
+
+* `.zip` waits for both upstream publishers to publish and then emits their _oldest_ contributions as a tuple. 
+
+* `.combineLatest` waits for both upstream publishers to publish and then emits their _newest_ contributions as a tuple.
+
+Recall the toy example I used earlier to demonstrate `.zip`:
+
+    [1,2,3].publisher
+        .zip(
+            ["a","b"].publisher
+                .flatMap(maxPublishers:.max(1)) {
+                    Just($0).delay(for: 1, scheduler: DispatchQueue.main)
+                }
+        )
+
+That resulted in:
+
+    (1, "a")
+    (2, "b")
+    finished
+
+Now let's replace `.zip` with `.combineLatest`:
+
+    [1,2,3].publisher
+        .combineLatest(
+            ["a","b"].publisher
+                .flatMap(maxPublishers:.max(1)) {
+                    Just($0).delay(for: 1, scheduler: DispatchQueue.main)
+                }
+        )
+
+That results in:
+
+    (3, "a")
+    (3, "b")
+    finished
+
+What happened? The `1`, `2`, and `3` arrived from the first publisher, and then one second elapsed. Then the `"a"` arrived from the second publisher. Instead of going all the way back to the start of the first publisher's buffer and fetching the `1`, like `.zip`, the `.combineLatest` operator uses the _end_ of the first publisher's buffer, which is `3`. In fact, there is no "start of the buffer"; the _only_ thing the operator is remembering is the most recently arrived value from each publisher. Moreover, having published `3`, it doesn't remove it from the buffer, because no subsequent value arrives from the first publisher. Therefore, when the `"b"` arrives from the second publisher, the operator publishes the `3` _again_.
+
+So `.combineLatest` waits for *both* publishers to publish, and from then on it publishes every time *either* publisher publishes — and what it publishes is the two most recent values emitted by both publishers.
+
+When *both* publishers have emitted a `.finished` completion, the operator emits a `.finished` completion of its own. If *either* publisher emits a failure, the operator cancels the other publisher and passes the failure downstream.
+
+Just as with `.zip`, there's variant of `.combineLatest` that takes a map function so that instead of publishing a tuple of the two latest values, you can combine however you like and publish that instead. And, as with `.zip`, this is really just a convenient way of making a Map whose upstream is a CombineLatest.
+
+Just as with `.zip`, there are additional publishers CombineLatest3 and CombineLatest4, so that you can join three or four publishers conveniently: just call `.combineLatest` with a comma-separated list of up to three publishers.

@@ -42,5 +42,7 @@ operatorsStart
   operatorsJoiners
     operatorsMerge
     operatorsZip
+    operatorsCombineLatest
+    operatorsAppend
     operatorsTBD
   operatorsDebugging

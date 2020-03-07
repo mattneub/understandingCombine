@@ -2,13 +2,13 @@
 
 # <%= title %>
 
-`.zip` (Publishers.Zip) takes a publisher as a parameter; it is also applied to a publisher (obviously). Both publishers must have the same Failure generic types, but their Output types can be different. Now there are effectively two upstream publishers. When _one_ of those upstream publishers produces a value, this operator puts it in a buffer (effectively a LIFO stack). When _both_ of those upstream publishers have produced a value, this operator pops the oldest value from the start of both buffers, combines them into a tuple, and emits the tuple.
+`.zip` (Publishers.Zip) takes a publisher as a parameter; it is also applied to a publisher (obviously). Both publishers must have the same Failure generic types, but their Output types can be different. Now there are effectively two upstream publishers. When _either_ of those upstream publishers produces a value, this operator puts it in a buffer (effectively a LIFO stack). When _both_ of those upstream publishers have produced a value — that is, any time there is something in both buffers — this operator pops the oldest value from the start of both buffers, combines them into a tuple, and emits the tuple.
 
-If either upstream publisher has emitted a `.finished` completion, then when the buffer for that publisher is empty (because the `.zip` operator has popped its last value to send it downstream), the `.zip` operator cancels the other publisher and sends a `.finished` completion downstream. In other words, the pipeline terminates when the last value from either publisher has been sent downstream.
+If either upstream publisher emits a `.finished` completion, then if the buffer for that publisher is empty (because the `.zip` operator has popped its last value to send it downstream), the `.zip` operator cancels the other publisher and sends a `.finished` completion downstream. In other words, the pipeline terminates when the last value from either publisher has been sent downstream; the maximum count of tuples published is the count of the _shorter_ upstream publisher's stream. (That's similar to the familiar sequence `.zip` function.)
 
 If either upstream publisher sends a failure, this operator immediately cancels the other publisher and sends the completion on downstream.
 
-Demonstrating `.zip` adequately with a toy example is a little tricky because we have to introduce some delay into at least one of the streams:
+Demonstrating `.zip` adequately with a toy example is a little tricky because, to get the point, we have to introduce some delay into at least one of the streams:
 
     [1,2,3].publisher
         .zip(
@@ -40,7 +40,7 @@ The output from the `.zip` operator is:
     (2, "b")
     finished
 
-That shows the logic of `.zip` operator in action. It cannot publish anything until _both_ upstream publishers have published. At that point, it pairs the _oldest_ value that came from each publisher and publishes that pair as a tuple. When it has published the _last_ value that will ever come from _one_ publisher, it cancels the other publisher and sends a `.finished` completion. We may say that `.zip` _coordinates asynchronicity;_ it takes two streams with different asynchronous timing and gives them the same timing.
+That shows the logic of `.zip` operator in action. It cannot publish anything until _both_ upstream publishers have published. At that point, it pairs the _oldest_ value that came from each publisher and publishes that pair as a tuple. Then it waits again until it has a value from _both_ upstream publishers — and so on. In our example, after publishing the second tuple, the `3` is thrown away; the second publisher has finished, so there will never be anything to pair the `3` with, and so the `.zip` operator finishes.
 
 There is another form of `.zip` that takes two parameters — a publisher and a function. When this operator is ready to produce a tuple, instead of forming that tuple and sending it downstream, it passes the two values as parameters into the function, which is permitted to transform it into a different value. It's as if the first form of `.zip` were immediately followed by a `.map` operator; in fact, that's exactly what's happening! The function is a map function, and this form of `.zip` is simply a convenient way of making a Publishers.Map whose upstream is a Publishers.Zip.
 

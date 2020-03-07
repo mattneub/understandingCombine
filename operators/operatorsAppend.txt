@@ -1,0 +1,63 @@
+#title "Append and Prepend"
+
+# <%= title %>
+
+`.append` (Publishers.Concatenate) takes a publisher as a parameter; it is also applied to a publisher (obviously). Both publishers must have the same Output and Failure generic types. It produces all the values from the publisher it is applied to, as they arrive, followed by the values from the publisher that is its parameter, as _they_ arrive.
+
+To enforce the policy of making these values arrive sequentially, this operator _doesn't subscribe_ to the second publisher until it receives the first publisher's `.finished` completion. (Conversely, if it *never* receives `.finished` completion from the first publisher, it just keeps publishing the first publisher's values and _never_ subscribes to the second publisher.)
+
+If the second publisher sends a `.finished` completion, this operator sends a `.finished` completion. If either publisher emits a failure, this publisher cancels the other publisher and passes the failure on downstream.
+
+A toy example with some artificial timing will demonstrate:
+
+    [1,2,3].publisher.print().flatMap(maxPublishers: .max(1)) {
+        Just($0).delay(for: 1, scheduler: DispatchQueue.main)
+    }.append(Just(100))
+
+That produces this output:
+
+    [one second]
+    1
+    [one second]
+    2
+    [one second]
+    3
+    100
+    finished
+
+`.append` also comes in two convenience forms. The parameter, instead of being a publisher, can be a sequence of values or simply a variadic (a comma-separated list of values). So in this example it would be legal to write `.append([10,20,30])` or even `.append(10,20,30)`.
+
+`.prepend` (Publishers.Concatenate) is exactly like `.append` — indeed, it is the very same operator under the hood — except that the meanings of the publishers are reversed. It starts out by subscribing to and publishing the values from the publisher that is its parameter; when that finishes, it subscribes to and publishes the values from the publisher to which it is applied.
+
+This produces the same output, with the same timing, as the previous example:
+
+    Just(100).prepend (
+        [1,2,3].publisher.print().flatMap(maxPublishers: .max(1)) {
+            Just($0).delay(for: 1, scheduler: DispatchQueue.main)
+        }
+
+You can readily see that `.append` (and, for that matter, `.prepend`) is a way to _serialize asynchronicity_, because the second publisher can't even get started until the first publisher has finished. This is a lot simpler than the ways of serializing asynchronicity that I described [earlier](operatorsFlatMap) in connection with `.flatMap`. But, of course, there's a price to pay for that simplicity: with `.flatMap`, you can flow each value produced by the first asynchronous operation into the second asynchronous operation, but with `.append`, all the values just flow out the bottom of the pipeline independently. What you are serializing here are not individual values, but entire _streams_ from each publisher in turn.
+
+Sometimes, however, that is exactly what you want; and if you have several publishers whose output streams you want to serialize, you can chain `.append` calls to construct the serialized publisher you're after. It will be useful to have a utility method that lets you do that:
+
+    extension Collection where Element: Publisher {
+        func serialize() -> AnyPublisher<Element.Output, Element.Failure>? {
+            guard let start = self.first else { return nil }
+            return self.dropFirst().reduce(start.eraseToAnyPublisher()) {
+                $0.append($1).eraseToAnyPublisher()
+            }
+        }
+    }
+
+So now all you have to do is construct an array of publishers and serialize it. For example:
+
+    let arr = [
+        "https://www.apeth.com/pep/manny.jpg",
+        "https://www.apeth.com/pep/moe.jpg",
+        "https://www.apeth.com/pep/jack.jpg"
+    ].map(URL.init(string:))
+        .compactMap{$0}
+        .map {URLSession.shared.dataTaskPublisher(for:$0).eraseToAnyPublisher()}
+
+If we now call `arr.serialize()!`, we get a publisher that produces the output of each data task publisher _in order_. Note that if one of the publishers produces a failure, the entire pipeline fails immediately; again, that's the price we pay for simplicity.
+
