@@ -1,0 +1,11 @@
+        self.button.publisher()
+            .map { _ -> AnyPublisher<Date,Never> in
+                print("go")
+//                return Just("timeout")
+//                    .delay(for: 10, scheduler: DispatchQueue.main)
+//                    .eraseToAnyPublisher()
+                let t = Timer.publish(every: 10, on: .main, in: .common)
+                _ = t.connect()
+                return AnyPublisher(t)
+            }
+            .switchToLatest()
