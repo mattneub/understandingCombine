@@ -1,11 +1,34 @@
-        self.button.publisher()
-            .map { _ -> AnyPublisher<Date,Never> in
-                print("go")
-//                return Just("timeout")
-//                    .delay(for: 10, scheduler: DispatchQueue.main)
-//                    .eraseToAnyPublisher()
-                let t = Timer.publish(every: 10, on: .main, in: .common)
-                _ = t.connect()
-                return AnyPublisher(t)
-            }
-            .switchToLatest()
+#title "SwitchToLatest"
+
+# <%= title %>
+
+`.switchToLatest` (Publishers.SwitchToLatest) isn't really a transformational operator, but this is a good place to talk about it because of its close affinity to [`.flatMap`](operatorsFlatMap): they both take a publisher and start it publishing. But there are some important differences:
+
+* Whereas `.flatMap` _makes_ a publisher, `.switchToLatest` _expects_ a publisher as the value that it receives from upstream.
+
+* Whereas `.flatMap` _retains_ the publishers that it makes, `.switchToLatest` _throws away_ all but the most recent publisher that it receives.
+
+So what `.switchToLatest` does is this: It waits for a publisher to come to it as a value from upstream. When it does, it retains that publisher and starts it publishing — and what the downstream sees are the values produced by that publisher. At the same time, if this operator was _already_ retaining a publisher that it received from upstream, it throws away that publisher, replacing it with the new one.
+
+The publishers coming from upstream must all have the same generic Output and Failure types, so that the types expected downstream of the `.switchToLatest` operator will be consistent.
+
+Now, you may be thinking: a stream of _publishers?_ What on earth kind of stream is that? But keep in mind that we don't need publishers coming all the way down the pipeline from above. We only need this operator's _immediate upstream_ object to produce a publisher. In fact, the most likely scenario is that the immediate upstream operator is `.map`; it will take in some value from upstream and create a publisher and send it downstream. Then `.switchToLatest` will do its thing. If you imagine `.map` and `.switchToLatest` working together, you can see that they form a pair that is _very_ like `.flatMap`! The difference is in how they handle the publishers that are produced.
+
+So this is an operator that allows us to swap one publisher for another. The new publisher takes the previous publisher's place and interrupts it. That can be a valuable thing to do.
+
+Here's a case in point: a resettable timer. In one of my apps, which is a game, the user is penalized for every 10 seconds that goes by without the user's making a valid move. So if 10 seconds goes by and the user hasn't made a valid move, I want to be signalled so that I can subtract points from the user's score. But if the user _does_ make a valid move, I _don't_ want to be signalled; instead, I want to _reset_ the timer so that it starts counting from zero once again. How would you do that with Combine and a Timer publisher? You'd use `.switchToLatest`!
+
+Presume that I've got an instance variable that's a [PassthroughSubject](publishersSubject), called `userMoved`. It doesn't really matter what kind of thing it emits; it happens it's a Bool, but that fact won't even emerge in the example. The important thing is that when the user makes a valid move, I tell the PassthroughSubject to `send`. The pipeline starts with that PassthroughSubject, so every time the user moves, a signal comes down the pipeline. I use the `.map` operator to respond to that signal by producing a Timer publisher, and I use `.switchToLatest` to throw out the previous Timer publisher (if there is one) and replace it with the new one:
+
+    self.userMoved
+        .map { _ -> AnyPublisher<Date,Never> in
+            let t = Timer.publish(every: 10, on: .main, in: .common)
+            _ = t.connect()
+            return AnyPublisher(t)
+        }
+        .switchToLatest()
+
+The result is just what I'm after. If the user fails to move within ten seconds, that pipeline produces a signal (it happens to be a Date, but again that's not very important). If the user _does_ move, the current timer is thrown away and a new one takes its place, so there's no signal and the march towards ten seconds starts all over again.
+
+> **WARNING:** Due to a bug, `.switchToLatest` is unusable before iOS 13.4.
+

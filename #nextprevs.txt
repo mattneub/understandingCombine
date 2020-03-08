@@ -30,12 +30,13 @@ operatorsStart
     operatorsFilter
     operatorsCompactMap
     operatorsFlatMap
+    operatorsSwitchToLatest
   operatorsAccumulators
     operatorsReduce
     operatorsMax
     operatorsContains
     operatorsCollect
-  operatorsSplitters
+  operatorsPartitioners
     operatorsFirst
     operatorsOutput
     operatorsPrefix

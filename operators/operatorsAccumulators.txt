@@ -11,7 +11,7 @@ In most cases, the "something" that the accumulator operator is waiting for is t
 
 Clearly an accumulator that is waiting for a `.finished` completion cannot generally emit a value at all unless the upstream generates a finite series and will in fact emit a `.finished` completion. However, some accumulators can short-circuit this process — that is, they know the answer early, because some value arrives from upstream that gives away the answer; if that happens, the accumulator operator cancels the upstream and emits its value (followed by a `.finished` completion).
 
-If an error arrives from upstream, an accumulator operator simply passes it on downstream. This means that the operator itself might never emits a value of its own. This raises an interesting question: what if that isn't what you want? For example, here's a publisher that emits its first three values and then fails:
+If an error arrives from upstream, an accumulator operator simply passes it on downstream. This means that the operator itself might never emit a value of its own. This raises an interesting question: what if that isn't what you want? For example, here's a publisher that emits its first three values and then fails:
 
     [1,2,3,-1,4,5,6].publisher
         .tryMap { (i:Int) -> Int in
