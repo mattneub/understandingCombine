@@ -45,5 +45,8 @@ operatorsStart
     operatorsZip
     operatorsCombineLatest
     operatorsAppend
-    operatorsTBD
+  operatorsSplitters
+    operatorsShare
+    operatorsMulticast
+  operatorsTBD
   operatorsDebugging

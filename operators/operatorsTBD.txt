@@ -3,3 +3,42 @@
 # <%= title %>
 
 **The rest is yet to be written**.
+
+{::comment}
+
+codables
+    decode
+    encode
+
+threaders
+    subscribe(on:)
+    receive(on:)
+
+timers
+    measureInterval
+    debounce
+    delay
+    throttle
+    timeout
+    buffer (but maybe this is a partitioner?)
+
+error handlers
+    mapError
+    setFailureType
+    replaceEmpty?
+    replaceError
+    catch
+    tryCatch
+    retry
+
+????
+    makeConnectable
+
+debuggers
+    assertNoFailure
+    breakpoint
+    breakpointOnError
+    print
+    handleEvents
+
+{:/comment}

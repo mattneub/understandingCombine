@@ -1,0 +1,91 @@
+#title "Splitters"
+
+# <%= title %>
+
+Splitters
+: By *splitters* I mean the opposite of [joiners](operatorsJoiners). These are operators whereby a stream of values is divided into more than one and is sent down multiple pipelines simultaneously.
+
+Picture an arrangement like this:
+
+~~~
+                        upstream pipeline
+                            splitter
+        /                       |                      \
+downstream pipeline    downstream pipeline    downstream pipeline
+~~~
+
+The idea is that the downstream pipelines, below the splitter, all receive the _same_ value simultaneously when it is emitted by the upstream pipeline, above the splitter.
+
+Why do we need an operator to split a pipeline into multiple pipelines like that? Well, most publishers (including operators) are *structs*. So if you simply subscribe more than one subscriber to a publisher, you are likely to get multiple copies of the publisher; you've made two _independent_ streams. 
+
+Here's a simple experiment that demonstrates what I mean:
+
+    let pub = [1,2,3,4].map {
+        Just($0)
+            .delay(for: 1, scheduler: DispatchQueue.main)
+        }
+        .publisher
+        .flatMap(maxPublishers:.max(1)) {
+            return $0
+        }
+    pub.sink {print($0)}.store(in:&self.storage)
+    delay(2) {
+        pub.sink {print($0)}.store(in:&self.storage)
+    }
+
+We start with a publisher `pub` that emits the numbers `1`, `2`, `3`, `4`, one per second.Then we subscribe to it, and two seconds later we subscribe to it _again._ The output is:
+
+    1
+    [one second]
+    2
+    [one second]
+    1
+    3
+    [one second]
+    2
+    4
+    [one second]
+    3
+    [one second]
+    4
+
+As you can see, it's as if we had two completely different publishers; the stream of numbers has started all over again for the second subscriber. But what if that's not what we want? What if we want the second subscriber to receive the _very same values_ as the first subscriber, at the same time? That's the problem that splitters solve.
+
+A [Subject](publishersSubject) is *already* a kind of splitter.
+I'll modify our experimental example to demonstrate. We now have a PassthroughSubject instance property:
+
+    let mySubject = PassthroughSubject<Int,Never>()
+
+We modify our publisher so that it calls `send` on that Subject, passing through the values that the publisher produces:
+
+    let pub = [1,2,3,4].map {
+        Just($0)
+            .delay(for: 1, scheduler: DispatchQueue.main)
+        }
+        .publisher
+        .flatMap(maxPublishers:.max(1)) {
+            return $0
+        }
+    pub.sink {self.mySubject.send($0)}.store(in:&self.storage)
+
+Now let's come along and subscribe to that PassthroughSubject at different times:
+
+    self.mySubject.sink {print($0)}.store(in:&self.storage)
+    delay(2) {
+        self.mySubject.sink {print($0)}.store(in:&self.storage)
+    }
+
+The output is:
+
+    1
+    [one second]
+    2
+    [one second]
+    3
+    3
+    [one second]
+    4
+    4
+
+What that shows is that the Subject is emitting values all along, and that we can come along later and subscribe to it with multiple subscribers, and they will all receive the values that it is emitting *now*. That's exactly what we want a splitter to do.
+

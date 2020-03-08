@@ -1,0 +1,37 @@
+#title "Multicast"
+
+# <%= title %>
+
+`.multicast` accepts one parameter: either a [Subject](publishersSubject) or a function that produces a Subject. The operator object produced by this operator (Publishers.Multicast) is a class, not a struct, and it adopts the ConnectablePublisher protocol, which means that it has a `connect` method and an `autoconnect` method, just like a Timer (which also adopts ConnectablePublisher).
+
+Internally, this operator maintains the Subject, and when it receives a value from upstream, it calls `send` on the Subject, handing it that value. So the Subject merely echoes downstream the value that this operator receives from upstream. But we [already know](operatorsSplitters) that a Subject behaves as a splitter! So this operator, by being a class, which has "reference semantics", and by maintaining a Subject internally, is itself functioning as a splitter.
+
+In fact, that is how [`.share`](operatorsShare) works under the hood: internally, a Share object _is_ a Multicast object! `.share` is just a convenient wrapper for `.multicast`. But it _is_ convenient, which make it less likely that you would need to use `.multicast` explicitly. So why _would_ you use `.multicast` explicitly? Well, the `.multicast` inside `.share` is followed by `.autoconnect`, so the pipeline starts going as soon as it has a subscriber. If you want the power to set the pipeline going manually by calling `connect` yourself, you can use `.multicast`. You might also use `.multicast` if you want more control over the type of Subject that is being dispensed.
+
+To illustrate, I'll turn a Timer into a multicasting Timer and store it as an instance property:
+
+    let myMulticastingTimer = Timer.publish(every: 1, on: .main, in: .common)
+        .autoconnect()
+        .scan(0) {i,_ in i+1}
+        .multicast(subject: PassthroughSubject())
+
+Now, `myMulticastingTimer` is a Connectable; and since we have not attached the `.autoconnect()` operator to it, the pipeline won't start until it is told explicitly to `connect`.
+
+So what happens if a subscriber comes along?
+
+    self.myMulticastingTimer
+        .sink(receiveCompletion: { print($0)}, receiveValue: { print($0)})
+        .store(in:&self.storage)
+
+Of itself, _nothing_ happens: the Timer doesn't start running, and the subscriber doesn't receive any values from upstream. The subscription is established; but that's all. So what would need to happen for the upstream pipeline to start emitting values? We'd need to tell it to `connect`, and retain the resulting Cancellable object to prevent it from cancelling immediately:
+
+    self.myMulticastingTimer.connect().store(in:&self.storage)
+
+As soon as we say that, the upstream pipeline comes to life, and the Timer starts sending values (beginning at `1`) to any connected subscribers. Moreover, the pipeline is a multicasting pipeline, so if there are multiple subscribers, they will be receiving the same value simultaneously.
+
+Each subscribing pipeline can fail separately in good order without any effect on the other subscribing pipelines. However, there is also no effect on the upstream pipeline; no `cancel` message from below the `.multicast` operator is passed upward. The only way to cancel the upstream pipeline, stopping the Timer, is through the Cancellable object that we received by calling `connect` in the first place.
+
+
+
+
+

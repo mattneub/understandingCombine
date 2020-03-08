@@ -1,0 +1,65 @@
+#title "Share"
+
+# <%= title %>
+
+`.share()` (Publishers.Share) effectively wraps its upstream in a class object; Publishers.Share is a class, not a struct. In general, when your goal is to let your pipeline be subscribed to by different subscribers at different times simultaneously, that's is all you need to do. Your pipeline now has "reference semantics"; what the subscribers are subscribing to are different reference to one and the same pipeline.
+
+I'll illustrate with a Timer-based pipeline:
+
+    let t = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+        .scan(0) {i,_ in i+1}
+        .share()
+    t.sink {print("ONE", $0)}.store(in: &self.storage)
+    delay(3) {
+        t.sink {print("TWO", $0)}.store(in: &self.storage)
+    }
+
+The output is:
+
+    ONE 1
+    ONE 2
+    ONE 3
+    ONE 4
+    TWO 4
+    ONE 5
+    TWO 5
+    ...
+
+What that demonstrates is that the second subscriber comes along later and joins the pipeline, and receives the same values that the first pipeline is receiving.
+
+Often your use of `.share` will be in conjunction with an instance property. I'll rewrite the example to illustrate that:
+
+    let myTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+        .scan(0) {i,_ in i+1}
+        .share()
+        .eraseToAnyPublisher()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.myTimer.sink {print("ONE", $0)}.store(in: &self.storage)
+        delay(3) {
+            self.myTimer.sink {print("TWO", $0)}.store(in: &self.storage)
+        }
+    }
+
+What we have now is an AnyPublisher instance property `myTimer` that any method, and even another class if this is a public property, can subscribe to, and receive the values that the timer pipeline is _currently_ emitting. One imagines various objects subscribing and unsubscribing to participate as needed in the ongoing flow of numbers. The timer doesn't start counting until the first subscriber appears, but we can "tickle" the pipeline to get it going at a moment of our own choosing. For example, suppose we want this to be a timer that starts running when our view controller's view first appears:
+
+    let myTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+        .scan(0) {i,_ in i+1}
+        .share()
+        .eraseToAnyPublisher()
+    var timerStarted = false
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if !timerStarted {
+            timerStarted = true
+            self.myTimer.sink {_ in}.store(in:&self.storage)
+        }
+    }
+
+Our `viewDidAppear` uses a kind of dummy subscriber to get the pipeline going. Now when a _real_ subscriber comes along later, it will find the stream of numbers already underway, counting off the seconds since `viewDidAppear` was called for the first time.
+
+What happens if our shared publisher has multiple downstream pipelines subscribed to it and an operator fails in one of those pipelines? [As you know](startFailures), that causes a `cancel` message to percolate up the pipeline. But it _stops_ when it reaches the `.share` operator. So *that* downstream pipeline is terminated, but the publisher itself keeps on publishing, and any other subscribed downstream pipelines keep receiving values.
+
+On the other hand, if the _last_ remaining subscriber fails, its `cancel` *does* percolate all the way up to the Timer publisher, and the whole pipeline terminates.
+
+
