@@ -1,0 +1,21 @@
+#title "Delay"
+
+# <%= title %>
+
+`.delay` (Publishers.Delay) inserts a pause between the time a value is received from upstream and the time it is passed on downstream. The parameters are:
+
+`for:`
+: The length of the delay. You can write an expression such as `.seconds(1)`, `.milliseconds(100)`, and so forth; if you supply an Int or Double literal, it will be taken to mean seconds.
+
+`tolerance:`
+: The permitted tolerance. It has the same type as `for:`. Optional; you'll usually omit it.
+
+`scheduler:`
+: The queue or runloop on which the delay will be measured. You'll supply a DispatchQueue, an OperationQueue, or a RunLoop; the usual value is `DispatchQueue.main`.
+
+`options:`
+: Optional. You'll usually omit it.
+
+
+
+

@@ -1,0 +1,20 @@
+#title "Debounce"
+
+# <%= title %>
+
+`.debounce` (Publishers.Debounce) prevents values from flowing downstream if they arrive too quickly. You supply a time interval. When a value arrives from upstream, the operator buffers it and starts an internal timer. If the timer ends without a new value arriving from upstream, the operator passes the value downstream. But if a new value arrives before the timer ends, the operator throws the buffered value away, stores the new value in the buffer, and starts the timer again.
+
+Thus the value that passes downstream is the most recent value that was not followed too soon by another value. A pause is inserted in the stream, because we have to wait the duration of the timer before we know whether another value arrives too soon; typically you'll set a sufficiently short interval that this won't be troublesome.
+
+Apple's example is that you want to respond to the user typing in a UITextField. Let's say your goal is to look up some information on the network based on what the user types. You can arrange to hear that the user has typed by using a Notification publisher for the text field's `textDidChangeNotification`. But you don't want to hit the network multiple times if the user types many characters in quick succession. The `.debounce` operator solves the problem; the user needs to type _and pause_ in order for you to proceed to consult the network.
+
+The parameters are (see [.delay](operatorsDelay) for more information about these):
+
+`for:`
+: The time interval that must elapse without another value from upstream if this value is to be delivered.
+
+`scheduler:`
+: The scheduler on which the time interval will be measured.
+
+`options:`
+: Optional. You'll usually omit it.

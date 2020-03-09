@@ -2,7 +2,10 @@
 
 # <%= title %>
 
-**This part is yet to be written**.
+Timers
+: By *timers* I mean those operators that play with the timing of the values arriving from upstream.
+
+The timer operator _par excellence_ is `.delay`, which inserts a pause between the time a value arrives from upstream and the time it passes downstream.
 
 {::comment}
 
@@ -12,7 +15,6 @@ timers
     delay
     throttle
     timeout
-    buffer (but maybe this is a partitioner?)
 
 error handlers
     mapError

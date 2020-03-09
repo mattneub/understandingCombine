@@ -1,0 +1,26 @@
+#title "Timeout"
+
+# <%= title %>
+
+`.timeout` (Publishers.Timeout) is sort of the opposite of [`.debounce`](operatorsDebounce): you supply a time interval, and the operator _wants_ each successive value to arrive within that time interval. If it doesn't, and no `.finished` completion has been received, the operator terminates the pipeline.
+
+The parameters are (see [.delay](operatorsDelay) for more information about the first three):
+
+`_:`
+: The time interval that must not elapse after a value arriving without another value arriving from upstream.
+
+`scheduler:`
+: The scheduler on which the time interval will be measured.
+
+`options:`
+: Optional. You'll usually omit it.
+
+`customError:`
+: A function that produces an Error. Optional; if omitted, the operator responds to a timeout by sending a `.finished` completion.
+
+If you want to produce an Error, it needs to be of the same type as the upstream pipeline. For example, if the upstream pipeline's Failure type is Never, you can't supply an error function; to fix that, you'll use `.setFailureType` _before_ this operator:
+
+    .setFailureType(to: Error.self)
+    .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
+
+

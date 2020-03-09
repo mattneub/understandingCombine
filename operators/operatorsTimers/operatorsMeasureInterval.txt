@@ -1,0 +1,20 @@
+#title "MeasureInterval"
+
+# <%= title %>
+
+`.measureInterval` reports the time interval elapsed between the currently received value and the previously received value. The first time interval reported is the time between subscription and the receipt of the first value.
+
+The parameters are (see [.delay](operatorsDelay) for more information):
+
+`using:`
+: The queue or runloop on which the time is to be measured.
+
+`options:`
+: Optional. You'll usually omit it.
+
+Time intervals are reported as Stride structs; the actual time is the struct's `magnitude` property, whose size depends on the scheduler. For a DispatchQueue, it is an Int reporting nanoseconds. So, for example, to get the time interval in seconds, you could say:
+
+    .measureInterval(using: DispatchQueue.main)
+    .map {Double($0.magnitude)/1000000000}
+
+But for an OperationQueue or RunLoop, it is a Double reporting seconds, so the `.map` would be unnecessary.

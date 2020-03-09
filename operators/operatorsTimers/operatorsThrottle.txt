@@ -1,0 +1,28 @@
+#title "Throttle"
+
+# <%= title %>
+
+`.throttle` (Publishers.Throttle) is like a simplified version of [`.buffer`](operatorsBuffer); it is also closely related to [`.debounce`](operatorsDebounce). You supply a time interval. The operator runs a repeating timer and maintains a buffer of values received. When the time interval starts, the buffer is empty. When the time interval ends, the operator chooses one value out of the buffer and publishes it, and empties the buffer. Thus, values are filtered in such a way as to prevent more than one of them arriving per time interval.
+
+The parameters are (see [.delay](operatorsDelay) for more information about the first three):
+
+`for:`
+: The length of the interval.
+
+`scheduler:`
+: The queue or runloop on which the time will be measured.
+
+`options:`
+: Optional. You'll usually omit it.
+
+`latest:`
+: Determines how the value to be delivered is chosen from the buffer. If `true`, it is the most _recent_ value. If `false`, it is the _oldest_ value.
+
+
+For example:
+
+    let pub = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
+        .scan(0) {i,_ in i+1}
+        .throttle(for: 0.5, scheduler: DispatchQueue.main, latest: true)
+
+The values produced are `1`, `4`, `7`, `10`, and so on.

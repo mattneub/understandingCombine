@@ -50,6 +50,11 @@ operatorsStart
     operatorsShare
     operatorsMulticast
   operatorsTimers
+    operatorsDelay
+    operatorsDebounce
+    operatorsTimeout
+    operatorsThrottle
+    operatorsMeasureInterval
   operatorsErrorHandlers
   operatorsCodables
   operatorsThreaders
