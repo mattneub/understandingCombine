@@ -1,5 +1,0 @@
-#title "Debugging Operators"
-
-# <%= title %>
-
-**Not yet written.** Will cover `.print`, `.handleEvents`, `.breakpoint`.

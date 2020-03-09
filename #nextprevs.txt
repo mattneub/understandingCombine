@@ -36,6 +36,7 @@ operatorsStart
     operatorsMax
     operatorsContains
     operatorsCollect
+    operatorsBuffer
   operatorsPartitioners
     operatorsFirst
     operatorsOutput
@@ -48,5 +49,8 @@ operatorsStart
   operatorsSplitters
     operatorsShare
     operatorsMulticast
-  operatorsTBD
-  operatorsDebugging
+  operatorsTimers
+  operatorsErrorHandlers
+  operatorsCodables
+  operatorsThreaders
+  operatorsDebuggers

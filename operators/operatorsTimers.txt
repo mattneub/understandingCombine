@@ -1,18 +1,10 @@
-#title "TBD"
+#title "Timers"
 
 # <%= title %>
 
-**The rest is yet to be written**.
+**This part is yet to be written**.
 
 {::comment}
-
-codables
-    decode
-    encode
-
-threaders
-    subscribe(on:)
-    receive(on:)
 
 timers
     measureInterval
@@ -30,6 +22,14 @@ error handlers
     catch
     tryCatch
     retry
+
+codables
+    decode
+    encode
+
+threaders
+    subscribe(on:)
+    receive(on:)
 
 ????
     makeConnectable

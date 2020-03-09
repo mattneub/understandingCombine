@@ -1,0 +1,51 @@
+#title "Buffer"
+
+# <%= title %>
+
+`.buffer` accumulates values from upstream into its internal buffer, which is of predefined size, until the buffer fills up due to backpressure from downstream. At that point, it throws away values from upstream or throws an error, depending on how you've configured the operator. The buffer itself effectively behaves as a FIFO stack (also known as a queue).
+
+Some examples will clarify, but first let's talk about the parameters:
+
+`size:`
+: The size of the buffer.
+
+`prefetch:`
+: The strategy for requesting values from upstream. There are two possibilities:
+
+  * `.keepFull` means that the operator should immediately request enough values to cause the buffer to overflow. 
+  
+  * `.byRequest`, despite the name, means that the operator should immediately request an unlimited number of values.
+
+`whenFull:`
+: The policy to be followed when a value arrives from upstream but the buffer is full. There are three possibilities:
+
+  * `.dropNewest` means throw away the new value that doesn't fit into the buffer. 
+  
+  * `.dropOldest` means throw away the first value from the buffer and append the new value at the end.
+  
+  * `.customError` takes an associated value that's a function producing an Error, which is sent downstream as a failure.
+
+To make sense of `.buffer`, we need a pipeline that exerts backpressure from below. Here's one:
+
+    let pub = (1...10).map {
+        Just($0).delay(for: 1, scheduler: DispatchQueue.main)
+    }.publisher
+        .buffer(size: 4, prefetch: .byRequest, whenFull: .dropNewest)
+        .flatMap(maxPublishers:.max(1)) {
+            return $0
+        }
+
+At the top of the pipeline we have a publisher that wants to produce ten values immediately. At the bottom we have a `.flatMap` with a `.max(1)` demand setting, so that it asks for just one value at a time. But the values themselves are publishers with a `.delay`; it takes one second before each publisher can publish. This means that when a publisher arrives into the `.flatMap`, it sits there for one second before publishing its Int, at which point the `.flatMap` requests a new value. So the `.flatMap` at the bottom is asking for one value every second, while the publisher at the top has ten values to produce.
+
+Now, if there were no `.buffer` operator in the story, this pipeline would simply produce one Int per second; the backpressure from `.flatMap` would apply directly to the publisher at the top. But now we have introduced a buffer between them, as an intermediary — and the buffer can hold only four values at a time. What will happen?
+
+We subscribe to the pipeline, and the publisher delivers _all its values._ The first value passes right through to the `.flatMap`, but now it just sits there exerting backpressure, so that no more values can get through for the next second. During that second, the rest of the values fill up the buffer and are then thrown away. We have specified the `.dropNewest` policy, so values 2, 3, 4, and 5 fill up the buffer, and the remaining values are throw away. From then on, the buffer is drained, one value at a time, one per second, so the pipeline, having produced `1`, then produces `2`, then `3`, then `4`, then `5` — at a rate of one per second — and finishes.
+
+If we change `.dropNewest` to `.dropOldest`, the pipeline produces `1`, then `7`, then `8`, then `9`, then `10`, at a rate of one per second, and finishes. Do you see why? The first value passes through and gets stuck in the `.flatMap`, the buffer fills up with values 2 through 5, and then they are displaced one at a time by the remaining values until values 7, 8, 9, and 10 are occupying the buffer and then drained one per second.
+
+Okay, now let's change `.byRequest` to `.keepFull`, and `.dropOldest` back to `.dropNewest`. Now what comes out the end of the pipeline is `1`, `2`, `3`, `4`, `5`, `7`, `9`. Why? Well, the first value passes through and gets stuck in `.flatMap`, exerting backpressure. The `.buffer` operator then fills up the buffer with values 2, 3, 4, and 5, and now when it asks for value 6 and it discovers that the buffer is full, it throws away value 6 (because we said `.dropNewest`) and _stops,_ waiting for a request from downstream. When it gets it, it delivers value 2 and starts requesting values again; so it receives value 7 and puts it in the buffer, and then value 8, for which there is no room, so it is thrown away — and again it _stops,_ waiting for a request from downstream. And so it goes: each time a value is delivered out the end of the pipeline and a new value is requested by the `.flatMap`, the `.buffer` fills the buffer and throws away the next value and stops. And so we end up with values 6, 8, and 10 being thrown away, and the others being delivered at one-second intervals.
+
+Finally, if we change `.dropNewest` to `.dropOldest`, the pipeline produces `1`, `3`, `5`, `7`, `8`, `9`, and `10`, for reasons that should now be obvious.
+
+
+

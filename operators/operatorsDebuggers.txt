@@ -1,0 +1,44 @@
+#title "Debuggers"
+
+# <%= title %>
+
+**This part is yet to be written**.
+
+{::comment}
+
+timers
+    measureInterval
+    debounce
+    delay
+    throttle
+    timeout
+    buffer (but maybe this is a partitioner?)
+
+error handlers
+    mapError
+    setFailureType
+    replaceEmpty?
+    replaceError
+    catch
+    tryCatch
+    retry
+
+codables
+    decode
+    encode
+
+threaders
+    subscribe(on:)
+    receive(on:)
+
+????
+    makeConnectable
+
+debuggers
+    assertNoFailure
+    breakpoint
+    breakpointOnError
+    print
+    handleEvents
+
+{:/comment}
