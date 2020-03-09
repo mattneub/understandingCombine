@@ -32,36 +32,34 @@ To make sense of `.buffer`, we need a pipeline that exerts backpressure from bel
         .buffer(size: 4, prefetch: .byRequest, whenFull: .dropNewest)
         .flatMap(maxPublishers:.max(1)) {
             Just($0).delay(for: 2, scheduler: DispatchQueue.main)
+        }
 
 At the top of the pipeline we have a publisher that produces values every one-fifth of a second. At the bottom we have a `.flatMap` with a `.max(1)` demand setting, so that it asks for just one value at a time, while transforming its received values into publishers with a two-second `.delay`. This means that when a value arrives into the `.flatMap`, it sits there for two seconds before being published, at which point the `.flatMap` requests a new value.
 
-If there were no `.buffer` operator in the story, this pipeline would simply produce one successive Int every two seconds. The backpressure from `.flatMap` applies directly to the publisher at the top: every time the `.flatMap` asks for a new value, the upstream produces the next value in the series. But now we have introduced a buffer between them — and the buffer can hold only four values at a time. What will happen? Here's what we get, one value ever two seconds, at the end of the pipeline:
+If there were no `.buffer` operator in the story, this pipeline would simply produce one successive Int every two seconds. The backpressure from `.flatMap` applies directly to the publisher at the top: every time the `.flatMap` asks for a new value, the upstream produces the next value in the series. But now we have introduced a buffer between them — and the buffer can hold only four values at a time. What will happen? Here's what we get, one value every two seconds, at the end of the pipeline:
 
     RESULT: 1
     RESULT: 2
     RESULT: 3
     RESULT: 4
     RESULT: 5
-    RESULT: 12
-    RESULT: 23
-    RESULT: 33
+    RESULT: 13
+    RESULT: 24
+    RESULT: 35
     ...
 
-The `.flatMap` starts by asking for a value, and after one-fifth of a second, it gets it. The `1` is now sitting in the `.flatMap`, waiting for two seconds to be published, exerting backpressure on the buffer. Meanwhile values keep arriving into the buffer: the `2`, the `3`, the `4`, the `5`... But now the buffer is full (because it only holds four values), and the `6` arrives. That's an overflow. We have told the buffer that `.dropNewest`, so the `6` is thrown away. And so on for the `7`, the `8`, and all the numbers until the `.flatMap` publishes the `1` and asks for a new value. At the point, the buffer feeds it the `2`, freeing up a space in the buffer. So when the `12` arrives, there's room for it, and in it goes into the buffer. Now there's no more room again, while we wait two seconds for the `.flatMap` to clear, and the `13` arrives and is thrown away, then the `14`, and so on. Eventually we reach a steady state where only every 10th or 11th value from the top of pipeline arrives at the bottom; all the others are being thrown away because they encounter a full buffer.
+The `.flatMap` starts by asking for a value, and after one-fifth of a second, it gets it. The `1` is now sitting in the `.flatMap`, waiting for two seconds to be published, exerting backpressure on the buffer. Meanwhile values keep arriving into the buffer: the `2`, the `3`, the `4`, the `5`... But now the buffer is full (because it only holds four values), and the `6` arrives. That's an overflow. We have told the buffer that `.dropNewest`, so the `6` is thrown away. And so on for the `7`, the `8`, and all the numbers until the `.flatMap` publishes the `1` and asks for a new value. At the point, the buffer feeds it the `2`, freeing up a space in the buffer. So when the `12` arrives, there's room for it, and in it goes into the buffer. Now there's no more room again, while we wait two seconds for the `.flatMap` to clear, and the `13` arrives and is thrown away, then the `14`, and so on. Eventually we reach a steady state where only every 11th value from the top of pipeline arrives at the bottom; all the others are being thrown away because they encounter a full buffer.
 
 If we change `.dropNewest` to `.dropOldest`, the result is the same except that we achieve the steady state much sooner:
 
     RESULT: 1
     RESULT: 9
-    RESULT: 19
-    RESULT: 30
-    RESULT: 40
-    RESULT: 50
-    RESULT: 61
-    RESULT: 71
+    RESULT: 20
+    RESULT: 31
+    RESULT: 42
     ...
 
-As before, the `1` passes into the `.flatMap` and the `2`, `3`, `4`, and `5` fill up the buffer. But now when the `6` arrives it goes into the buffer and the `2` is thrown away; the `7` arrives and goes into the buffer and the `3` is thrown away; and so on. Eventually the buffer consists of `9`, `10`, `11`, `12` — and at that moment the `1` is finally published from the `.flatMap`, which requests a new value, and is handed the `9` from the start of the buffer.
+As before, the `1` passes into the `.flatMap` and the `2`, `3`, `4`, and `5` fill up the buffer. But now when the `6` arrives it goes into the buffer and the `2` is thrown away; the `7` arrives and goes into the buffer and the `3` is thrown away; and so on. Eventually the buffer consists of `9`, `10`, `11`, `12` — and at that moment the `1` is finally published from the `.flatMap`, which requests a new value, and is handed the `9` from the start of the buffer. And so on.
 
 So much for the `.byRequest` strategy. Now let's switch to the `.keepFull` strategy:
 
