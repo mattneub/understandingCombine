@@ -64,9 +64,11 @@ operatorsStart
     operatorsRetry
   operatorsCodables
   operatorsThreaders
+  operatorsWrappers
   operatorsDebuggers
     operatorsPrint
     operatorsHandleEvents
     operatorsBreakpoint
     operatorsAssertNoFailure
+  operatorsComposed
   operatorsCustom
