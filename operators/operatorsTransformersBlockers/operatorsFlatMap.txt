@@ -230,7 +230,7 @@ The solution is to put the `.replaceError` call _inside_ the map function, as pa
     urls.map(URL.init(string:)).compactMap{$0}.publisher
         .flatMap { url in
             URLSession.shared.dataTaskPublisher(for: url)
-            .replaceError(with: (data: Data(), response: URLResponse()))
+                .replaceError(with: (data: Data(), response: URLResponse()))
         }
 
 Now what happens is that the second publisher fails and produces an empty data object, and then _it alone_ is cancelled. That's fine with us, because it already did its job. Meanwhile, the other two data tasks go right on working, and they produce their data. So that demonstrates how `.flatMap` can contain a failure within a *part* of the pipeline and replace it with a value, without causing the *whole* pipeline to terminate.

@@ -1,0 +1,29 @@
+#title "SetFailureType"
+
+# <%= title %>
+
+`.setFailureType` (Publishers.SetFailureType) is sort of the opposite of [`.replaceError`](operatorsReplaceError): when the upstream failure type is Never, it changes the downstream pipeline's failure type to some sort of Error. It doesn't actually _emit_ any error; and in fact we are guaranteed that no error will arrive from upstream, because the upstream failure type, _ex hypothesi,_ is Never! But in this way we give operators further downstream permission to emit an error, which they could not have done otherwise.
+
+You do _not_ need to use `.setFailureType` if you're going to use an operator whose name begins with `.try`. You can always throw an error from such an operator, even if the upstream failure type is Never. 
+For example, this code is legal (and works as expected):
+
+    [1,2,3].publisher
+        .tryMap { (i:Int) -> Int in
+            if i > 2 { throw MyError.oops }
+            return i
+        }
+        .mapError {$0 as! MyError}
+
+The issue arises in situations where you want to produce an error _without_ saying `try`. For example, this code is illegal (it's also silly, but never mind that):
+
+    NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+        .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops} // compile error
+
+The problem is that you can't return an error to be sent down the pipeline if that error doesn't match the upstream failure type. To fix that, you use `.setFailureType`:
+
+        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+            .setFailureType(to: Error.self)
+            .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
+
+I gave some more realistic examples in the discussion of `.flatMap`, [earlier](operators.flatMap).
+

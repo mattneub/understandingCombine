@@ -31,6 +31,7 @@ operatorsStart
     operatorsCompactMap
     operatorsFlatMap
     operatorsSwitchToLatest
+    operatorsReplaceEmpty
   operatorsAccumulators
     operatorsReduce
     operatorsMax
@@ -56,6 +57,16 @@ operatorsStart
     operatorsThrottle
     operatorsMeasureInterval
   operatorsErrorHandlers
+    operatorsMapError
+    operatorsReplaceError
+    operatorsSetFailureType
+    operatorsCatch
+    operatorsRetry
   operatorsCodables
   operatorsThreaders
   operatorsDebuggers
+    operatorsPrint
+    operatorsHandleEvents
+    operatorsBreakpoint
+    operatorsAssertNoFailure
+  operatorsCustom

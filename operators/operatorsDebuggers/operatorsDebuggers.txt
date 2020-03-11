@@ -1,0 +1,21 @@
+#title "Debuggers"
+
+# <%= title %>
+
+Debuggers
+: By _debuggers_ I mean those operators that are useful primarily when you're debugging your pipeline.
+
+The debugger operator _par excellence_ is `.print`, which prints to the console all messages passing up and down the pipeline through the operator.
+
+
+{::comment}
+
+
+debuggers
+    assertNoFailure
+    breakpoint
+    breakpointOnError
+    print
+    handleEvents
+
+{:/comment}

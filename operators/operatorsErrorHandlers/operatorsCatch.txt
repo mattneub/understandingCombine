@@ -1,0 +1,67 @@
+#title "Catch"
+
+# <%= title %>
+
+`.catch` (Publishers.Catch) is somewhat like [`.mapError`](operatorsMapError), somewhat like [`.replaceError`](operatorsReplaceError), and somewhat like [`.flatMap`](operatorsFlatMap):
+
+* Like `.mapError`, `.catch` takes a map function, which won't be called unless a failure comes down the pipeline. (Otherwise, this operator just passes downstream whatever it receives from upstream.) If it is called, it receives the failure's error as parameter.
+
+* Like .`replaceError`, the map function returns a value and can convert the downstream failure type to Never.
+
+* Like `.flatMap`, what the map function produces is actually a publisher; that publisher is retained and starts publishing, and it is the values produced by that publisher that proceed downstream. The Output type of the publisher must match the Output type of the upstream pipeline.
+
+Recall this example from [earlier](operatorsFlatMap):
+
+    let urls = [
+        "https://www.apeth.com/pep/manny.jpg",
+        "https://www.apethh.com/pep/moe.jpg",
+        "https://www.apeth.com/pep/jack.jpg"
+    ]
+    urls.map(URL.init(string:)).compactMap{$0}.publisher
+        .flatMap { url in
+            URLSession.shared.dataTaskPublisher(for: url)
+                .replaceError(with: (data: Data(), response: URLResponse()))
+        }
+
+The idea, you recall, is that we don't want the whole pipeline to fail just because one of the URLs is bad and causes the data task publisher to fail. Instead of `.replaceError`, we could have used `.catch` (with Just):
+
+    urls.map(URL.init(string:)).compactMap{$0}.publisher
+        .flatMap { url in
+            URLSession.shared.dataTaskPublisher(for: url)
+                .catch {_ in Just((data:Data(), response:URLResponse()))}
+        }
+
+In a sense, then, `.replaceError` is a convenience for a particularly simple case of `.catch`. But `.catch` is far more powerful. This is your opportunity to inject a whole new pipeline at the head of the downstream — replacing the upstream, which has already failed.
+
+For instance, imagine a two-player game where Player 1 racks up a score for a while, but then makes some error that causes play to pass to Player 2, who gets to decrease that score. We might represent the players as PassthroughSubject instance properties; we also represent the score as a Published instance property, which has a pipeline of its own that updates the display of the score in the interface:
+
+    var player1 = PassthroughSubject<Int,MyError>()
+    var player2 = PassthroughSubject<Int,MyError>()
+    @Published var total = 0
+
+When the game begins, we configure pipelines from the interface to the player properties. If Player 1 scores, we call:
+
+    self.player1.send(1)
+
+If Player 2 scores, we call:
+
+    self.player2.send(-1)
+
+But here's the interesting part; if Player 1 makes an error, we call:
+
+    self.player1.send(completion: .failure(MyError.lostControl))
+
+That's our signal that we should switch from listening to Player 1 to listening to Player 2. And we can do that, with `.catch`. Our pipeline can start out subscribed to `self.player1`, but if an error comes down the pipeline, it switches to being subscribed to `self.player2`:
+
+    let pub = self.player1
+        .catch {_ in self.player2 }
+        .catch {_ in Empty<Int,Never>() }
+        .map {self.total + $0}
+        .assign(to: \.total, on: self)
+
+So Player 1 scores for a while, with each score incrementing `self.total`. But then `self.player1` emits the error, and immediately the _same pipeline_ is now subscribed to `self.player2` — and so Player 2 now gets to score, with each score decrementing `self.total`. Observe that we are allowed to use `.assign` even though either `player1` or `player2` can emit an error, because the second `.catch` operator mops up that error and guarantees that the downstream failure type is Never.
+
+(But what about the converse: what if Player 2 makes an error and we want to switch back to being subscribed to `self.player1`? You can't do that directly, because the PassthroughSubject at `self.player1` has been cancelled; it will never emit a value again. However, you can _replace_ the PassthroughSubject at `self.player1` and create the whole pipeline again.)
+
+There is also `tryCatch` (Publishers.TryCatch). Its map function can throw; so, unlike `catch`, it does not have the ability to change the downstream failure type to Never. If the map function does throw, the error passes down the pipeline as a failure, and the operator itself is cancelled.
+

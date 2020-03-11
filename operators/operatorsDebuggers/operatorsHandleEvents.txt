@@ -1,0 +1,21 @@
+#title "HandleEvents"
+
+# <%= title %>
+
+`.handleEvents` (Publishers.HandleEvents) is basically a completely generalized version of `.print`. On the one hand, `.print` only does one thing: it prints. And it does it indiscriminately: it reports everything that passes through it. On the other hand, `.handleEvents` does whatever you want it to; it consists of nothing but functions that you give it. And its behavior is separated out in accordance with _what_ passed through it. It takes _five_ functions, all of them optional; each function takes one parameter, except for `cancel` which takes no parameters:
+
+
+* `receiveSubscription:` — takes a Subscription
+
+* `receiveOutput:` — takes a value from upstream
+
+* `receiveCompletion:` — takes a completion (`.failure` or `.finished`)
+
+* `receiveCancel:`
+
+* `receiveRequest:` — takes a Demand
+
+You can do whatever you like in whichever functions you supply, including printing to the console. Thus, for example, you might use `.handleEvents` to print out _only_ Demands, so that you track the behavior of backpressure, or _only_ `cancel`, so that you can watch the upstream flow of `cancel` messages after a downstream failure.
+
+> **WARNING:** My experience is that under certain circumstance, `.handleEvents` can alter the behavior of the pipeline, thus causing you to draw erroneous conclusions about how the pipeline behaves. I regard this as a serious bug.
+

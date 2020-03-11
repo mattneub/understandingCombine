@@ -1,0 +1,15 @@
+#title "ReplaceError"
+
+# <%= title %>
+
+`.replaceError` (Publishers.ReplaceError) changes the downstream pipelines failure type from whatever the upstream failure type is to Never. It does this by specifying a value of the upstream output type that will be emitted as a value if an error arrives from upstream.
+
+Here's an example I gave [earlier](startFailures):
+
+    URLSession.shared.dataTaskPublisher(for: url)
+        .map {$0.data}
+        .replaceError(with: Data())
+
+By the time we have passed through the `.map` operator, the pipeline's Output type is Data and its Failure type is URLError. Now we use the `.replaceError` operator to say that if an error arrives from upstream, we should block it and instead emit a Data object of our own, namely an empty Data. In that way, we guarantee to the downstream that it will never receive a failure, and so the failure type becomes Never. And we leave it to the downstream to cope with the empty Data in some sensible way. In context, this works perfectly, because what we're looking for is UIImage data; an empty Data is not UIImage data and we'll be able to stop the empty data from moving any further down the pipeline (using `.compactMap`).
+
+

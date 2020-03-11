@@ -1,0 +1,40 @@
+#title "Error Handlers"
+
+# <%= title %>
+
+Error Handlers
+: By _error handlers_ I mean those operators that do for errors — meaning [failures](startFailures) — what operators such as `.map` and `.filter` do for values. Both values and failures are objects that come down the pipeline, and each has a [type](startTypes); and just as you can transform one value into another, and even into a different type of value, or prevent a value from moving further down the pipeline, it is perfectly reasonable to want to do the same sort of thing for failures.
+
+The error handler _par excellence_ is `.mapError`, which does just what `.map` does, but for errors: if it receives a failure from upstream, it can send downstream a failure containing a different error object, even a different type of error object.
+
+{::comment}
+
+
+error handlers
+    mapError
+    setFailureType
+    replaceEmpty?
+    replaceError
+    catch
+    tryCatch
+    retry
+
+codables
+    decode
+    encode
+
+threaders
+    subscribe(on:)
+    receive(on:)
+
+????
+    makeConnectable
+
+debuggers
+    assertNoFailure
+    breakpoint
+    breakpointOnError
+    print
+    handleEvents
+
+{:/comment}

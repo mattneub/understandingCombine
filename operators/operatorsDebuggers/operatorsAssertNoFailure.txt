@@ -1,0 +1,9 @@
+#title "AssertNoFailure"
+
+# <%= title %>
+
+`.assertNoFailure` (Publishers.AssertNoFailure) crashes if a failure comes down from upstream. It also guarantees to the downstream that no failure can arrive, because if it did, we'd have crashed; therefore the downstream failure type is Never.
+
+But do not use `.assertNoFailure` as a way of changing the failure type to Never! That's the job of [`.replaceError`](operatorsReplaceError) or [`.catch`](operatorsCatch). Use it during development to ensure sanity, but remove it before shipping.
+
+> **WARNING:** Do not ship code containing `.assertNoFailure` calls! Your app will crash if an error occurs.

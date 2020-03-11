@@ -1,0 +1,14 @@
+#title "IgnoreOutput, ReplaceEmpty"
+
+# <%= title %>
+
+`.ignoreOutput` (Publishers.IgnoreOutput) is the ultimate blocker; it just swallows all the incoming values and doesn't output anything. Its output _type_ is the same as the output type of the upstream, but in _fact_ it will never emit a value of that type. It merely passes along the completion it receives from upstream.
+
+`.replaceEmpty` (Publishers.ReplaceEmpty) is the opposite of `.ignoreOutput`: it transforms nothingness into somethingness. This operator is initialized with a single value of the upstream Output type, which it stores. If a value or an error comes down the pipeline, this operator passes it on down the pipeline, and never does anything else. But if a `.finished` completion comes down the pipeline, _without_ a value or an error having come down the pipeline previously, this operator passes its stored value down the pipeline, and then sends a `.finished` completion.
+
+In this way, a pipeline that does nothing is made to do something. For example, suppose we're subscribed to a stream of Ints, but the upstream might finish without ever providing us with an Int. And suppose we'd like to signal that as a value. We might decide to convert all incoming Ints into Optional Ints; that way, we can signal `nil` to mean there were no values:
+
+    myPublisher
+        .map(Optional.init)
+        .replaceEmpty(with:nil)
+

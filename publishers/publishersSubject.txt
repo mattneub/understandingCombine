@@ -66,7 +66,7 @@ Even though that's still largely a toy example, you can see that we've made `cou
 
 Another important feature of a Subject is that it is a class. This means that a single Subject can be subscribed to by many subscribers simultaneously; it will broadcast its value to all of them.
 
-Finally, a Subject has the remarkable feature that it is also an operator, in the sense that you can subscribe it to another publisher. The dance is a little tricky because when you tell a publisher to `subscribe` a Subject you get an AnyCancellable that you need to retain if you don't want it to go out of existence.
+A Subject also has the remarkable feature that it is also an operator, in the sense that you can subscribe it to another publisher. The dance is a little tricky because when you tell a publisher to `subscribe` a Subject you get an AnyCancellable that you need to retain if you don't want it to go out of existence.
 
 To demonstrate, here's an artificial example:
 
@@ -90,4 +90,6 @@ Now if we tell our `topSubject` to `send("howdy")`, we see in the console:
     sub2 howdy
 
 So we have shown both that `topSubject` can broadcast to multiple pipelines simultaneously and that the `sub1` and `sub2` Subjects can be subscribed to a publisher.
+
+In addition to `send`, a Subject has a `send(completion:)` method. This means that you can make a Subject behave like any other publisher, sending a `.finished` or `.failure` completion down the pipeline. That's valuable, because your pipeline might respond in special ways to these signals. To send a `.failure` completion, you'll want the failure generic type to be something like Error, not Never. Once you do that, the Subject is cancelled and cannot produce any further values.
 

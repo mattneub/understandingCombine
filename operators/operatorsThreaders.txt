@@ -2,43 +2,14 @@
 
 # <%= title %>
 
-**This part is yet to be written**.
+Threaders
+: By _threaders_ I mean those operators that specify the thread (formally, the scheduler) on which messages should be sent. There are two of them: `receive(on:)` and `subscribe(on:)`.
 
-{::comment}
+`receive(on:)` (Publishers.ReceiveOn) is by far the more commonly used. Basically, it ensures that the downstream part of the pipeline will receive values and other messages on a specified thread. 
 
-timers
-    measureInterval
-    debounce
-    delay
-    throttle
-    timeout
-    buffer (but maybe this is a partitioner?)
+For example, a pipeline that starts with a data task publisher will nearly always include `.receiveOn(DispatchQueue.main)` somewhere in the pipeline. The reason is that you can't guarantee that a data task publisher's output will arrive on the main thread; in fact, it almost certainly won't. But if you want to do something with that output, such as store it with `.assign`, you'll probably need to do that on the main thread.
 
-error handlers
-    mapError
-    setFailureType
-    replaceEmpty?
-    replaceError
-    catch
-    tryCatch
-    retry
+`.subscribe(on:)` works in the opposite direction: it affects the _upstream_-directed `receive`, `request`, and `cancel` messages used for subscribing, requesting values, and canceling.
 
-codables
-    decode
-    encode
+Both methods take an Options `options:` parameters, but you are unlikely to use it.
 
-threaders
-    subscribe(on:)
-    receive(on:)
-
-????
-    makeConnectable
-
-debuggers
-    assertNoFailure
-    breakpoint
-    breakpointOnError
-    print
-    handleEvents
-
-{:/comment}

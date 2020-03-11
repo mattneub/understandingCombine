@@ -1,0 +1,12 @@
+#title "Retry"
+
+# <%= title %>
+
+`.retry` (Publishers.Retry) takes an Int parameter, which it stores. If a failure comes down the pipeline from upstream, this operator does _not_ cancel its upstream object or pass the failure on downstream; instead, it decrements the Int, and then unsubscribes itself and subscribes itself to the upstream object, _again._ This causes the upstream publisher to start over publishing again. This can go on for as long as the original Int permits. If the Int reaches zero and a failure comes down the pipeline from upstream, _now_ this operator cancels the upstream and sends the failure on downstream.
+
+The classic example of using `.retry` is with a data task publisher:
+
+    URLSession.shared.dataTaskPublisher(for:url)
+        .retry(3)
+
+Unfortunately, there's no way to specify a delay before retrying, so if you think the problem might clear up if you wait a while, you have to insert a `.delay` operator, which then runs whether there's an error or not.

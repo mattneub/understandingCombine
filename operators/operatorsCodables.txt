@@ -1,44 +1,13 @@
-#title "Coders"
+#title "Codables"
 
 # <%= title %>
 
-**This part is yet to be written**.
+Codables
+: By _codables_ I mean those operators that deal with the Swift Codable protocol. There are two of them: `.encode` and `.decode`.
 
-{::comment}
+`.encode` (Publishers.Encode) takes a JSONEncoder or PropertyListEncoder and encodes the value that comes from upstream. The upstream Output type must conform to Encodable. The downstream type will be Data. If encoding fails, a failure is sent down the pipeline.
 
-timers
-    measureInterval
-    debounce
-    delay
-    throttle
-    timeout
-    buffer (but maybe this is a partitioner?)
+`.decode` (Publishers.Decode) takes a type (which must conform to Decodable) and a JSONDecoder or PropertyListDecoder and decodes the value that comes from upstream. The downstream type will be the type you passed as the first parameter. If decoding fails, a failure is sent down the pipeline.
 
-error handlers
-    mapError
-    setFailureType
-    replaceEmpty?
-    replaceError
-    catch
-    tryCatch
-    retry
+The fact that these operators emit failures if encoding or decoding fails is unfortunate, because a failure means that a `cancel` call is sent upstream and the entire pipeline is terminated. If that isn't what you want — that is, if you're expecting multiple values to come down the pipeline and you want to encode or decode all those values that _can_ be encoded or decoded — the workaround is to use `.flatMap` to [confine the failure](operatorsFlatMap) to an inner pipeline.
 
-codables
-    decode
-    encode
-
-threaders
-    subscribe(on:)
-    receive(on:)
-
-????
-    makeConnectable
-
-debuggers
-    assertNoFailure
-    breakpoint
-    breakpointOnError
-    print
-    handleEvents
-
-{:/comment}

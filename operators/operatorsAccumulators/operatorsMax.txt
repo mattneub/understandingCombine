@@ -35,4 +35,5 @@ So for example:
 
     .reduce(0) {prev,_ in $0+1}
 
-`.ignoreOutput` (Publishers.IgnoreOutput) is even simpler; it just swallows all the incoming values and doesn't output anything. Its output _type_ is the same as the output type of the upstream, but in _fact_ it will never emit a value of that type. It merely passes along the completion it receives from upstream.
+If the upstream sends a `.finished` completion without having emitted any values, the `.count` operator reports `0`, as you would expect.
+

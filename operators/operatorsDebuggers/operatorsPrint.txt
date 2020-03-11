@@ -1,0 +1,88 @@
+#title "Print"
+
+# <%= title %>
+
+`.print` (Publishers.Print) writes to the console a string message describing everything that passes through it in either direction: a subscription, demand, or `cancel` message passing upstream, or a value or completion passing downstream.
+
+For example, here's a very simple pipeline:
+
+    Just(1)
+        .print()
+
+When we subscribe to that pipeline, it writes to the console:
+
+    receive subscription: (Just)
+    request unlimited
+    receive value: (1)
+    receive finished
+
+Clearly, `.print` can be extremely useful for testing your pipeline and getting a record of what flows through it. On the other hand, you can end up with a _lot_ of information, especially if you've got more than one `.print` operator. To help you with that problem, this operator takes an optional string parameter that will be prefixed to each item of output. Judicious use of these string will help you straighten out what's going on throughout the pipeline.
+
+For example, here's a heavily instrumented pipeline:
+
+    [1].publisher
+        .print()
+        .flatMap(maxPublishers: .max(1)) {
+            Just($0)
+            .print()
+        }
+        .print()
+        .sink(receiveCompletion: {print($0)})
+            {print($0)}
+            .store(in:&self.storage)
+
+The output in the console is:
+
+    receive subscription: (FlatMap)
+    request unlimited
+    receive subscription: ([1])
+    request max: (1)
+    receive value: (1)
+    receive subscription: (Just)
+    request unlimited
+    receive value: (1)
+    receive value: (1)
+    1
+    receive finished
+    request max: (1)
+    receive finished
+    receive finished
+    finished
+
+That's totally incomprehensible. By adding prefix strings, we can completely clarify what's going on; I'll add prefix strings to the `.sink` output too:
+
+    [1].publisher
+        .print("before")
+        .flatMap(maxPublishers: .max(1)) {
+            Just($0)
+            .print("inside")
+        }
+        .print("after")
+        .sink(receiveCompletion: {print("DONE:", $0)})
+            {print("VAL:",$0)}
+            .store(in:&self.storage)
+
+The output is:
+
+    after: receive subscription: (FlatMap)
+    after: request unlimited
+    before: receive subscription: ([1])
+    before: request max: (1)
+    before: receive value: (1)
+    inside: receive subscription: (Just)
+    inside: request unlimited
+    inside: receive value: (1)
+    after: receive value: (1)
+    VAL: 1
+    inside: receive finished
+    before: request max: (1)
+    before: receive finished
+    after: receive finished
+    DONE: finished
+
+That's better! Now it doesn't take much study to understand just how that pipeline works.
+
+> **NOTE:** The `.print` operator also takes an optional `to:` parameter specifying a TextOutputString to write to, but I have not been able to get it to behave correctly.
+
+
+
