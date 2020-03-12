@@ -13,8 +13,9 @@ The idea here is we are told to subscribe to a Subscriber whose types match our 
 struct MyCoolPublisher : Publisher {
     typealias Output = String
     typealias Failure = Never
-    func receive<S>(subscriber: S) where S:Subscriber, S.Input == Output, S.Failure == Failure {
-        // now what?
+    func receive<S>(subscriber: S) 
+        where S:Subscriber, S.Input == Output, S.Failure == Failure {
+            // now what?
     }
 }
 ~~~
@@ -22,9 +23,10 @@ struct MyCoolPublisher : Publisher {
 The problem is the implementation of `receive(subscriber:)`. As I say in the comment: Now what? Although the protocol itself has no way of enforcing this, our job here is to make a Subscription object and call the subscriber's `receive(subscription:)`:
 
 ~~~
-func receive<S>(subscriber: S) where S:Subscriber, S.Input == Output, S.Failure == Failure {
-    let subscription = // make a Subscription
-    subscriber.receive(subscription:subscription)
+func receive<S>(subscriber: S) 
+    where S:Subscriber, S.Input == Output, S.Failure == Failure {
+        let subscription = // make a Subscription
+        subscriber.receive(subscription:subscription)
 }
 ~~~
 
@@ -46,27 +48,29 @@ By convention, the Subscription class is usually a nested class called Inner. An
 struct MyCoolPublisher : Publisher {
     typealias Output = String
     typealias Failure = Never
-    func receive<S>(subscriber: S) where S:Subscriber, S.Input == Output, S.Failure == Failure {
-        subscriber.receive(subscription:Inner(downstream:subscriber))
+    func receive<S>(subscriber: S) 
+        where S:Subscriber, S.Input == Output, S.Failure == Failure {
+            subscriber.receive(subscription:Inner(downstream:subscriber))
     }
-    class Inner<S> : Subscription where S:Subscriber, S.Input == Output, S.Failure == Failure {
-        var downstream : S?
-        init(downstream:S) {
-            self.downstream = downstream
-        }
-        func request(_ demand: Subscribers.Demand) {
-            // ???
-        }
-        func cancel() {
-            // ???
-        }
+    class Inner<S> : Subscription 
+        where S:Subscriber, S.Input == Output, S.Failure == Failure {
+            var downstream : S?
+            init(downstream:S) {
+                self.downstream = downstream
+            }
+            func request(_ demand: Subscribers.Demand) {
+                // ???
+            }
+            func cancel() {
+                // ???
+            }
     }
 }
 ~~~
 
 We have now pushed all the real work into Inner, and can proceed to implement the rest of this publisher there. How we do that will depend on what this publisher publishes.
 
-For example, let's say our publisher's job is to emit the names of the three Pep Boys, `"Manny"`, `"Moe"`, and `"Jack"`, in order, and then stop. So we'll keep a list of Pep Boys, and we'll respond to a `demand` by sending them to the subscriber; and when we come to the end of the list, we'll signal completion:
+For example, let's say our publisher's job is to emit the names of the three Pep Boys, `"Manny"`, `"Moe"`, and `"Jack"`, in order, and then stop. So we'll keep a list of Pep Boys, and we'll respond to a `demand` by sending those values to the subscriber; and when we come to the end of the list, we'll signal completion:
 
     var boys = Array(["Manny", "Moe", "Jack"].reversed()) // so we can use popLast
     func request(_ demand: Subscribers.Demand) {
@@ -90,7 +94,7 @@ As you can see, once we've signalled completion, we also release our downstream 
 
 If we now attach a Sink to our publisher, we'll see that it does in fact receive `"Manny"`, `"Moe"`, and `"Jack"`, followed by a `.finished` completion. Our publisher is working! It's only a "toy" publisher, but it demonstrates clearly the fundamentals of writing a publisher.
 
-Perhaps you've noticed that our publisher is failing to respond to backpressure. In our implementation of `request(_:)`, we are not examining the incoming `demand` parameter to see how many values we're being asked for; and when we send a value to the downstream subscriber, we are completely ignoring the demand that is returned. Nevertheless, if we're writing a publisher for our own use, that might be perfectly acceptable. Some publishers publish just one value; most subscribers don't exert any backpressure; and in any case not every publisher needs to respond to backpressure.
+Perhaps you've noticed, though, that our publisher is failing to respond to backpressure. In our implementation of `request(_:)`, we are not examining the incoming `demand` parameter to see how many values we're being asked for; and when we send a value to the downstream subscriber, we are completely ignoring the demand that is returned. Nevertheless, if we're writing a publisher for our own use, that might be perfectly acceptable. Some publishers publish just one value; most subscribers don't exert any backpressure; and in any case not every publisher needs to respond to backpressure.
 
 If we _do_ want to implement a response to backpressure, that turns out to be quite a tricky problem, because a limited demand can arrive while we're in the middle of fulfilling a limited demand. We need to keep a running total of how much total demand has piled up at every given moment. Fortunately, the Subscribers.Demand struct defines arithmetic operators, comparison operators, and range operators, to work with other Subscriber.Demand instances, as well as with Int. Thus it is easy to manipulate a demand as if it _were_ an Int.
 
@@ -123,8 +127,10 @@ I'll posit a Publisher struct called ControlPublisher. Its job will be to emit a
         typealias Failure = Never
         unowned let control : UIControl
         init(control:UIControl) { self.control = control }
-        func receive<S>(subscriber: S) where S : Subscriber, S.Input == Output, S.Failure == Failure {
-            subscriber.receive(subscription: Inner(downstream: subscriber, sender: self.control))
+        func receive<S>(subscriber: S) 
+            where S : Subscriber, S.Input == Output, S.Failure == Failure {
+                subscriber.receive(subscription: 
+                    Inner(downstream: subscriber, sender: self.control))
         }
         class Inner <S:Subscriber>: NSObject, Subscription 
             where S.Input == Output, S.Failure == Failure {
@@ -147,7 +153,9 @@ I'll posit a Publisher struct called ControlPublisher. Its job will be to emit a
 Now let's start filling in the blanks. First, what should happen when our `request(_:)` method is called with a demand? I'm not going to bother examining the demand; this isn't going to be a publisher that responds to backpressure. Instead, I'm going to assume that the arrival of a demand means that the subscriber is ready to hear about the control's `.primaryActionTriggered` event firing. That means that _we_ need to hear about the control's `.primaryActionTriggered` event firing! So I'll add `self` (the Subscription object) as the control's target:
 
     func request(_ demand: Subscribers.Demand) {
-        self.sender?.addTarget(self, action: #selector(doAction), for: .primaryActionTriggered)
+        self.sender?.addTarget(self, 
+            action: #selector(doAction), 
+            for: .primaryActionTriggered)
     }
     @objc func doAction(_ sender:UIControl) {
         // ?

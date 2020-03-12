@@ -1,5 +1,0 @@
-<%= pageheader() %>
-<p id="bodytext"></p>
-<hr />
-<%= nextprevlinks() %>
-<%= pagefooter() %>

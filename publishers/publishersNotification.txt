@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-The notification center is a broadcast mechanism used to post messages agnostically, to be received by conceptually distant objects. A notification center publisher (NotificationCenter.Publisher) is — you guessed it — a publisher vended by the NotificationCenter. To obtain one, you'll typically call this method on the `NotificationCenter.default` instance:
+The notification center is a broadcast mechanism used to post messages to be received by objects that have registered to receive them. A notification center publisher (NotificationCenter.Publisher) is — you guessed it — a publisher vended by the NotificationCenter. To obtain one, you'll typically call this method on the `NotificationCenter.default` instance:
 
     func publisher(for: Notification.Name, object: AnyObject? = nil)
 

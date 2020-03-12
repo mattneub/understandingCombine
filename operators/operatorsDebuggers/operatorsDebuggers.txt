@@ -7,15 +7,6 @@ Debuggers
 
 The debugger operator _par excellence_ is `.print`, which prints to the console all messages passing up and down the pipeline through the operator.
 
+One of the hardest aspects of using Combine is simply knowing what [output and failure types](startTypes) are passing the pipeline at any point. Oddly, there is no built-in debugger operator that helps with this. However, here's a good trick: start entering a [`.handleEvents`](operatorsHandleEvents) call within the pipeline, and let code completion enter the template for the call. The template for the `receiveOutput:` parameter tells you the Output (value) type at that point, and the template for the `receiveCompletion:` parameter tells you the Failure (error) type at that point. (You can then select and remove the template for the call; you've found out what you wanted to know.)
 
-{::comment}
-
-
-debuggers
-    assertNoFailure
-    breakpoint
-    breakpointOnError
-    print
-    handleEvents
-
-{:/comment}
+Another way to learn the type of something is to assign it to a local variable, select the variable, and look in the Quick Help inspector. It can be useful to construct your pipeline in stages, assigning the part of the pipeline created so far to a local variable, just so that you can use this trick. Similarly, within an operator's function, you can assign (say) `$0` to a local variable so that you can learn the type of the incoming parameter. Again, you can remove these local variables when you no longer need them.

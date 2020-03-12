@@ -61,7 +61,7 @@ override func viewDidLoad() {
 }
 ~~~
 
-We're not doing anything here that we couldn't have done with property observers, but the expression of the relationship between the two UISwitches as two pipelines is clean and self-contained. (We could eliminate the two `@IBAction` methods if a UISwitch itself vended a publisher; later, I'll show how to make it do that.)
+We're not doing anything here that we couldn't have done with property observers, but with Combine pipelines the expression of the relationship between the two UISwitches as two pipelines is particularly clean and self-contained. (We could eliminate the two `@IBAction` methods if a UISwitch itself vended a publisher; later, I'll show how to make it do that.)
 
 Related to the `@Published` property wrapper is the ObservableObject class protocol, whose `objectWillChange` property is a publisher that sends a signal when any of its `@Published` properties is about to change. This is used primarily in conjunction with SwiftUI.
 

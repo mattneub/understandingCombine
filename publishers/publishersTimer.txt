@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-If you were previously using a repeating Timer, you can replace it with a Timer publisher (Timer.TimerPublisher). This publisher is vended by the Timer class:
+A Timer (Objective-C NSTimer) is an object that "fires", emitting a signal, after a given time interval has elapsed. Often, a Timer will be a _repeating_ Timer, meaning that it fires after _every_ lapse of the given time interval. If you were previously using a repeating Timer, you can replace it with a Timer publisher (Timer.TimerPublisher). This publisher is vended by the Timer class:
 
     static func publish(
         every: TimeInterval, tolerance: TimeInterval? = nil, 
@@ -12,7 +12,7 @@ The usual RunLoop is `.main` (the run loop of the main thread), and the usual Mo
 
 A Timer publisher is rather different from the publishers we've talked about so far; it is a ConnectablePublisher. That means that merely subscribing to it is not sufficient to schedule the timer and start it firing. To make those things happen, you must tell the publisher to `connect`. To do so, you have two choices:
 
-* Apply the `autoconnect()` operator to the publisher. This causes `connect()` to be sent automatically to the publisher when it is subscribed to.
+* Apply the `.autoconnect()` operator to the publisher. This causes `connect()` to be sent automatically to the publisher when it is subscribed to.
 
 * Maintain a reference to the publisher and send it the `connect()` message manually.
 
@@ -40,9 +40,10 @@ var timerCancellable = Set<AnyCancellable>()
 func makeTimer() {
     self.timerCancellable.first?.cancel()
     let timerPublisher = Timer.publish(every: 0.5, on: .main, in: .common)
-    let timerPipeline = Subscribers.Sink<Date,Never>(receiveCompletion:{_ in}) {
-        [unowned self] _ in self.checkFraction()
-    }
+    let timerPipeline = 
+        Subscribers.Sink<Date,Never>(receiveCompletion:{_ in}) {
+            [unowned self] _ in self.checkFraction()
+        }
     timerPublisher.subscribe(timerPipeline)
     timerPublisher.connect().store(in:&self.timerCancellable)
 }

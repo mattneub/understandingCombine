@@ -26,9 +26,9 @@ Fail
 
 You might wonder what's the good of these publishers, as they are all extremely simple and their output is hard-coded. Well, for one thing, they are useful for *testing* a pipeline, to see what comes down the pipeline with this publisher at its start. But they also have a use you might not think of at first: they are valuable in the _middle_ of a pipeline.
 
-To understand why, you need to know about the `flatMap` operator. It takes a function that accepts a value from upstream and returns a publisher — which then publishes to the next subscriber downstream. In other words, the output from `flatMap` is the output from the publisher that its function produces.
+To understand why, you need to know about the `.flatMap` operator. It takes a map function that accepts a value from upstream and returns a publisher — which then publishes to the next subscriber downstream. In other words, the output from `.flatMap` is the output from the publisher that its map function produces.
 
-Thus, inside the `flatMap` function, we can create a publisher based on _what_ value came to us from upstream. So, for example, even though the value published by a Just is hard-coded to the value with which the Just is initialized, that value _itself_ doesn't need to be hard-coded (a literal); it can be the value we received from upstream.
+Thus, inside the `.flatMap` operator's map function, we can create a publisher based on _what_ value came to us from upstream. So, for example, even though the value published by a Just is hard-coded to the value with which the Just is initialized, that value _itself_ doesn't need to be hard-coded (a literal); it can be the value we received from upstream.
 
 To illustrate, I'll create an artifical toy example; this is probably not the way you'd do this in real life, but it demonstrates how value publishers can pop up in the middle of a pipeline:
 
@@ -38,9 +38,11 @@ enum MyError : Error { case tooBig }
     .setFailureType(to: Error.self)
     .flatMap { (i:Int) -> AnyPublisher<Int,Error> in
         if i < 5 {
-            return Just(i).setFailureType(to: Error.self).eraseToAnyPublisher()
+            return Just(i).setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
         } else {
-            return Fail<Int,Error>(error: MyError.tooBig).eraseToAnyPublisher()
+            return Fail<Int,Error>(error: MyError.tooBig)
+                .eraseToAnyPublisher()
         }
 }.sink(receiveCompletion: {print($0)}, receiveValue: {print($0)})
 .store(in:&self.storage)
@@ -48,7 +50,7 @@ enum MyError : Error { case tooBig }
 
 We start with a publisher that emits the sequence of Ints `1` thru `10`. We want to pass these values down the pipeline as they arrive, but after we've received `4` we want to pass an error instead. A Sequence publisher's error type is Never, so we start by using `.setFailureType` to change the downstream pipeline's Failure type to Error. Now we're ready for `.flatMap`.
 
-In the `flatMap` function, we receive an Int, which we call `i`. Our plan is to produce a publisher — either a publisher that repeats the value of `i`, or a publisher that signals a failure. Those will be a Just and a Fail:
+In the map function, we receive an Int, which we call `i`. Our plan is to produce a publisher — either a publisher that repeats the value of `i`, or a publisher that signals a failure. Those will be a Just and a Fail:
 
         if i < 5 {
             // produce a Just(i)

@@ -13,7 +13,8 @@ The parameters when you obtain a publisher with `publisher(for:options:)` are li
 For example, a WKWebView is KVO-observable for properties such as `isLoading`. Your code might take advantage of this to put up a UIActivityView during the time it takes for the web view to load its content:
 
 ~~~
-self.obs.insert(wv.observe(\.isLoading, options: .new) { [unowned self] wv, ch in
+self.obs.insert(wv.observe(\.isLoading, options: .new) { 
+    [unowned self] wv, ch in
     if let val = ch.newValue {
         if val {
             self.activity.startAnimating()
@@ -55,7 +56,8 @@ enum KVO<T> {
 You then use operators to break up the series of received values into the first value and all the rest of the values, wrapping them up into respective cases of that enum:
 
 ~~~
-let kvop = self.thingy.publisher(for: \.string, options: [.initial, .new])
+let kvop = self.thingy.publisher(
+    for: \.string, options: [.initial, .new])
 let initial = kvop.first()
     .map { KVO.initial($0) }
 let subsequent = kvop.dropFirst()
@@ -83,7 +85,8 @@ enum KVO<T> {
 And we'll change the start of our pipeline accordingly:
 
 ~~~
-let kvop = self.thingy.publisher(for: \.string, options: [.initial, .new, .prior])
+let kvop = self.thingy.publisher(
+    for: \.string, options: [.initial, .new, .prior])
 let initial = kvop.first()
     .map { KVO.initial($0) }
 let subsequent = kvop.dropFirst().collect(2)

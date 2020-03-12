@@ -1,7 +1,0 @@
-<%= pageheader() %>
--# in div must enable kramdown explicitly
-.heart(markdown="1")
-  %p#bodytext
-%hr
-<%= nextprevlinks() %>
-<%= pagefooter() %>
