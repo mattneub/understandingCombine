@@ -33,7 +33,7 @@ The **first** required method is
 
 This method informs us that we have been subscribed to a publisher. The publisher has created a Subscription object and has handed it to us. Our chief job is to hang on to that Subscription in case we need to communicate with the publisher later.
 
-Most `receive(subscription)` implementations will also perform a second job: they turn immediately to publisher, by way of the Subscription, and ask it to start sending values. This is not a required functionality of `receive(subscription)`; if you don't want the publisher to begin publishing immediately, you don't need to ask it yet to start sending values. But usually you _do_ want the publisher to begin publishing immediately. And interestingly, if you don't _ask_ the publisher for a value, it won't _send_ a value.
+Most `receive(subscription)` implementations will also perform a second job: they turn immediately to the publisher, by way of the Subscription, and ask it to start sending values. This is not a required functionality of `receive(subscription)`; if you don't want the publisher to begin publishing immediately, you don't need to ask it yet to start sending values. But usually you _do_ want the publisher to begin publishing immediately. And interestingly, if you don't _ask_ the publisher for a value, it won't _send_ a value.
 
 > **NOTE:** The architecture of the Combine framework leaves it up to the subscriber to "pull" values from the publisher. The subscriber can thus _prevent_ the publisher from sending values by _not_ pulling values. This ability of the subscriber to regulate the publisher's rate of value production is called _backpressure._
 

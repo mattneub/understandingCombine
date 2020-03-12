@@ -30,7 +30,7 @@ subscriber [downstream]                                      ⬆️ subscribe
 
 So each operator in the chain _receives_ a signal from upstream and can respond by _sending_ a signal downstream.
 
-But why would you want to do that? Well, I didn't say that the signal produced downstream by an operator has to be identically the same signal that the operator received from upstream. An operator doesn't have to _echo_ the signal it receives. On the contrary, each operator in the chain, in turn, has a chance to _transform_ the signal as it passes down the chain. The signal is a value of some sort. An operator do things with that value. For instance:
+But why would you want to do that? Well, I didn't say that the signal produced downstream by an operator has to be identically the same signal that the operator received from upstream. An operator doesn't have to _echo_ the signal it receives. On the contrary, each operator in the chain, in turn, has a chance to _transform_ the signal as it passes down the chain. The signal is a value of some sort. An operator can do things with that value. For instance:
 
 * It can _change_ that value. 
 

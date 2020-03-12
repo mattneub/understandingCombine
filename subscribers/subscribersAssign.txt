@@ -8,7 +8,7 @@ The `.assign` subscriber (Subscribers.Assign) is legal only with a publisher who
 
 (I'll deal [later](AnyCancellable) with the significance of the fact that the `assign` method produces an object typed as AnyCancellable rather than Subscribers.Assign.)
 
-The first parameter is a property, designated as a Swift keypath; the second parameter is an object. The outcome is that the incoming value will be assign to that property of that object.
+The first parameter is a property, designated as a Swift keypath; the second parameter is an object. The outcome is that the incoming value will be assigned to that property of that object.
 
 The example I gave [earlier](startFailures) was of a UIImage coming down the pipeline and being assigned to an image view's `image` property:
 

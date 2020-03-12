@@ -4,19 +4,21 @@ $code-font-family: Menlo, Inconsolata, Monaco, Consolas, "Andale Mono", "Bitstre
 
 $breadcrumbs-width: 220px;
 
-// okay so I have no idea about this grid anad height stuff, 
+// okay so I have no idea about this sticky footer stuff, 
 // I got it from https://css-tricks.com/couple-takes-sticky-footer/
+// we have to use flexbox, not grid, so that code can scroll
 html {
     height: 100%;
 }
 body {
-    min-height: 95%;
-    display: grid;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
+}
+.notfooter {
+    flex: 1 0 auto;
 }
 .bottom_nav {
-    grid-row-start: 2;
-    grid-row-end: 3;
+    flex-shrink: 0;
 }
 
 

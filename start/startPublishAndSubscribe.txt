@@ -23,7 +23,8 @@ The first two lines call the notification center's `publisher(for:)` method, whi
 
 ~~~
 NotificationCenter.default.publisher(
-    for: UIWindowScene.didEnterBackgroundNotification) // returns a publisher object
+    for: UIWindowScene.didEnterBackgroundNotification) 
+    // returns a publisher object
 ~~~
 
 The publisher object that we get happens to be a NotificationCenter.Publisher struct instance, but its precise type is of no particular interest; what's important about it is that it conforms to the Publisher protocol. We could capture that object into a variable if we needed to (and in that case we would probably erase its type, as I'll explain later), but in this example we don't bother with that. Instead, we go right on and attach a subscriber to that publisher:
@@ -42,7 +43,7 @@ When we call `.sink` on a publisher, we actually do two things:
 
 > **NOTE:** A publisher and a subscriber must communicate in accordance with a strict dance involving a third object, a _subscription_, adopting the Subscription protocol. In general, however, you won't need to know anything about that, so I won't say more about it at this point. Merely attaching a subscriber to a publisher performs the dance for us, so you don't have to worry about the details of the dance.
 
-The publisher now knows it has a subscriber, and it prepares to send signals to subscriber. But we'll never get any signals if we don't perform a further step, and here it is:
+The publisher now knows it has a subscriber, and it prepares to send signals to that subscriber. But we'll never get any signals if we don't perform a further step, and here it is:
 
 ~~~
 .store(in:&self.storage)
