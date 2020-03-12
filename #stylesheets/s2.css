@@ -4,10 +4,27 @@ $code-font-family: Menlo, Inconsolata, Monaco, Consolas, "Andale Mono", "Bitstre
 
 $breadcrumbs-width: 220px;
 
+// okay so I have no idea about this grid anad height stuff, 
+// I got it from https://css-tricks.com/couple-takes-sticky-footer/
+html {
+    height: 100%;
+}
+body {
+    min-height: 95%;
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+.bottom_nav {
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+
+
 body {
     font: 13pt $normal-font;
     line-height: 1.4;
     margin: 30px;
+    margin-top: 5px;
     background: #FFFFEE;
 }
 div.normal_page {
@@ -74,6 +91,8 @@ div.breadcrumbs {
 p.header {
     font-size: 11pt;
     text-align: center;
+    margin-top: 0px;
+    padding-top: 0px;
 }
 div.toc {
     margin-top: 50px;
@@ -85,7 +104,7 @@ div.toc {
 div.toc_level {
     padding-left: 3em;
 }
-div.bottom_nav {
+.bottom_nav {
     font-size: 90%;
 }
 @media only screen and (max-width: 1000px) {

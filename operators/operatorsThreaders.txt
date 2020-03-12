@@ -11,5 +11,5 @@ For example, a pipeline that starts with a data task publisher will nearly alway
 
 `.subscribe(on:)` works in the opposite direction: it affects the _upstream_-directed `receive`, `request`, and `cancel` messages used for subscribing, requesting values, and canceling.
 
-Both methods take an Options `options:` parameters, but you are unlikely to use it.
+Both methods take an optional `options:` parameter, but you are unlikely to use it.
 

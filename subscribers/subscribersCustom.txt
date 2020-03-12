@@ -1,4 +1,4 @@
-#title "Writing a Subscriber"
+#title "Custom Subscribers"
 
 # <%= title %>
 

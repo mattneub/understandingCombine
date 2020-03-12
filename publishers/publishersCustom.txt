@@ -4,7 +4,8 @@
 
 What would it take to write your own publisher? The Publisher protocol itself is extremely simple; it requires just one method:
 
-    func receive<S>(subscriber: S) where S : Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
+    func receive<S>(subscriber: S) 
+        where S : Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
 
 The idea here is we are told to subscribe to a Subscriber whose types match our own (as I discussed [earlier](startTypes)). And it is easy to write a skeleton publisher that conforms to the protocol requirements:
 
@@ -125,21 +126,22 @@ I'll posit a Publisher struct called ControlPublisher. Its job will be to emit a
         func receive<S>(subscriber: S) where S : Subscriber, S.Input == Output, S.Failure == Failure {
             subscriber.receive(subscription: Inner(downstream: subscriber, sender: self.control))
         }
-        class Inner <S:Subscriber>: NSObject, Subscription where S.Input == Output, S.Failure == Failure {
-            weak var sender : UIControl?
-            var downstream : S?
-            init(downstream: S, sender: UIControl) {
-                self.downstream = downstream
-                self.sender = sender
-                super.init()
+        class Inner <S:Subscriber>: NSObject, Subscription 
+            where S.Input == Output, S.Failure == Failure {
+                weak var sender : UIControl?
+                var downstream : S?
+                init(downstream: S, sender: UIControl) {
+                    self.downstream = downstream
+                    self.sender = sender
+                    super.init()
+                }
+                func request(_ demand: Subscribers.Demand) {
+                    // ?
+                }
+                func cancel() {
+                    // ?
+                }
             }
-            func request(_ demand: Subscribers.Demand) {
-                // ?
-            }
-            func cancel() {
-                // ?
-            }
-        }
     }
 
 Now let's start filling in the blanks. First, what should happen when our `request(_:)` method is called with a demand? I'm not going to bother examining the demand; this isn't going to be a publisher that responds to backpressure. Instead, I'm going to assume that the arrival of a demand means that the subscriber is ready to hear about the control's `.primaryActionTriggered` event firing. That means that _we_ need to hear about the control's `.primaryActionTriggered` event firing! So I'll add `self` (the Subscription object) as the control's target:
@@ -161,7 +163,8 @@ So what should we do when the control event fires and our `doAction` is called? 
 Our only remaining considerations have to do with management of the stored UIControl reference. Remember, we are registered as the control's target. If we are cancelled, or if we are about to go out of existence, let's play it safe by unregistering ourselves as target. We will also release the `downstream` as well as our reference to the control. A utility method will come in handy here:
 
     private func finish() {
-        self.sender?.removeTarget( self, action: #selector(doAction), for: .primaryActionTriggered)
+        self.sender?.removeTarget( self, 
+            action: #selector(doAction), for: .primaryActionTriggered)
         self.sender = nil
         self.downstream = nil
     }

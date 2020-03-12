@@ -4,7 +4,9 @@
 
 If you were previously using a repeating Timer, you can replace it with a Timer publisher (Timer.TimerPublisher). This publisher is vended by the Timer class:
 
-    static func publish(every: TimeInterval, tolerance: TimeInterval? = nil, on: RunLoop, in: RunLoop.Mode) 
+    static func publish(
+        every: TimeInterval, tolerance: TimeInterval? = nil, 
+        on: RunLoop, in: RunLoop.Mode) 
 
 The usual RunLoop is `.main` (the run loop of the main thread), and the usual Mode is `.common`.
 

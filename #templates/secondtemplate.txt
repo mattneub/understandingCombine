@@ -1,13 +1,14 @@
 #bgcolor "#84E1FF"
 #metaviewport "user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1"
 <%= pageheader() %>
-
+<!-- body is divided into everything before the footer and the footer -->
+<!-- this is so we can use grid layout to make a sticky footer -->
+<div class="notfooter">
 <% if adrObject.simplename.to_s != "toc" %>
 <div class="normal_page" markdown="1">
 <% else %>
 <div class="toc_page" markdown="1">
 <% end %>
-
 <p class="header">
 This is <b><em>Understanding Combine</em></b>, written by Matt Neuburg.
 <em>It is a work in progress.</em>
@@ -22,21 +23,17 @@ and
 Thank you!
 </p>
 <hr />
-
 <% if adrObject.simplename.to_s != "toc" %>
 <%= breadcrumbs() %>
 <% end %>
-
 <p id="bodytext"></p>
-
-</div>
-
+</div><!-- normal_page or toc_page -->
+</div><!-- notfooter -->
 <% if adrObject.simplename.to_s != "toc" %>
-<div class="bottom_nav">
+<footer class="bottom_nav">
 <hr />
 <%= nextprevlinks() %>
 <p style="text-align:center;"><a href="toc">Table of Contents</a></p>
-</div>
+</footer>
 <% end %>
-
 <%= pagefooter() %>

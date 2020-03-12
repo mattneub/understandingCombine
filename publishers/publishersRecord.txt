@@ -6,7 +6,9 @@ There is one more [value publisher](publishersValue) to talk about: Record. It i
 
     enum MyError : Error { case tooBig }
     let rec = Record(output: [1,2,3,4], completion: .failure(MyError.tooBig))
-    rec.sink(receiveCompletion: {print($0)}, receiveValue: {print($0)}).store(in:&self.storage)
+    rec
+        .sink(receiveCompletion: {print($0)}, receiveValue: {print($0)})
+        .store(in:&self.storage)
 
 That produces exactly the same output as the elaborate `flatMap` example from the [previous section](publishersValue):
 
@@ -21,7 +23,9 @@ Inside a Record publisher is a recording object (Record.Recording). This is actu
     let rec1 = Record(output: [1,2,3,4], completion: .failure(MyError.tooBig))
     let recording = rec1.recording
     let rec2 = Record(recording: recording)
-    rec2.sink(receiveCompletion: {print($0)}, receiveValue: {print($0)}).store(in:&self.storage)
+    rec2
+        .sink(receiveCompletion: {print($0)}, receiveValue: {print($0)})
+        .store(in:&self.storage)
     // same result
 
 We can also form a recording _interactively_ — that is, we can actually _run_ a pipeline and form a recording out of the values and completion that pop out the end of the pipeline. To do so, we can call the recording's `receive(_:)` (with each successive value) and `receive(completion:)`. Those are both Subscriber methods, but a Recording is _not_ a Subscriber; I find that a little odd. But we can call those methods manually instead; for instance, we can use a sink:
@@ -48,7 +52,9 @@ Our pipeline runs, and the values and completion that it produces are stored in 
 
 We can now embed that recording in a Record and play it back:
 
-    Record(recording:recording).sink(receiveCompletion: {print($0)}, receiveValue: {print($0)}).store(in:&self.storage)
+    Record(recording:recording)
+        .sink(receiveCompletion: {print($0)}, receiveValue: {print($0)})
+        .store(in:&self.storage)
 
 And sure enough, we get the same results as before:
 
@@ -63,7 +69,8 @@ Actually, we can create the recording and embed it in a Record in a single move,
     let pub = // same as before
     let rec = Record<Int,Error> { r in
         var recording = Record<Int,Error>.Recording()
-        pub.sink(receiveCompletion: { recording.receive(completion:$0) }) { recording.receive($0) }
+        pub
+            .sink(receiveCompletion: { recording.receive(completion:$0) }) { recording.receive($0) }
             .store(in:&self.storage)
         r = recording
     }
