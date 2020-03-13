@@ -3,6 +3,6 @@
 # <%= title %>
 
 Partitioners
-: By _partitioners_, I mean operators that break off some subrange of the upstream values and emit those values. For example, the `.first` operator emits only the first value that arrives from upstream; the `output(at:n)` operator emits only the _nth_ value that arrives from upstream; and so on.
+: By _partitioners_, I mean operators that break off some subrange of the upstream values and emit those values. For example, the `.first` operator emits only the first value that arrives from upstream; the `.output(at:n)` operator emits only the _nth_ value that arrives from upstream; and so on.
 
 Like [accumulators](operatorsAccumulators), some partitioners can emit a value only if the upstream sends a `.finished` completion. For example, the `.last` operator cannot know that it has received the last value from upstream until it also receives a `.finished` completion.

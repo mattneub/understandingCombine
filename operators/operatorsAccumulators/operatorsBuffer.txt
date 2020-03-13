@@ -38,14 +38,14 @@ At the top of the pipeline we have a publisher that produces values every one-fi
 
 If there were no `.buffer` operator in the story, this pipeline would simply produce one successive Int every two seconds. The backpressure from `.flatMap` applies directly to the publisher at the top: every time the `.flatMap` asks for a new value, the upstream produces the next value in the series. But now we have introduced a buffer between them — and the buffer can hold only four values at a time. What will happen? Here's what we get, one value every two seconds, at the end of the pipeline:
 
-    RESULT: 1
-    RESULT: 2
-    RESULT: 3
-    RESULT: 4
-    RESULT: 5
-    RESULT: 13
-    RESULT: 24
-    RESULT: 35
+    1
+    2
+    3
+    4
+    5
+    13
+    24
+    35
     ...
 
 Here's what happened:
@@ -62,11 +62,11 @@ Here's what happened:
 
 If we change `.dropNewest` to `.dropOldest`, the result is the same except that we achieve the steady state much sooner:
 
-    RESULT: 1
-    RESULT: 9
-    RESULT: 20
-    RESULT: 31
-    RESULT: 42
+    1
+    9
+    20
+    31
+    42
     ...
 
 Here's what happened:
@@ -83,13 +83,13 @@ So much for the `.byRequest` strategy. Now let's switch to the `.keepFull` strat
 
 Here's what we get:
 
-    RESULT: 1
-    RESULT: 2
-    RESULT: 3
-    RESULT: 4
-    RESULT: 5
-    RESULT: 7
-    RESULT: 9
+    1
+    2
+    3
+    4
+    5
+    7
+    9
     ...
 
 The buffer now follows a policy where it keeps asking for values _until there's an overflow._ When that happens, the buffer _stops_ asking for values until the buffer has an open slot. So:

@@ -8,9 +8,7 @@
 
 * Whereas `.flatMap` _retains_ the publishers that it makes, `.switchToLatest` _throws away_ all but the most recent publisher that it receives.
 
-So what `.switchToLatest` does is this: It waits for a publisher to come to it as a value from upstream. When it does, it retains that publisher and starts it publishing — and what the downstream sees are the values produced by that publisher. At the same time, if this operator was _already_ retaining a publisher that it received from upstream, it throws away that publisher, replacing it with the new one.
-
-The publishers coming from upstream must all have the same generic Output and Failure types, so that the types expected downstream of the `.switchToLatest` operator will be consistent.
+So what `.switchToLatest` does is this: It waits for a publisher to come to it as a value from upstream. When it does, it retains that publisher and starts it publishing — and what the downstream sees are the values produced by that publisher. At the same time, if this operator was _already_ retaining a publisher that it received from upstream, it throws away that publisher, replacing it with the new one. The publishers coming from upstream must all have the same generic Output and Failure types, so that the types expected downstream of the `.switchToLatest` operator will be consistent.
 
 Now, you may be thinking: a stream of _publishers?_ What on earth kind of stream is that? But keep in mind that we don't need publishers coming all the way down the pipeline from above. We only need this operator's _immediate upstream_ object to produce a publisher. In fact, the most likely scenario is that the immediate upstream operator is `.map`; it will take in some value from upstream and create a publisher and send it downstream. Then `.switchToLatest` will do its thing. If you imagine `.map` and `.switchToLatest` working together, you can see that they form a pair that is _very_ like `.flatMap`! The difference is in how they handle the publishers that are produced.
 

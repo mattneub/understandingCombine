@@ -7,7 +7,7 @@ Wrappers
 
 The wrapper _par excellence_ is `.eraseToAnyPublisher()`. It collapses the generic complexity that results from chaining operators to a single type, AnyPublisher, generically typed by the Output and Failure types of the last operator in the chain. Use it whenever you need to declare the type of a pipeline chain; it will make your life a lot simpler. You'll have a type that you can read and write and reason about, and if you change any of the operators in the chain, you won't be changing the erased type (as long as you don't change the Output and Failure types of the last operator).
 
-I gave an example <%= xref("SECErasingtoAnyPublisher", "earlier") %>.
+I gave an example <%= xref("SECerasingtoanypublisher", "earlier") %>.
 
 `.makeConnectable` (Publishers.MakeConnectable) wraps the pipeline in a ConnectablePublisher struct. This makes the pipeline behave like a [timer publisher](PublishersTimer): instead of starting automatically when it's subscribed to, it doesn't start until you explicitly say `connect` to it (or if you've attached an `.autoconnect` operator to it).
 
@@ -23,7 +23,8 @@ For example:
 
 Now `pub` is a ConnectablePublisher wrapping an AnyPublisher whose types are UIImage and Never. Let's suppose we now come along and subscribe to `pub`:
 
-    pub.sink {print($0)}.store(in:&self.storage)
+    pub.sink {print($0)}
+        .store(in:&self.storage)
 
 Nothing happens. And nothing is going to happen until we say `pub.connect()`.
 

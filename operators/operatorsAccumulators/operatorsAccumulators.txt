@@ -21,7 +21,7 @@ If an error arrives from upstream, an accumulator operator simply passes it on d
 
 Now, suppose we attach a `.count` operator to that pipeline. This is an accumulator that reports how many values were received before completion. But in this case, all we get is an error; the count is never reported. But what if we really wanted to know that count? In other words, suppose what we want to know is how many values were received before the failure?
 
-One solution is to turn the `.failure` completion into a `.finished` completion, _before_ it reaches the accumulator. You can do that with `.catch` and Empty, like this:
+One solution is to turn the `.failure` completion into a `.finished` completion, _before_ it reaches the accumulator. You can do that with [`.catch`](operatorsCatch) and [Empty](publishersValue), like this:
 
     [1,2,3,-1,4,5,6].publisher
         .tryMap { (i:Int) -> Int in

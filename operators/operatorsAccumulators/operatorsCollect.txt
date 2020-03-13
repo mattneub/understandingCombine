@@ -12,14 +12,14 @@ For example, picking up from the technique developed [earlier](operatorsFlatMap)
         "https://www.apeth.com/pep/jack.jpg",
     ]
     .map(URL.init(string:)).compactMap{$0}
-    .map{ URLSession.shared.dataTaskPublisher(for:$0) }
-    .publisher
-    .flatMap(maxPublishers:.max(1)) {
-        $0.replaceError(with: (data: Data(), response: URLResponse()))
-    }
-    .collect()
+        .map{ URLSession.shared.dataTaskPublisher(for:$0) }
+        .publisher
+        .flatMap(maxPublishers:.max(1)) {
+            $0.replaceError(with: (data: Data(), response: URLResponse()))
+        }
+        .collect()
 
-The result is an array of `(data:Data, response:URLResponse)` that is guaranteed to be in the same order as the original array of URLs. Note that without `.maxPublishers:.max(1)`, we could not make that guarantee; the results of our data task publishers can arrive in any order, so we must <%= xref("SECExertingBackpressure", "serialize asynchronicity") %> if we want to prevent that.
+The result is an array of `(data:Data, response:URLResponse)` that is guaranteed to be in the same order as the original array of URLs. Note that without `.maxPublishers:.max(1)`, we could not make that guarantee; the results of our data task publishers can arrive in any order, so we must <%= xref("SECexertingbackpressure", "serialize asynchronicity") %> if we want to prevent that.
 
 `.collect(_:)` (Publishers.CollectByCount) doesn't merely wait for a `.finished` completion; instead, it also emits an array of the values received from upstream so far when some fixed number of values have arrived, and then clears its buffer of received values. Thus it divides up the stream of values from upstream into chunks of a fixed size (except for the last chunk, after the `.finished` completion is received, which might be smaller). For example:
 

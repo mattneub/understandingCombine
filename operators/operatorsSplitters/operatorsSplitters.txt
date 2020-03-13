@@ -28,9 +28,11 @@ Here's a simple experiment that demonstrates what I mean:
         .flatMap(maxPublishers:.max(1)) {
             return $0
         }
-    pub.sink {print($0)}.store(in:&self.storage)
+    pub.sink {print($0)}
+        .store(in:&self.storage)
     delay(2) {
-        pub.sink {print($0)}.store(in:&self.storage)
+        pub.sink {print($0)}
+            .store(in:&self.storage)
     }
 
 We start with a publisher `pub` that emits the numbers `1`, `2`, `3`, `4`, one per second.Then we subscribe to it, and two seconds later we subscribe to it _again._ The output is:
@@ -66,13 +68,16 @@ We modify our publisher so that it calls `send` on that Subject, passing through
         .flatMap(maxPublishers:.max(1)) {
             return $0
         }
-    pub.sink {self.mySubject.send($0)}.store(in:&self.storage)
+    pub.sink {self.mySubject.send($0)}
+        .store(in:&self.storage)
 
 Now let's come along and subscribe to that PassthroughSubject at different times:
 
-    self.mySubject.sink {print($0)}.store(in:&self.storage)
+    self.mySubject.sink {print($0)}
+        .store(in:&self.storage)
     delay(2) {
-        self.mySubject.sink {print($0)}.store(in:&self.storage)
+        self.mySubject.sink {print($0)}
+            .store(in:&self.storage)
     }
 
 The output is:

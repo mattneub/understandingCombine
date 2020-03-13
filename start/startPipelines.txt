@@ -26,7 +26,7 @@ URLSession.shared.dataTaskPublisher(
                 self.iv.image = im
             }
         }
-}.store(in:&self.storage)
+    }.store(in:&self.storage)
 ~~~
 
 That is a very short pipeline — it has no operators between the publisher and the subscriber. And it works, in the sense that we do in fact end up with a UIImage and assign it to an image view. But it is not very good Combine style. In real life, we would use some operators to transform the output of the data task publisher into an image _before_ we reach the `sink`, perhaps something like this:

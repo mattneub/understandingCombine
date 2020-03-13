@@ -4,7 +4,7 @@
 
 `.flatMap` (Publishers.FlatMap) does two different things — things that might seem almost unrelated.
 
-First and foremost, it takes a map function similar to [`.map`](operatorsMap) and [`.compactMap`](operatorsCompactMap), but what this map function produces must be a _publisher_. As the publisher passes out of the map function, _it starts publishing_. The values it produces, not the publisher itself, proceed down the pipeline.
+First and foremost, `.flatMap` takes a map function similar to [`.map`](operatorsMap) and [`.compactMap`](operatorsCompactMap), but what this map function produces must be a _publisher_. As the publisher passes out of the map function, _it starts publishing_. The values it produces, not the publisher itself, proceed down the pipeline. So that's what the downstream sees: the values produced by that publisher. The publishers produced by the map function must all have the same generic Output and Failure types, so that the types expected downstream of the `.flatMap` operator will be consistent.
 
 > The publisher produced by a `.flatMap` map function is sometimes called a _nested_ publisher, or an _inner_ publisher.
 
@@ -12,7 +12,8 @@ Here's a simple example. I'll start with the UIControl publisher that I develope
 
     self.myButton.publisher()
         .flatMap { _ in
-            Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+            Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
         }
 
 The result is that when the user taps the button, the timer publisher comes into existence and starts publishing; a Date value is emitted down the pipeline every second. The example is a toy, but it clearly demonstrates the core behavior of `flatMap`.
@@ -35,7 +36,8 @@ To illustrate, I'll extend the inner pipeline a little:
 
     self.myButton.publisher()
         .flatMap { _ in
-            Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+            Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
                 .scan(0) {count,date in count + 1}
         }
 
@@ -51,7 +53,8 @@ For this reason, it is good practice to end the inner pipeline with a call to `e
 
     self.myButton.publisher()
         .flatMap { _ in
-            Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+            Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
                 .scan(0) {count,date in count + 1}
                 .eraseToAnyPublisher()
         }
@@ -62,7 +65,8 @@ And you _will_ need to reason about it if the map function does anything other t
 
     self.myButton.publisher()
         .flatMap { _ in // compile error
-            let p = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+            let p = Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
                 .scan(0) {count,date in count + 1}
                 .eraseToAnyPublisher()
             return p
@@ -72,7 +76,8 @@ To work around this, we have to state the output publisher type explicitly in ou
 
     self.myButton.publisher()
         .flatMap { _ -> AnyPublisher<Int,Never> in
-            let p = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+            let p = Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
                 .scan(0) {count,date in count + 1}
                 .eraseToAnyPublisher()
             return p
@@ -83,14 +88,16 @@ That is a lot easier to do when you use `eraseToAnyPublisher`. Also, `eraseToAny
     var alreadyProduced = false
     self.myButton.publisher()
         .flatMap { _ -> AnyPublisher<Int,Never> in
-            let p = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+            let p = Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
                 .scan(0) {count,date in count + 1}
                 .eraseToAnyPublisher()
             if !alreadyProduced {
                 alreadyProduced = true
                 return p
             } else {
-                return Empty<Int,Never>(completeImmediately: true).eraseToAnyPublisher()
+                return Empty<Int,Never>(completeImmediately: true)
+                    .eraseToAnyPublisher()
             }
         }
 
@@ -108,7 +115,7 @@ However, there's another part to that rule. `.flatMap` is not able to _change_ t
 
 That can pose issues if the Failure type of the publisher produced by the map function _doesn't_ match the Failure type of the upstream object. To fix that, you'll need to _change_ the Failure type of the upstream object, _before_ the `.flatMap` call, so that it matches the Failure type of the publisher you want to produce. That isn't difficult to do; there are operators for exactly that purpose. But you have to remember to do it, or your code will mysteriously fail to compile.
 
-For example, suppose (just for the sake of argument) that our pipeline starts with data task publisher instead of a UIControl publisher:
+For example, suppose (just for the sake of argument) that our pipeline starts with a data task publisher instead of a UIControl publisher:
 
     URLSession.shared.dataTaskPublisher(for: url)
         .flatMap { _ -> AnyPublisher<Int,Never> in
@@ -119,7 +126,7 @@ That won't compile, because a data task publisher's Failure type is URLError; yo
         .replaceError(with: (data: Data(), response: URLResponse()))
         .flatMap { _ -> AnyPublisher<Int,Never> in
 
-The converse problem is that the upstream Failure type is Never, but you want to produce a publisher that can fail. In that case, use this call:
+The converse problem is that the upstream Failure type is Never, but you want to produce a publisher that can fail. In that case, use this `.setFailureType(to:)`, like this:
 
     .setFailureType(to: Error.self)
 
@@ -141,7 +148,7 @@ To simplify and generalize the presentation, I'll start by writing some utility 
 
 * We don't have authorization and can't get it, so there's no point proceeding any further.
 
-So I'll characterize the outcome as a Result, where `success` is a Bool saying whether we already have authorization, and `failure` means we should just give up:
+So I'll characterize the outcome as a Result, where `.success` is a Bool saying whether we already have authorization, and `.failure` means we should just give up:
 
     enum NoPoint : Error { case userRefusedAuthorization }
     func checkAccess() -> Result<Bool, Error> {
@@ -177,9 +184,12 @@ Okay! Now all I have to do is write a pipeline that hooks up calls to those two 
             checkAccess().publisher
         }.flatMap { gotAccess -> AnyPublisher<Bool,Error> in
             if gotAccess {
-                return Just(true).setFailureType(to: Error.self).eraseToAnyPublisher()
+                return Just(true)
+                    .setFailureType(to: Error.self)
+                    .eraseToAnyPublisher()
             } else {
-                return requestAccessFuture().eraseToAnyPublisher()
+                return requestAccessFuture()
+                    .eraseToAnyPublisher()
             }
         }
 
@@ -247,7 +257,8 @@ Here's a toy example that demonstrates:
 
     [1,2].publisher
         .flatMap { _ in
-            Just(Date()).delay(for: .seconds(10), scheduler: DispatchQueue.main)
+            Just(Date())
+                .delay(for: .seconds(10), scheduler: DispatchQueue.main)
 
 We start with a "one-two punch" — two integers that arrive into the `.flatMap` operator in quick succession. There is a delay of ten seconds, and then two dates are emitted from the pipeline, also in quick succession, and effectively set to the same date–time (give or take a tiny amount), which is ten seconds ago.
 
@@ -255,14 +266,16 @@ Now we'll change the example to use a `maxPublishers:` value of `.max(1)`:
 
     [1,2].publisher
         .flatMap(maxPublishers:.max(1)) { _ in
-            Just(Date()).delay(for: .seconds(10), scheduler: DispatchQueue.main)
-        }.sink(receiveCompletion: { _ in }){ print($0) }.store(in:&self.storage)
+            Just(Date())
+                .delay(for: .seconds(10), scheduler: DispatchQueue.main)
+        }.sink(receiveCompletion: { _ in }){ print($0) }
+            .store(in:&self.storage)
 
 What happens now is that there is a delay of ten seconds, and _one_ date is emitted from the pipeline, which is ten seconds ago. Then _another_ ten seconds elapses, and _another_ date is emitted from the pipeline, set to ten seconds after the first date, which is now also ten seconds ago.
 
-Why? Well, the Just publisher is formed with current date instantly when a value arrives from upstream. But a `.delay` operator doesn't actually publish until the delay has elapsed. And we have said that we only want to produce one publisher at a time. So the `.flatMap` operator requests just _one_ value from the Sequence publisher: it sends a demand of `.max(1)`, and the `1` arrives, and the Just is created — and then nothing happens for ten seconds, while the `.delay` operator waits ten seconds. Then the inner publisher publishes, the published Date value is sent downstream, and at long last the `.flatMap` operator turns around to the upstream and sends _another_ demand of `.max(1)`, and the `2` arrives — and so on.
+Why? Well, the Just publisher is formed with the current date instantly when a value arrives from upstream. But a `.delay` operator doesn't actually publish until the delay has elapsed. And we have said that we only want to produce one publisher at a time. So the `.flatMap` operator requests just _one_ value from the Sequence publisher: it sends a demand of `.max(1)`, and the `1` arrives, and the Just is created — and then nothing happens for ten seconds, while the `.delay` operator waits ten seconds. Then the inner publisher publishes, the published Date value is sent downstream, and at long last the `.flatMap` operator turns around to the upstream and sends _another_ demand of `.max(1)`, and the `2` arrives — and so on.
 
-So the use of `maxPublishers` effectively _throttles_ the pipeline by exerting backpressure in accordance with the actual publication rate of the inner pipeline. <%= xref("SECSerializingAsynchronicity", "Once again") %>, we can use this feature of `.flatMap` to _serialize asynchronicity_. But this time we are serializing our _own_ asynchronicity — the asynchronicity of the map function publishers themselves.
+So the use of `maxPublishers` effectively _throttles_ the pipeline by exerting backpressure in accordance with the actual publication rate of the inner pipeline. <%= xref("SECserializingasynchronicity", "Once again") %>, we can use this feature of `.flatMap` to _serialize asynchronicity_. But this time we are serializing our _own_ asynchronicity — the asynchronicity of the map function publishers themselves.
 
 For a more practical example, let's return to the idea of fetching over the network from a sequence of URLs:
 

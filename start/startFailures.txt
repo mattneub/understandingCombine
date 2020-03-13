@@ -6,7 +6,7 @@ In addition to [cancellation and completion](startCompletions), there's another 
 
 <%= section("Failure Message") %>
 
-When a publisher fails, it needs a way to inform its downstream object of this fact. It does this by passing a _failure message_ to the downstream object. This message is parallel to a <%= xref("SECCompletion", "completion message")%> — in fact, it _is_ a kind of completion message. That makes sense, because the failure means that the publisher is done, every bit as much as if it had completed in good order.
+When a publisher fails, it needs a way to inform its downstream object of this fact. It does this by passing a _failure message_ to the downstream object. This message is parallel to a <%= xref("SECcompletion", "completion message")%> — in fact, it _is_ a kind of completion message. That makes sense, because the failure means that the publisher is done, every bit as much as if it had completed in good order.
 
 Recall that a completion message is actually an instance of the Subscribers.Completion enum, namely the `.finished` case. Well, a failure message is *also* an instance of the Subscribers.Completion enum, namely the `.failure` case. This case has an associated value which is an Error, thus giving the publisher a way to tell its downstream object _what_ the snag is.
 
@@ -139,6 +139,7 @@ With tremendous difficulty I worked out a pipeline that would deduce all of that
         .handleEvents(receiveOutput: {print("after merge", $0)},
                       receiveCompletion: {print("after merge", $0)},
                       receiveCancel: {print("after merge", "cancel")})
-        .sink (receiveCompletion:{print("completion", $0)}){print($0)}.store(in:&self.storage)
+        .sink (receiveCompletion:{print("completion", $0)}){print($0)}
+            .store(in:&self.storage)
 {:/comment}
 

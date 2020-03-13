@@ -11,6 +11,7 @@ html {
     height: 100%;
 }
 body {
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -104,7 +105,7 @@ div.toc {
     width: 300px;
 }
 div.toc_level {
-    padding-left: 3em;
+    padding-left: 2em;
 }
 .bottom_nav {
     font-size: 90%;

@@ -20,10 +20,10 @@ In my notation, `f1` and `f2` are functions. They will usually be anonymous func
 
 In the first function, the incoming parameter is a _completion_. This, as I explained [earlier](startCompletions), is actually a Subscribers.Completion enum specifying the completion message. There are two possible cases:
 
-* `.finished` — The publisher is telling us that there will be no more values forthcoming because it has finished producing values <%= xref("SECCompletion", "in good order") %>. For example, a data task publisher sends a `.finished` completion after it has done whatever networking we asked it to do.
+* `.finished` — The publisher is telling us that there will be no more values forthcoming because it has finished producing values <%= xref("SECcompletion", "in good order") %>. For example, a data task publisher sends a `.finished` completion after it has done whatever networking we asked it to do.
 
 * `.failure` — The publisher is telling us that there will be no more values forthcoming because it has encountered an 
-<%= xref("SECFailureMessage", "unrecoverable failure") %>. 
+<%= xref("SECfailuremessage", "unrecoverable failure") %>. 
 The nature of that failure is expressed as an Error object which is this enum case's associated value.
 
 In the second function, the incoming parameter is an actual value that came down the pipeline.

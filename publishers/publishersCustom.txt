@@ -7,7 +7,7 @@ What would it take to write your own publisher? The Publisher protocol itself is
     func receive<S>(subscriber: S) 
         where S : Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
 
-The idea here is we are told to subscribe to a Subscriber whose types match our own (as I discussed [earlier](startTypes)). And it is easy to write a skeleton publisher that conforms to the protocol requirements:
+The idea here is we are asked to let ourselves be subscribed to a Subscriber whose types match our own (as I discussed [earlier](startTypes)). And it is easy to write a skeleton publisher that conforms to the protocol requirements:
 
 ~~~
 struct MyCoolPublisher : Publisher {
@@ -30,7 +30,7 @@ func receive<S>(subscriber: S)
 }
 ~~~
 
-So we're going to have to make a Subscription. And that's not all. The Publisher and the Subscription, together, must go on fulfilling the obligations of a Publisher and a Subscription for as long as they both continue to operate. In sum, it isn't enough to conform to the Publisher protocol; we must also behave like a publisher! If you look at what a [subscriber](subscribersCustom) expects from its publisher, you can get a sense for what our obligations are:
+So we're going to have to make a Subscription. And that's not all. The Publisher and the Subscription, together, must go on fulfilling the obligations of a Publisher and a Subscription for as long as they both continue to operate. In sum, it isn't enough to conform to the Publisher protocol; we must also *behave* like a publisher! If you look at what a [subscriber](subscribersCustom) expects from its publisher, you can get a sense for what our obligations are:
 
 * After the Subscription is sent the `request` message asking for values to be delivered, then when a value is produced, the subscriber needs to be sent the `receive(_:)` method with that value.
 
@@ -42,7 +42,7 @@ So we're going to have to make a Subscription. And that's not all. The Publisher
 
 Clearly these obligations can be quite involved. And equally clearly, the bulk of the work seems to involve, not the Publisher, but the Subscription. So we are compelled, whether we like it or not, to think about how to write a Subscription.
 
-By convention, the Subscription class is usually a nested class called Inner. And we can see immediately at least one thing our Inner class will certainly need to do: it must keep a reference to the Subscriber so that it can send it values! So we can fill out our skeleton a little by giving Inner a Subscriber instance variable, which I like to call `downstream`, and conforming to the Subscription protocol requirements:
+By convention, the Subscription class is usually a nested class called Inner. And we can see immediately at least one thing our Inner class will certainly need to do: it must keep a reference to the Subscriber so that it can send it values! So we can fill out our skeleton a little by giving Inner a Subscriber instance variable, which I like to call `downstream`, and by conforming to the Subscription protocol requirements:
 
 ~~~
 struct MyCoolPublisher : Publisher {
@@ -78,7 +78,6 @@ For example, let's say our publisher's job is to emit the names of the three Pep
         while let boy = boys.popLast() {
             _ = downstream.receive(boy)
             if boys.isEmpty {
-                Swift.print("sending completion")
                 downstream.receive(completion: .finished)
                 self.downstream = nil
                 return
@@ -94,11 +93,13 @@ As you can see, once we've signalled completion, we also release our downstream 
 
 If we now attach a Sink to our publisher, we'll see that it does in fact receive `"Manny"`, `"Moe"`, and `"Jack"`, followed by a `.finished` completion. Our publisher is working! It's only a "toy" publisher, but it demonstrates clearly the fundamentals of writing a publisher.
 
+<%= section("Responding to Backpressure") %>
+
 Perhaps you've noticed, though, that our publisher is failing to respond to backpressure. In our implementation of `request(_:)`, we are not examining the incoming `demand` parameter to see how many values we're being asked for; and when we send a value to the downstream subscriber, we are completely ignoring the demand that is returned. Nevertheless, if we're writing a publisher for our own use, that might be perfectly acceptable. Some publishers publish just one value; most subscribers don't exert any backpressure; and in any case not every publisher needs to respond to backpressure.
 
 If we _do_ want to implement a response to backpressure, that turns out to be quite a tricky problem, because a limited demand can arrive while we're in the middle of fulfilling a limited demand. We need to keep a running total of how much total demand has piled up at every given moment. Fortunately, the Subscribers.Demand struct defines arithmetic operators, comparison operators, and range operators, to work with other Subscriber.Demand instances, as well as with Int. Thus it is easy to manipulate a demand as if it _were_ an Int.
 
-So what exactly do we need to do? We'll keep a demand instance property called `limit` that starts out life as `.none`. When a demand comes in, we'll add it to our `limit`. When we vend a value to the subscriber, we'll subtract it from our `limit`. Any time the `limit` is `.none`, we won't vend any values:
+So what exactly do we need to do? We'll keep a demand instance property called `limit` that starts out life as `.none`. When a demand comes in, we'll add that to our `limit`. When we vend a value to the subscriber, we'll subtract `1` from our `limit`. Any time the `limit` is `.none`, we won't vend any values:
 
     var limit = Subscribers.Demand.none
     func request(_ demand: Subscribers.Demand) {
@@ -118,9 +119,13 @@ So what exactly do we need to do? We'll keep a demand instance property called `
 
 It works! That was an easy implementation, of course, because we are not emitting values asynchronously. Obviously, responding to backpressure asynchronously would be more involved; I'm not going to go into the details here.
 
+<%= section("A UIControl Publisher") %>
+
 Let's graduate now from our "toy" example publisher to a publisher that could prove downright useful. There's a gaping hole in Apple's provision of built-in publishers: the Combine framework doesn't define a publisher for UIControl events. But clearly such a publisher is needed; what could be a more common source of asynchronous events than a UIControl? Let's write that publisher.
 
-I'll posit a Publisher struct called ControlPublisher. Its job will be to emit a value when the control that vends it fires its `.primaryActionTriggered` control event (to keep things simple, and because that's the control event we're most likely to want to hear about). What sort of value should this publisher emit? I'm going to suggest that it should emit a reference to the control itself; that, after all, is what a control passes to a control event handler function when an event occurs. So the Subscription is going to need to maintain a reference to that control; and so the Publisher itself will need to be initialized with the control, so it can pass it to the Subscription. Here's an initial sketch, based on the boilerplate we've already developed:
+I'll posit a Publisher struct called ControlPublisher. Its job will be to emit a value when the control that vends it fires its `.primaryActionTriggered` control event (to keep things simple, and because that's the control event we're most likely to want to hear about). What sort of value should this publisher emit? I'm going to suggest that it should emit a reference to the control itself; that, after all, is what a control passes to a control event handler function when an event occurs.
+
+In order to make itself the target of control events from the control, the Subscription is going to need to maintain a reference to the control; and so the Publisher itself will need to be initialized with the control, so it can pass it to the Subscription. Here's an initial sketch, based on the boilerplate we've already developed:
 
     struct ControlPublisher : Publisher {
         typealias Output = UIControl
@@ -197,7 +202,8 @@ Our publisher is finished! I'll make it available to every UIControl by injectin
 Let's try it! My view controller's view contains a button, and the view controller has an outlet to that button. In the view controller's `viewDidLoad`, I'll create a pipeline from the button's publisher:
 
     self.myButton.publisher()
-        .sink { _ in print("button!") }.store(in:&self.storage)
+        .sink { _ in print("button!") }
+            .store(in:&self.storage)
 
 We run the app and tap the button. The console displays `"button!"` — our publisher is working.
 

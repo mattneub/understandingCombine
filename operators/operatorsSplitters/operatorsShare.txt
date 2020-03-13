@@ -9,9 +9,11 @@ I'll illustrate with a Timer-based pipeline:
     let t = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
         .scan(0) {i,_ in i+1}
         .share()
-    t.sink {print("ONE", $0)}.store(in: &self.storage)
+    t.sink {print("ONE", $0)}
+        .store(in: &self.storage)
     delay(3) {
-        t.sink {print("TWO", $0)}.store(in: &self.storage)
+        t.sink {print("TWO", $0)}
+            .store(in: &self.storage)
     }
 
 The output is:
@@ -35,9 +37,11 @@ Often your use of `.share` will be in conjunction with an instance property. I'l
         .eraseToAnyPublisher()
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.myTimer.sink {print("ONE", $0)}.store(in: &self.storage)
+        self.myTimer.sink {print("ONE", $0)}
+            .store(in: &self.storage)
         delay(3) {
-            self.myTimer.sink {print("TWO", $0)}.store(in: &self.storage)
+            self.myTimer.sink {print("TWO", $0)}
+                .store(in: &self.storage)
         }
     }
 
@@ -52,7 +56,8 @@ What we have now is an AnyPublisher instance property `myTimer` that any method,
         super.viewDidAppear(animated)
         if !timerStarted {
             timerStarted = true
-            self.myTimer.sink {_ in}.store(in:&self.storage)
+            self.myTimer.sink {_ in}
+                .store(in:&self.storage)
         }
     }
 

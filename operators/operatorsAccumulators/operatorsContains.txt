@@ -1,4 +1,4 @@
-#title "Contains and AllSatisfy"
+#title "Contains, AllSatisfy"
 
 # <%= title %>
 
@@ -6,7 +6,7 @@
 
 As you might expect, this operator can be short-circuited: that is, if the target value arrives from upstream, the operator immediately knows that the answer is `true`, so it cancels the upstream and emits `true` followed by a `.finished` completion. But the only way to know that the answer is `false` is to wait until all the upstream values have arrived and a `.finished` completion has been received.
 
-`.contains(where:)` (Publishers.ContainsWhere) is similar to `.contains`, but instead of a value to compare to, you supply a function that receives the incoming value from upstream, and you return a Bool — `true` means to short-circuit the test and return `true` now, and `false` means to wait for the next value. This operator will emit `false` only when a `.finished` completion has been received.
+`.contains(where:)` (Publishers.ContainsWhere) is similar to `.contains`, but instead of a value to compare to, you supply a function that receives the incoming value from upstream and returns a Bool, where `true` means to short-circuit the test and return `true` now, and `false` means to wait for the next value. This operator will emit `false` only when a `.finished` completion has been received.
 
 So, for example:
 

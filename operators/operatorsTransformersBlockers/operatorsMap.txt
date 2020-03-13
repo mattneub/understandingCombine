@@ -9,7 +9,7 @@
 
 The upstream URLSession.DataTaskPublisher produces a tuple of type `(data: Data, response: URLResponse)`. It happens that we are not interested in the `response` part, so we strip it, leaving the `data` part, which is a Data object.
 
-If the map function is of any complexity — anything more than a simple return statement — you have to provide an `in` line stating the output type. For example, this won't compile:
+If the map function is of any complexity — anything more than a simple return statement — you might have to provide an `in` line stating the output type. For example, this won't compile:
 
     let pub = URLSession.shared.dataTaskPublisher(for: url!)
         .map {

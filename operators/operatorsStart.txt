@@ -10,13 +10,18 @@ For example, to generate a Publishers.Map operator you will usually use the `.ma
 let url = URL(string:"https://www.apeth.com/pep/manny.jpg")
 URLSession.shared.dataTaskPublisher(for: url!)
     .map {$0.data}
-    .sink(receiveCompletion: { _ in }){ print($0) }.store(in:&self.storage)
+    .sink(receiveCompletion: { _ in }){ print($0) }
+    .store(in:&self.storage)
 // 12212 bytes
 ~~~
 
 Thus it is natural to speak of `.map` as the operator, even though, behind the scenes, a Publishers.Map object is the real operator.
 
-Nevertheless, it is perfectly possibly to create a real operator object yourself and attach it manually to a publisher. When you do, you'll need to match the Input and Failure generic types of the operator to the Output and Failure types of the publisher to which you intend to subscribe it, and you'll need to specify the Output type of the operator. To help you do that, an operator has an initializer that lets you supply that information _and_ gives the operator a reference to the publisher.
+Nevertheless, it is perfectly possibly to instantiate a real operator object yourself and attach it manually to a publisher. To do so, you'll call an initializer of this operator type; it will always have an `upstream:` parameter, which is the Publisher to which we want to attach this operator. The initializer needs this information for two reasons:
+
+* It needs to know what Publisher we're going to be subscribing to.
+
+* It needs to know the Output and Failure types of that Publisher, so that this operator can be instantiated with the corresponding Input and Failure types.
 
 For example, to make a Map operator that we can subscribe to a URLSession.DataTaskPublisher, we initialize the Map operator with an actual URLSession.DataTaskPublisher as its `upstream`, like this:
 
@@ -24,14 +29,17 @@ For example, to make a Map operator that we can subscribe to a URLSession.DataTa
     let pub = URLSession.shared.dataTaskPublisher(for: url!)
     let map = Publishers.Map(upstream:pub) { $0.data }
 
+In that code, `map` is a Publishers.Map object with Input type `(data:Data, response:URLResponse)` and Failure type URLError, and whose `upstream` is `pub`, the data task publisher.
+
 As a result, we now have a pipeline all the way down to the `map` part — sort of. Perhaps I should say that what we have is a _potential_ pipeline, because the Map object, while it now has a *reference* to the URLSession.DataTaskPublisher object, is *not* actually subscribed to it. Subscribing doesn't happen until someone subscribes to the Map object itself! For example, let's complete the pipeline in the usual way:
 
 ~~~
 let url = URL(string:"https://www.apeth.com/pep/manny.jpg")
 let pub = URLSession.shared.dataTaskPublisher(for: url!)
 let map = Publishers.Map(upstream:pub) { $0.data }
-map.sink(receiveCompletion: { _ in }){ print($0) }.store(in:&self.storage)
-// 12212 bytes
+map.sink(receiveCompletion: { _ in }){ print($0) }
+    .store(in:&self.storage)
+    // 12212 bytes
 ~~~
 
 The `sink` method produces a Sink object which is a Subscriber, and subscribes it to the Map object. The Map object responds by sending `receive(subscriber:)` to its `upstream`, the URLSession.DataTaskPublisher object — and so now the pipeline starts working, the URLSession does some networking, and a value pops out the end of the pipeline.
