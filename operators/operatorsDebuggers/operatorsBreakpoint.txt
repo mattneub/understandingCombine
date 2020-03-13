@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.breakpoint` (Publishers.Breakpoint) helps to solve a serious problem when you're trying to debug a pipeline: pausing at a breakpoint. The difficulty is that your pipeline is usually just one statement; there's nowhere to pause within it by normal means. If an operator takes a function, you can pause in that function; but in an asynchronous world, that might not be much help. `.breakpoint` lets you pause at the operator itself, within the pipeline chain.
+`.breakpoint` (Publishers.Breakpoint) helps to solve a curious problem that can arise when you're trying to debug a pipeline: pausing at a breakpoint. The difficulty is that your pipeline is usually just one statement; there's nowhere to pause within it by normal means. If an operator takes a function, you can pause in that function; but in an asynchronous world, that might not be much help. `.breakpoint` lets you pause at the operator itself, within the pipeline chain.
 
 It takes three parameters, all of them functions, all of them optional, similar to the first three parameters of [`.handleEvents`](operatorsHandleEvents):
 
@@ -12,7 +12,7 @@ It takes three parameters, all of them functions, all of them optional, similar 
 
 * `receiveCompletion:` — takes a completion (`.failure` or `.finished`)
 
-The difference is that these functions return a Bool. If you return `true` from one of them, Xcode will pause in the debugger when we reach this operator. The function is a function, so you get to decide in real time whether or not to pause. You can also print to the console before returning.
+These functions return a Bool. If you return `true` from one of them, Xcode will pause in the debugger when we reach this operator. The function is a function, so you get to decide in real time whether or not to pause. You can also print to the console before returning.
 
 However, you're not actually pausing at a breakpoint per se. You're pausing in LLDB, but the context is not useful; it will appear as assembler. There are no frame variables. There is no execution pointer in your source code. The only thing you can do after pausing is resume (by clicking the Continue button, or saying `continue` at the debugger console). Nevertheless, by a judicious use of printing and pausing, you can use `.breakpoint` calls to step through your pipeline and trace what it does.
 

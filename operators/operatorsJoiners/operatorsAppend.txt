@@ -8,9 +8,11 @@ To enforce the policy of making these values arrive sequentially, this operator 
 
 If the second publisher sends a `.finished` completion, this operator sends a `.finished` completion. If either publisher emits a failure, this publisher cancels the other publisher and passes the failure on downstream.
 
+> **WARNING:** The documentation's description of how `.append` behaves is completely wrong.
+
 A toy example with some artificial timing will demonstrate:
 
-    [1,2,3].publisher.print().flatMap(maxPublishers: .max(1)) {
+    [1,2,3].publisher.flatMap(maxPublishers: .max(1)) {
         Just($0).delay(for: 1, scheduler: DispatchQueue.main)
     }.append(Just(100))
 
@@ -32,7 +34,7 @@ That produces this output:
 This produces the same output, with the same timing, as the previous example:
 
     Just(100).prepend (
-        [1,2,3].publisher.print().flatMap(maxPublishers: .max(1)) {
+        [1,2,3].publisher.flatMap(maxPublishers: .max(1)) {
             Just($0).delay(for: 1, scheduler: DispatchQueue.main)
         }
 
@@ -44,7 +46,8 @@ Sometimes, however, that is exactly what you want; and if you have several publi
         func serialize() -> AnyPublisher<Element.Output, Element.Failure>? {
             guard let start = self.first else { return nil }
             return self.dropFirst().reduce(start.eraseToAnyPublisher()) {
-                $0.append($1).eraseToAnyPublisher()
+                $0.append($1)
+                .eraseToAnyPublisher()
             }
         }
     }
@@ -57,7 +60,8 @@ So now all you have to do is construct an array of publishers and serialize it. 
         "https://www.apeth.com/pep/jack.jpg"
     ].map(URL.init(string:))
         .compactMap{$0}
-        .map {URLSession.shared.dataTaskPublisher(for:$0).eraseToAnyPublisher()}
+        .map {URLSession.shared.dataTaskPublisher(for:$0)
+        .eraseToAnyPublisher()}
 
 If we now call `arr.serialize()!`, we get a publisher that produces the output of each data task publisher _in order_. Note that if one of the publishers produces a failure, the entire pipeline fails immediately; again, that's the price we pay for simplicity.
 

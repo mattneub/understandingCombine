@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.share()` (Publishers.Share) effectively wraps its upstream in a class object; Publishers.Share is a class, not a struct. In general, when your goal is to let your pipeline be subscribed to by different subscribers at different times simultaneously, that's is all you need to do. Your pipeline now has "reference semantics"; what the subscribers are subscribing to are different reference to one and the same pipeline.
+`.share()` (Publishers.Share) effectively wraps its upstream in a class object; Publishers.Share is a class, not a struct. In general, when your goal is to let your pipeline be subscribed to by different subscribers at different times simultaneously, that's is all you need to do. Your pipeline now has "reference semantics"; what the subscribers are subscribing to are different references to one and the same pipeline.
 
 I'll illustrate with a Timer-based pipeline:
 
@@ -45,7 +45,7 @@ Often your use of `.share` will be in conjunction with an instance property. I'l
         }
     }
 
-What we have now is an AnyPublisher instance property `myTimer` that any method, and even another class if this is a public property, can subscribe to, and receive the values that the timer pipeline is _currently_ emitting. One imagines various objects subscribing and unsubscribing to participate as needed in the ongoing flow of numbers. The timer doesn't start counting until the first subscriber appears, but we can "tickle" the pipeline to get it going at a moment of our own choosing. For example, suppose we want this to be a timer that starts running when our view controller's view first appears:
+What we have now is an AnyPublisher instance property `myTimer` that any method, even in another class if this is a public property, can subscribe to; when it does, it will receive the values that the timer pipeline is _currently_ emitting. One imagines various objects subscribing and unsubscribing to participate as needed in the ongoing flow of numbers. The timer doesn't start counting until the first subscriber appears, but we can "tickle" the pipeline to get it going at a moment of our own choosing. For example, suppose we want this to be a timer that starts running when our view controller's view first appears:
 
     let myTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
         .scan(0) {i,_ in i+1}

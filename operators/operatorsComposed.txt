@@ -7,19 +7,21 @@ Sometimes, you might need to create your own operator. When you do, you usually 
 Here's an example. [Recall](operatorsRetry) how earlier we devised a technique for combining `.delay` with `.retry` only just in case there was an upstream failure:
 
     let pub = URLSession.shared.dataTaskPublisher(for: url).share()
-    let head = pub.catch {_ in pub.delay(for: 3, scheduler: DispatchQueue.main)}
-        .retry(3)
+    let head = pub.catch {_ in 
+        pub.delay(for: 3, scheduler: DispatchQueue.main)
+    }.retry(3)
 
 If that's the kind of thing we're likely to do a lot, we might want to be able to create that pipeline at will, with _any_ publisher at its start. So let's write a function that _does_ create that pipeline. Our function will take a Publisher as its parameter and will use it as the upstream for the first operator in that chain. And what operator is that? I take it to be the `.share`; everything from that point on down needs to be part of the pipeline that our function will produce.
 
-Our function's return type will be simply an AnyPublisher, with the generic types dictated by the upstream (because we aren't going to be changing any of them in the course of our pipeline):
+Our function's return type will be simply AnyPublisher, with the generic types dictated by the upstream (because we aren't going to be changing any of them in the course of our pipeline):
 
     func applyDelayAndRetry<Upstream:Publisher>(upstream:Upstream) 
         -> AnyPublisher<Upstream.Output, Upstream.Failure> {
             let share = Publishers.Share(upstream: upstream)
             return share
-                .catch { _ in share.delay(for: 3, scheduler: DispatchQueue.main) }
-                .retry(3)
+                .catch { _ in 
+                    share.delay(for: 3, scheduler: DispatchQueue.main) 
+                }.retry(3)
                 .eraseToAnyPublisher()
     }
 
@@ -41,15 +43,17 @@ Of course, you might object that our function is not very flexible. We have hard
         -> AnyPublisher<Upstream.Output, Upstream.Failure> {
             let share = Publishers.Share(upstream: upstream)
             return share
-                .catch { _ in share.delay(for:interval, scheduler:scheduler) }
-                .retry(count)
+                .catch { _ in 
+                    share.delay(for:interval, scheduler:scheduler) 
+                }.retry(count)
                 .eraseToAnyPublisher()
     }
 
 And now when we call our function, we just supply those parameters:
 
     let pub = URLSession.shared.dataTaskPublisher(for: url)
-    let head = applyDelayAndRetry(upstream:pub, for:3, scheduler:DispatchQueue.main, count:3)
+    let head = applyDelayAndRetry(upstream:pub, 
+        for:3, scheduler:DispatchQueue.main, count:3)
 
 Excellent. But now let's go one step further. Wouldn't it be nice if, instead of having to call a global function, our operator were represented by an _operator method_ that we could call on any publisher? We can arrange that too. In fact, this is the really clever part. All we have to do is extend Publisher with an operator method that calls our `applyDelayAndRetry`. And when we do, what will `upstream:` be? It will be `self`:
 
@@ -59,7 +63,8 @@ Excellent. But now let's go one step further. Wouldn't it be nice if, instead of
             scheduler:S,
             count:Int
         ) -> AnyPublisher<Self.Output, Self.Failure> {
-            return applyDelayAndRetry(upstream:self, for:interval, scheduler:scheduler, count:count)
+            return applyDelayAndRetry(upstream:self, 
+                for:interval, scheduler:scheduler, count:count)
         }
     }
 
@@ -87,11 +92,13 @@ Finally, we now have no public use for our separate `applyDelayAndRetry` functio
                 -> AnyPublisher<Upstream.Output, Upstream.Failure> {
                     let share = Publishers.Share(upstream: upstream)
                     return share
-                        .catch { _ in share.delay(for:interval, scheduler:scheduler) }
-                        .retry(count)
+                        .catch { _ in 
+                            share.delay(for:interval, scheduler:scheduler) 
+                        }.retry(count)
                         .eraseToAnyPublisher()
             }
-            return applyDelayAndRetry(upstream:self, for:interval, scheduler:scheduler, count:count)
+            return applyDelayAndRetry(upstream:self, 
+                for:interval, scheduler:scheduler, count:count)
         }
     }
 

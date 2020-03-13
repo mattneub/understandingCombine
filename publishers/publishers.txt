@@ -1,4 +1,4 @@
-#title "Chapter: Publishers"
+#title "Publishers"
 
 # <%= title %>
 

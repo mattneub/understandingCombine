@@ -1,4 +1,4 @@
-#title "Chapter: Operators"
+#title "Operators"
 
 # <%= title %>
 

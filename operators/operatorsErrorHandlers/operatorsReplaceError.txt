@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.replaceError` (Publishers.ReplaceError) changes the downstream pipelines failure type from whatever the upstream failure type is to Never. It does this by specifying a value of the upstream output type that will be emitted as a value if an error arrives from upstream.
+`.replaceError` (Publishers.ReplaceError) changes the downstream pipeline's failure type from whatever the upstream failure type is to Never. It does this by specifying a value of the upstream output type that will be emitted as a value if an error arrives from upstream.
 
 Here's an example I gave [earlier](startFailures):
 

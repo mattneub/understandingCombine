@@ -6,3 +6,6 @@
 
 `.output(in:)` (Publishers.Output) is like `.output(at:)` except that the parameter is a Range (of Int). It emits each value indexed by the numbers in the Range; after emitting the last value indexed by the Range, it cancels the upstream publisher and sends a `.finished` completion. If the upstream emits a `.finished` completion before the last index in the Range is reached, this operator stops publishing and passes the `.finished` completion on downstream.
 
+> The `.output` operator is badly named; something like `.index` might have been clearer.
+
+

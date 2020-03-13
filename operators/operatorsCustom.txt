@@ -43,19 +43,24 @@ Now let's say the subscriber at the bottom of the chain actually subscribes to t
 
 So there is now a chain reaction _up_ the pipeline, as every operator is subscribed to and responds by subscribing its Inner to its own upstream, like this:
 
-    Publisher <- subscribe Inner 
-                             |    
-                          Operator <- subscribe Inner
-                                                  |
-                                               Operator <- subscribe Subscriber
+~~~
+                                 Publisher
+                     Operator: Inner ⬆️ subscribe
+        Operator: Inner ⬆️ subscribe
+Subscriber ⬆️ subscribe
+~~~
 
-The chain of `subscribe` calls finally reaches the Publisher at the top of the chain. And we already know what it does; it makes an instance of its Inner, which is a Subscription, and turns back _downstream_ and calls `receive(subscription:)` on its subscriber. That subscriber is the Inner of some operator. That Inner knows who the operator's downstream subscriber is, and it is itself a Subscription, so it holds on to the Subscription that it just got from upstream and _passes itself downstream_ by calling `receive(subscription:)` on that subscriber.
+
+The chain of `subscribe` calls finally reaches the Publisher at the top of the chain. And we already know what it does; it makes an instance of *its* Inner, which is a Subscription, and turns back _downstream_ and calls `receive(subscription:)` on its subscriber. That subscriber is the Inner of some operator. That Inner knows who the operator's downstream subscriber is, and it is itself a Subscription, so it holds on to the Subscription that it just got from upstream and _passes itself downstream_ by calling `receive(subscription:)` on that subscriber.
 
 So there is now a chain reaction _down_ the pipeline, as every operator's Inner is handed the Inner from upstream, until at last a Subscription reaches the ultimate Subscriber:
 
-    Subscription -> Inner -> Inner -> Subscriber
-        |             |        |
-    Publisher      Operator Operator
+~~~
+Publisher: Inner ⬇️ receive
+(Operator) Inner ⬇️ receive
+(Operator) Inner ⬇️ receive
+             Subscriber
+~~~
 
 So now every operator's Inner can see _both ways,_ up and down the chain:
 
@@ -63,19 +68,24 @@ So now every operator's Inner can see _both ways,_ up and down the chain:
 
 * On the other hand, it has received a Subscription from upstream; that Subscription is its `upstream`.
 
-We now have a chain that operates in both directions; every operator has a view of the world like this:
+Every operator has a view of the world like this:
 
-    Subscription (upstream) <- Inner -> Subscriber (downstream)
-                                 |
-                              Operator
+~~~
+        Subscription
+            ⬆️ upstream
+(Operator) Inner 
+            ⬇️ downstream
+        Subscriber
+~~~
 
+Therefore, we now have a chain that operates in both directions.
 As a result, messages can be handed all the way up the pipeline or all the way down the pipeline, one operator at a time, like a game of Pass The Parcel.
 
 For example, I just said that the ultimate Subscriber has now received a Subscription. Well, we know what the typical Subscriber does when that happens: it turns to the Subscription and calls `request`. And so the game begins again, with a chain reaction _up_ the pipeline: the Subscription at the bottom of the chain calls `request` on its upstream Subscription, and so on and so on until `request` is called on the Publisher's Subscription.
 
 And we know how the Publisher's Subscription responds; it produces a value and calls `receive` on the downstream Subscriber. And now there's a chain reaction _down_ the pipeline, as each Subscription calls `receive` on its downstream Subscriber, which is itself a Subscription, until we reach the final Subscriber.
 
-And so it goes, for all messages up and down the chain. Of course, in real life it isn't so simple, because an operator does _not_ merely pass along everything it receives. For example, many operators respond to being handed a value from upstream by handing a _different_ value downstream. Some operators respond to being handed a value from upstream by doing nothing (they block the value). That's what makes an operator an operator: it faithfully passes along the messages it receives, _except_ that it gives some messages some sort of "spin" that constitutes the behavior of the operator.
+And so it goes, for all messages up and down the chain. Of course, in real life it isn't so simple, because an operator does _not_ merely pass along everything it receives. For example, many operators respond to being handed a value from upstream by handing a _different_ value downstream. Some operators respond to being handed a value from upstream by doing nothing (they block the value). That's what makes an operator an operator: it faithfully passes along the messages it receives, _except_ that it gives *some* messages some sort of "spin" that constitutes the behavior of the operator.
 
 Nevertheless, the _basic_ structure and behavior of an operator is quite straightforward, as I've described, and so we can illustrate by writing an operator that _does nothing_ — passing messages up and down the chain is _all_ it does. This can act as a sort of base-level boilerplate for any further operators we might wish to write. I'll call our custom operator DoNothing.
 
@@ -89,8 +99,9 @@ I'll start with the struct which is the DoNothing operator object:
             self.upstream = upstream
         }
         // When subscribed to, subscribe my Inner _upstream_
-        func receive<S>(subscriber: S) where S : Subscriber, S.Input == Output, S.Failure == Failure {
-            self.upstream.subscribe(Inner(downstream:subscriber))
+        func receive<S>(subscriber: S) 
+            where S : Subscriber, S.Input == Output, S.Failure == Failure {
+                self.upstream.subscribe(Inner(downstream:subscriber))
         }
         // ... Inner goes here ...
     }
@@ -139,7 +150,7 @@ Finally, we'll have Inner satisfy the requirements of being a Subscription:
         self.downstream = nil
     }
 
-Note that the responsibilities of Inner are neatly divided according to the protocol that needs satisfying:
+That's it! Note that the responsibilities of Inner are neatly divided according to the protocol that needs satisfying:
 
 * As a Subscriber, its job is to receive things that arrive from upstream and pass them downstream.
 

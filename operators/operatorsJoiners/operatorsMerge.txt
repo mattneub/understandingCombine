@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.merge(with:)` takes a publisher as a parameter; it is also applied to a publisher (obviously). _Both publishers must have the same Output and Failure generic types._ Now there are effectively two upstream publishers. When _either_ of those upstream publishers produces a value, this operator passes that value downstream. The two streams of values are *interleaved*.
+`.merge(with:)` takes a publisher as a parameter; it is also applied to a publisher (obviously). Both publishers must have the same Output and Failure generic types. Now there are effectively two upstream publishers. When _either_ of those upstream publishers produces a value, this operator passes that value downstream. The two streams of values are *interleaved*.
 
 This goes on until *both* upstream publishers have sent a `.finished` completion. If either publisher sends a `.failure` completion, this operator cancels the other publisher and sends the failure on downstream.
 

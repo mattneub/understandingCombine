@@ -16,7 +16,7 @@ When we subscribe to that pipeline, it writes to the console:
     receive value: (1)
     receive finished
 
-Clearly, `.print` can be extremely useful for testing your pipeline and getting a record of what flows through it. On the other hand, you can end up with a _lot_ of information, especially if you've got more than one `.print` operator. To help you with that problem, this operator takes an optional string parameter that will be prefixed to each item of output. Judicious use of these string will help you straighten out what's going on throughout the pipeline.
+Clearly, `.print` can be extremely useful for testing your pipeline and getting a record of what flows through it. On the other hand, you can end up with a _lot_ of information, especially if you've got more than one `.print` operator. To help you with that problem, this operator takes an optional string parameter that will be prefixed to each item of output. Judicious use of these strings will help you straighten out what's going on throughout the pipeline.
 
 For example, here's a heavily instrumented pipeline:
 
@@ -82,7 +82,9 @@ The output is:
 
 That's better! Now it doesn't take much study to understand just how that pipeline works.
 
-> **NOTE:** The `.print` operator also takes an optional `to:` parameter specifying a TextOutputString to write to, but I have not been able to get it to behave correctly.
+(The `.print` operator also takes an optional `to:` parameter specifying a TextOutputString to write to, but I have not been able to get it to behave correctly, so I'm not going to talk about it.)
+
+The name `.print` is unfortunate, because it can overshadow the global `.print` function from the Swift library. If that causes trouble for you, disambiguate by writing the latter as `Swift.print`.
 
 
 

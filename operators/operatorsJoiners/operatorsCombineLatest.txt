@@ -18,7 +18,22 @@ Recall the toy example I used earlier to demonstrate `.zip`:
                 }
         )
 
-That resulted in:
+The timing, you remember, works like this:
+
+
+    1st  2nd
+    ===============
+    1
+    2
+    3
+    (finished)
+        [one second]
+        "a"
+        [one second]
+        "b"
+        (finished)
+
+With `.zip`, that resulted in:
 
     (1, "a")
     (2, "b")

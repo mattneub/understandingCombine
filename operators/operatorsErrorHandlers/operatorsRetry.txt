@@ -25,17 +25,18 @@ Well, we _could_ just make another data task publisher:
         .catch { _ in
             URLSession.shared.dataTaskPublisher(for: url)
                 .delay(for: 3, scheduler: DispatchQueue.main)
-    }.retry(3)
+        }.retry(3)
 
 However, that's messy, and it disobeys the `.retry` count: we connect and fail, we substitute the new data task publisher, we connect and fail _again_, and _now_ we start retrying, so that if we keep failing we end up with five connections instead of four. We can fix that by making a reference to the initial data task publisher with `share()` applied to it:
 
-    let pub = URLSession.shared.dataTaskPublisher(for: url).share().print("top")
+    let pub = URLSession.shared.dataTaskPublisher(for: url).share()
 
 Now we can use `pub` in two places: as the upstream of the `.catch` operator, and as the upstream of the `.delay` operator inside the `.catch` function:
 
     let pub = URLSession.shared.dataTaskPublisher(for: url).share()
-    let head = pub.catch {_ in pub.delay(for: 3, scheduler: DispatchQueue.main)}
-        .retry(3)
+    let head = pub.catch {_ in 
+        pub.delay(for: 3, scheduler: DispatchQueue.main)
+    }.retry(3)
 
 That works correctly. If the initial data task publisher fails, the `catch` function runs and returns a new publisher, namely the very same data task publisher with a `.delay` attached to it.
 

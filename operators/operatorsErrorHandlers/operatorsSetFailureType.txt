@@ -14,16 +14,19 @@ For example, this code is legal (and works as expected):
         }
         .mapError {$0 as! MyError}
 
-The issue arises in situations where you want to produce an error _without_ saying `try`. For example, this code is illegal (it's also silly, but never mind that):
+The situations where you need `.setFailureType` are those where you want to produce an error _without_ saying `try`. For example, this code is illegal (it's also silly, but never mind that):
 
-    NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
-        .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops} // compile error
-
-The problem is that you can't return an error to be sent down the pipeline if that error doesn't match the upstream failure type. To fix that, you use `.setFailureType`:
-
-        NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
-            .setFailureType(to: Error.self)
+    NotificationCenter.default.publisher(
+        for: UIApplication.didBecomeActiveNotification)
             .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
+            // compile error
+
+The problem is that you can't return an error to be sent down the pipeline if that error doesn't match the upstream failure type. To fix that, you use `.setFailureType` beforehand:
+
+        NotificationCenter.default.publisher(
+            for: UIApplication.didBecomeActiveNotification)
+                .setFailureType(to: Error.self)
+                    .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
 
 I gave some more realistic examples in the discussion of `.flatMap`, [earlier](operators.flatMap).
 
