@@ -65,7 +65,8 @@ The **third** (and last) required method is
 
     func receive(completion: Subscribers.Completion<Failure>)
 
-This method informs us that we've received a completion message from the publisher. It might be `.finished` or it might be `.failure`, and in the latter case it will have an associated value of the Failure type, which will be some sort of Error. In my implementation, I'll print the Error if there is one, and then I'll clean up by releasing the subscription and marking my state as `completed`:
+This method informs us that we've received a completion message from the publisher. It might be `.finished` or it might be `.failure`, and in the latter case it will have an associated value of the Failure type, which will be some sort of Error. In my implementation, I'll
+ print the Error if there is one, and then I'll clean up by releasing the subscription and marking my state as `completed`:
 
 ~~~
 func receive(completion: Subscribers.Completion<Failure>) {
@@ -95,7 +96,8 @@ Our basic subscriber is now complete! Here's an example of how to use it, just t
 let pub = [1, 2, 3].publisher
 let sub = Printer<Int, Never>()
 pub.subscribe(sub)
-AnyCancellable(sub).store(in:&self.storage)
+AnyCancellable(sub)
+    .store(in:&self.storage)
 // prints 1, then 2, then 3
 ~~~
 
@@ -107,7 +109,8 @@ An interesting exercise is to tweak the functionality of the subscriber to explo
 let pub = [1, 2, 3].publisher
 let sub = Printer<Int, Never>() // use backpressure to request only one value
 pub.subscribe(sub)
-AnyCancellable(sub).store(in:&self.storage)
+AnyCancellable(sub)
+    .store(in:&self.storage)
 // prints 1 and stops
 ~~~
 

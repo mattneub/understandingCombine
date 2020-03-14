@@ -27,7 +27,8 @@ Now `pub` is a ConnectablePublisher wrapping an AnyPublisher whose types are UII
 Nothing happens. And nothing is going to happen until we say `pub.connect()`.
 When we _do_ say `pub.connect()`, a Cancellable object will be returned. It's a good idea to treat this like the AnyCancellable produced by `.sink` and `.assign`, namely, to call `store(in:)` on it, so that it doesn't go out of scope and automatically cancel the pipeline before it has a chance to get started:
 
-    pub.connect().store(in: &self.storage)
+    pub.connect()
+        .store(in: &self.storage)
 
 Once we do that, the pipeline will begin to operate, and messages will flow down into our `.sink`.
 

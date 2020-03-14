@@ -29,7 +29,8 @@ class ViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc2 = segue.destination as? ViewController2 {
             vc2.count = self.count
-            vc2.$count.assign(to: \.count, on: self).store(in:&self.storage)
+            vc2.$count.assign(to: \.count, on: self)
+                .store(in:&self.storage)
         }
     }
 }

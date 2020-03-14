@@ -16,11 +16,11 @@ A Timer publisher is rather different from the publishers we've talked about so 
 
 * Maintain a reference to the publisher and send it the `connect()` message manually.
 
-To stop the timer, you have to choices as well:
+To stop the timer, you have two choices as well:
 
 * Cancel the subscriber.
 
-* If you called `connect()` on the timer publisher, that call returned an Cancellable object. If you kept a reference to that object, you can send `cancel()` to it. Moreover, a Cancellable implements `store(in:)`, so you can wrap it in an AnyCancellable that you can retain and send `cancel()` to.
+* If you called `connect()` on the timer publisher, that call returned a Cancellable object. If you kept a reference to that object, you can send `cancel()` to it. Moreover, a Cancellable implements `store(in:)`, so you can wrap it in an AnyCancellable that you can retain and send `cancel()` to.
 
 For example, in one of my apps, I have this code, changing a progress view to track the currently playing song:
 
@@ -45,7 +45,8 @@ func makeTimer() {
             [unowned self] _ in self.checkFraction()
         }
     timerPublisher.subscribe(timerPipeline)
-    timerPublisher.connect().store(in:&self.timerCancellable)
+    timerPublisher.connect()
+        .store(in:&self.timerCancellable)
 }
 ~~~
 

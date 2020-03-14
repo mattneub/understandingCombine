@@ -7,7 +7,7 @@ What would it take to write your own publisher? The Publisher protocol itself is
     func receive<S>(subscriber: S) 
         where S : Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
 
-The idea here is we are asked to let ourselves be subscribed to a Subscriber whose types match our own (as I discussed [earlier](startTypes)). And it is easy to write a skeleton publisher that conforms to the protocol requirements:
+The idea here is we that are being asked to let ourselves be subscribed to by a Subscriber (whose types must match our own, as I discussed [earlier](startTypes)). And it is easy to write a skeleton publisher that conforms to the protocol requirements:
 
 ~~~
 struct MyCoolPublisher : Publisher {

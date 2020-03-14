@@ -28,6 +28,7 @@ operatorsStart
     operatorsMap
     operatorsScan
     operatorsFilter
+    operatorsRemoveDuplicates
     operatorsCompactMap
     operatorsFlatMap
     operatorsSwitchToLatest

@@ -58,7 +58,8 @@ class ViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc2 = segue.destination as? ViewController2 {
             let pub = vc2.publishCount(startingAt:self.count)
-            pub.assign(to: \.count, on: self).store(in:&self.storage)
+            pub.assign(to: \.count, on: self)
+                .store(in:&self.storage)
         }
     }
 }
@@ -97,5 +98,5 @@ Now if we tell our `topSubject` to `send("howdy")`, we see in the console:
 
 So we have shown both that `topSubject` can broadcast to multiple pipelines simultaneously and that the `sub1` and `sub2` Subjects can be subscribed to a publisher.
 
-In addition to `send`, a Subject has a `send(completion:)` method. This means that you can make a Subject behave like any other publisher, sending a `.finished` or `.failure` completion down the pipeline. That's valuable, because your pipeline might respond in special ways to these signals. To send a `.failure` completion, you'll want the failure generic type to be something like Error, not Never. Once you do send a `.failure` completion through a Subject, the Subject is cancelled and cannot produce any further values.
+In addition to `send`, a Subject has a `send(completion:)` method. This means that you can make a Subject behave like any other publisher, sending a `.finished` or `.failure` completion down the pipeline. That's valuable, because your pipeline might respond in special ways to these signals. To send a `.failure` completion, you'll want the failure generic type to be something like Error, not Never. Once you do send a completion through a Subject, the Subject is cancelled and cannot produce any further values.
 

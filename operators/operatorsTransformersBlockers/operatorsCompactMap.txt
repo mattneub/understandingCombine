@@ -1,4 +1,4 @@
-#title "Compact Map"
+#title "CompactMap"
 
 # <%= title %>
 

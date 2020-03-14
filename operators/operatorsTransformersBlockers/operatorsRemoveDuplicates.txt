@@ -1,0 +1,11 @@
+#title "RemoveDuplicates"
+
+# <%= title %>
+
+`.removeDuplicates` (Publishers.RemoveDuplicates) can be thought of as a specialized form of [`.filter`](operatorsFilter); it is also related to [`.scan`](operatorsScan). Somewhat like `.scan`, it keeps track of the _previous_ value that it received from upstream; like `.filter`, it decides whether to stop the *current* value that arrives from upstream, but it can do this based on something about the previous value.
+
+By default, `.removeDuplicates` uses a simple equality test: if the current value is the same as the previous value, it is blocked. However, you can append a filter function that receives two values — the previous value, followed by the current value — and returns a Bool saying whether the current value should be blocked. Note that this is the inverse of the Bool you return in the `.filter` filter function: with `.filter`, `true` means "let it through," but with with `.removeDuplicates`, `true` means "block it."
+
+Observe that the _first_ value is always passed through `.removeDuplicates` without calling the filter function.
+
+There is also a `.tryRemoveDuplicates` (Publishers.TryRemoveDuplicates); it adds to the filter function the ability to throw an error which is passed down the pipeline as a failure. 

@@ -25,7 +25,8 @@ So what happens if a subscriber comes along?
 
 Of itself, _nothing_ happens: the Timer doesn't start running, and the subscriber doesn't receive any values from upstream. The subscription is established; but that's all. So what would need to happen for the upstream pipeline to start emitting values? We'd need to tell it to `connect`, and retain the resulting Cancellable object to prevent it from cancelling immediately:
 
-    self.myMulticastingTimer.connect().store(in:&self.storage)
+    self.myMulticastingTimer.connect()
+        .store(in:&self.storage)
 
 As soon as we say that, the upstream pipeline comes to life, and the Timer starts sending values (beginning at `1`) to any connected subscribers. Moreover, the pipeline is a multicasting pipeline, so if there are multiple subscribers, they will be receiving the same value simultaneously.
 
