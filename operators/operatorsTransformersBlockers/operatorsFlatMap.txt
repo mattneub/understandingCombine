@@ -259,6 +259,7 @@ Here's a toy example that demonstrates:
         .flatMap { _ in
             Just(Date())
                 .delay(for: .seconds(10), scheduler: DispatchQueue.main)
+        }
 
 We start with a "one-two punch" — two integers that arrive into the `.flatMap` operator in quick succession. There is a delay of ten seconds, and then two dates are emitted from the pipeline, also in quick succession, and effectively set to the same date–time (give or take a tiny amount), which is ten seconds ago.
 
@@ -268,8 +269,7 @@ Now we'll change the example to use a `maxPublishers:` value of `.max(1)`:
         .flatMap(maxPublishers:.max(1)) { _ in
             Just(Date())
                 .delay(for: .seconds(10), scheduler: DispatchQueue.main)
-        }.sink(receiveCompletion: { _ in }){ print($0) }
-            .store(in:&self.storage)
+        }
 
 What happens now is that there is a delay of ten seconds, and _one_ date is emitted from the pipeline, which is ten seconds ago. Then _another_ ten seconds elapses, and _another_ date is emitted from the pipeline, set to ten seconds after the first date, which is now also ten seconds ago.
 
