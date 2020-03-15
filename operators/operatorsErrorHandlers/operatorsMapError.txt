@@ -15,5 +15,5 @@ An example I gave [earlier](operatorsMap) is in conjunction with `.tryMap`. The 
 
 The forced downcast is reasonable if you throw only one type of error from `.tryMap` and you know what it is. On the other hand, there's no harm in leaving the downstream failure type as Error; if you throw a MyError, the error received downstream will still _be_ a MyError even if it is _typed_ as an Error.
 
-> **NOTE:** You cannot use `.mapError` if the upstream failure type is Never! Use [`.setFailureType`](operators.setFailureType) instead.
+> **NOTE:** You cannot use `.mapError` if the upstream failure type is Never! Use [`.setFailureType`](operatorsSetFailureType) instead.
 

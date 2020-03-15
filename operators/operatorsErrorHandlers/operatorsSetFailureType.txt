@@ -28,5 +28,5 @@ The problem is that you can't return an error to be sent down the pipeline if th
                 .setFailureType(to: Error.self)
                     .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
 
-I gave some more realistic examples in the discussion of `.flatMap`, [earlier](operators.flatMap).
+I gave some more realistic examples in the discussion of `.flatMap`, [earlier](operatorsFlatMap).
 
