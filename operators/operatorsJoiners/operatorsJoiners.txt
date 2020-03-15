@@ -3,7 +3,7 @@
 # <%= title %>
 
 Joiners
-: By _joiners_, I mean operators that join together the streams of values from multiple pipelines into a single stream. Each pipeline produces values; now we want those values to come together to form a single pipelines. The question is: How? What rule should be followed as we feed the values from multiple pipelines into one?
+: By _joiners_, I mean operators that join together the streams of values from multiple pipelines into a single stream. Each pipeline produces values; now we want those values to come together to form a single pipeline. The question is: How? What rule should be followed as we feed the values from multiple pipelines into one?
 
 The joiner _par excellence_ is `.merge`. Its rule is simple: if an upstream pipeline emits a value, pass it down this pipeline. We've already seen an example of a merge-like rule in action: that's what [`.flatMap`](operatorsFlatMap) does if it produces more than one publisher. For example:
 

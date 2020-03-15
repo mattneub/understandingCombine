@@ -2,13 +2,13 @@
 
 # <%= title %>
 
-`.max` (Publishers.Comparison) is just like the `.max` sequence method. In effect, it's a specialized version of [`.reduce`](operatorsReduce): it accumulates the previous output and receives the current upstream value, and returns the *larger* of the two, so that at the end the accumulated value is the largest value received from upstream.
+`.max` (Publishers.Comparison) is just like the `max` sequence method. In effect, it's a specialized version of [`.reduce`](operatorsReduce): it accumulates the previous output and receives the current upstream value, and returns the *larger* of the two, so that at the end the accumulated value is the largest value received from upstream.
 
-If the value type is a Comparable, you can omit the comparison function and let the operator use its default function, which uses `<` to determine relative order; or you can supply a function and decide manually whether they are ordered smaller–larger, returning a Bool to indicate whether that's the case.
+If the value type is a Comparable, you can omit the comparison function and let the operator use its default function, which uses `<` to determine relative order; or you can supply a function and decide manually whether the parameters are ordered smaller–larger, returning a Bool to indicate whether that's the case.
 
 There is also `.tryMax`, which works as you would expect.
 
-`.min` (Publishers.Comparison) is just like `.max`, except that the maintained value is the *smaller* of the two compared values. Again, if the value type is a Comparable, you can omit the comparison function; if you supply it, you return a Bool indicating whether the current pair is ordered smaller–larger.
+`.min` (Publishers.Comparison) is just like `.max`, except that the maintained value is the *smaller* of the two compared values. Again, if the value type is a Comparable, you can omit the comparison function; if you supply it, you return a Bool indicating whether the parameters are ordered smaller–larger.
 
 And there is also `.tryMin`, which works as you would expect.
 

@@ -9,7 +9,7 @@ Threaders
 
 For example, a pipeline that starts with a data task publisher will nearly always include `.receiveOn(DispatchQueue.main)` somewhere in the pipeline. The reason is that you can't guarantee that a data task publisher's output will arrive on the main thread; in fact, it almost certainly won't. But if you want to do something with that output, such as store it with `.assign`, you'll probably need to do that on the main thread.
 
-`.subscribe(on:)` works in the opposite direction: it affects the _upstream_-directed `receive`, `request`, and `cancel` messages used for subscribing, requesting values, and canceling.
+`.subscribe(on:)` (Publishers.SubscribeOn) works in the opposite direction: it affects the _upstream_-directed `receive`, `request`, and `cancel` messages used for subscribing, requesting values, and canceling.
 
 Both methods take an optional `options:` parameter, but you are unlikely to use it.
 

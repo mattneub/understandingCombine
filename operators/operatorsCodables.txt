@@ -7,7 +7,7 @@ Codables
 
 `.encode` (Publishers.Encode) takes a JSONEncoder or PropertyListEncoder and encodes the value that comes from upstream. The upstream Output type must conform to Encodable. The downstream type will be Data. If encoding fails, a failure is sent down the pipeline.
 
-`.decode` (Publishers.Decode) takes a type (which must conform to Decodable) and a JSONDecoder or PropertyListDecoder and decodes the value that comes from upstream. The downstream type will be the type you passed as the first parameter. If decoding fails, a failure is sent down the pipeline.
+`.decode` (Publishers.Decode) takes a type (which must conform to Decodable) and a JSONDecoder or PropertyListDecoder and decodes the value that comes from upstream. The upstream Output type must be Data. The downstream type will be the type you passed as the first parameter. If decoding fails, a failure is sent down the pipeline.
 
 The fact that these operators emit failures if encoding or decoding fails is unfortunate, because a failure means that a `cancel` call is sent upstream and the entire pipeline is terminated. If that isn't what you want — that is, if you're expecting multiple values to come down the pipeline and you want to encode or decode all those values that _can_ be encoded or decoded — the workaround is to use `.flatMap` to <%= xref("SECfailingwithoutterminating", "confine the failure") %> to an inner pipeline.
 

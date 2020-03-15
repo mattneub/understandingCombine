@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.reduce` (Publishers.Reduce) is just like the `.reduce` sequence method. You supply two parameters: an initial output value and a function. The output value is what is being accumulated. The function itself takes two parameters: the accumulated output value, and a newly arrived value from upstream; it returns a new output value, which is now the accumulated value and is supplied as the first parameter to the *next* call to the function when the *next* value arrives from upstream. This goes on until a `.finished` completion is received. At that point, the output value that was returned from the last call to the function is emitted downstream (followed by a `.finished` completion).
+`.reduce` (Publishers.Reduce) is just like the `reduce` sequence method. You supply two parameters: an initial output value and a function. The output value is what is being accumulated. The function itself takes two parameters: the accumulated output value, and a newly arrived value from upstream; it returns a new output value, which is now the accumulated value and is supplied as the first parameter to the *next* call to the function when the *next* value arrives from upstream. This goes on until a `.finished` completion is received. At that point, the output value that was returned from the last call to the function is emitted downstream (followed by a `.finished` completion).
 
 Here's a toy example, just to show the syntax:
 

@@ -38,9 +38,9 @@ And indeed those operators really are just convenience operators, as they do not
             .scan(Int.random(in:1...10)) {i,_ in i+1}
             .eraseToAnyPublisher()
     }
-    var merged = makeTimer().merge(with:makeTimer())
-    for _ in 1...3 {
-        merged = merged.merge(with: makeTimer())
+    let arr = (1...5).map {_ in makeTimer()}
+    let merged = arr.dropFirst().reduce(into: arr[0].eraseToAnyPublisher()) {
+        $0 = $0.merge(with: $1).eraseToAnyPublisher()
     }
 
 After that, `merged` is a Publishers.MergeMany that produces five sequences of integers, interleaved.

@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.mapError` (Publishers.MapError) takes a [map function](operatorsMap) whose input is an Error. Normally, this operator does nothing; it just passes along whatever value it receives from upstream. If it receives a `.finished` completion, it passes that along too. But if it receives a `.failure` completion, it pulls out the Error contained in the failure and passes it into the map function. The map function must return an Error; this operator wraps that up a new `.failure` completion and passes it on down the pipeline.
+`.mapError` (Publishers.MapError) takes a [map function](operatorsMap) whose input is an Error. Normally, this operator does nothing; it just passes along whatever value it receives from upstream. If it receives a `.finished` completion, it passes that along too. But if it receives a `.failure` completion, it pulls out the Error contained in the failure and passes it into the map function. The map function must return an Error; this operator wraps that up in a new `.failure` completion and passes it on down the pipeline.
 
 In addition to (possibly) changing the details of the error being passed downstream, this operator can change the type of the error itself. For example, having received a `URLError.cancelled`, this operator could replace it with a `URLError.cannotConnectToHost`; or it might go further and replace it with a MyError (whatever that may be). Thus this operator can change the Failure type associated with the downstream part of the pipeline.
 

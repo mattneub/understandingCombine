@@ -84,7 +84,7 @@ That's better! Now it doesn't take much study to understand just how that pipeli
 
 (The `.print` operator also takes an optional `to:` parameter specifying a TextOutputString to write to, but I have not been able to get it to behave correctly, so I'm not going to talk about it.)
 
-The name `.print` is unfortunate, because it can overshadow the global `.print` function from the Swift library. If that causes trouble for you, disambiguate by writing the latter as `Swift.print`.
+The name `.print` is unfortunate, because it can overshadow the global `print` function from the Swift library. If that causes trouble for you, disambiguate by writing the latter as `Swift.print`.
 
 
 
