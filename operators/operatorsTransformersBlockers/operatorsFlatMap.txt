@@ -1,4 +1,5 @@
 #title "FlatMap"
+#subtitle "erasing to AnyPublisher<br />serializing asynchronicity<br />exerting backpressure"
 
 # <%= title %>
 
@@ -251,7 +252,7 @@ You may remember that I said `.flatMap` does two different, almost unrelated thi
 
 It turns out that `.flatMap` takes an optional first parameter: `maxPublishers:`. This is a Subscribers.Demand (I talked [earlier](subscribersCustom) about what that is).
 
-Now, if you omit this parameter, it is `.unlimited`. But by including it, you can _limit_ the maximum number of publishers you want to produce at once. This means that you have the opportunity, through `.flatMap`, to exert _backpressure_ on the upstream publisher. And in fact, `.flatMap` is just about the _only_ built-in operator that lets you exert backpressure directly. That makes `.flatMap` extremely important in a whole new way.
+Now, if you omit this parameter, it is `.unlimited`. But by including it, you can _limit_ the maximum number of publishers you want to produce at once. This means that you have the opportunity, through `.flatMap`, to exert [backpressure](subscribersCustom) on the upstream publisher. And in fact, `.flatMap` is just about the _only_ built-in operator that lets you exert backpressure directly. That makes `.flatMap` extremely important in a whole new way.
 
 Here's a toy example that demonstrates:
 

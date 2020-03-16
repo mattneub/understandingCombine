@@ -1,4 +1,5 @@
 #title "Custom Subscribers"
+#subtitle "the Subscriber protocol"
 
 # <%= title %>
 

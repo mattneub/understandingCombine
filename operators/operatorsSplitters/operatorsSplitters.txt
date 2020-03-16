@@ -1,4 +1,5 @@
 #title "Splitters"
+#subtitle "more about Subjects"
 
 # <%= title %>
 

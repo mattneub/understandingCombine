@@ -102,13 +102,18 @@ div.toc {
     margin-bottom: 50px;
     margin-left: auto;
     margin-right: auto;
-    width: 300px;
+    max-width: 800px;
 }
 div.toc_level {
     padding-left: 2em;
 }
 .bottom_nav {
     font-size: 90%;
+}
+.subtitle {
+    font-size: 90%;
+    margin-left: 1em;
+    display: block;
 }
 @media only screen and (max-width: 1000px) {
     div.breadcrumbs {

@@ -1,4 +1,5 @@
 #title "Stopping a Pipeline"
+#subtitle "cancel and AnyCancellable<br />finished completions"
 
 # <%= title %>
 

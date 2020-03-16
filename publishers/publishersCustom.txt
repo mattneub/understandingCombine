@@ -1,4 +1,5 @@
 #title "Custom Publishers"
+#subtitle "the Publisher protocol<br />the Subscription protocol"
 
 # <%= title %>
 
@@ -95,7 +96,7 @@ If we now attach a Sink to our publisher, we'll see that it does in fact receive
 
 <%= section("Responding to Backpressure") %>
 
-Perhaps you've noticed, though, that our publisher is failing to respond to backpressure. In our implementation of `request(_:)`, we are not examining the incoming `demand` parameter to see how many values we're being asked for; and when we send a value to the downstream subscriber, we are completely ignoring the demand that is returned. Nevertheless, if we're writing a publisher for our own use, that might be perfectly acceptable. Some publishers publish just one value; most subscribers don't exert any backpressure; and in any case not every publisher needs to respond to backpressure.
+Perhaps you've noticed, though, that our publisher is failing to respond to [backpressure](subscribersCustom). In our implementation of `request(_:)`, we are not examining the incoming `demand` parameter to see how many values we're being asked for; and when we send a value to the downstream subscriber, we are completely ignoring the demand that is returned. Nevertheless, if we're writing a publisher for our own use, that might be perfectly acceptable. Some publishers publish just one value; most subscribers don't exert any backpressure; and in any case not every publisher needs to respond to backpressure.
 
 If we _do_ want to implement a response to backpressure, that turns out to be quite a tricky problem, because a limited demand can arrive while we're in the middle of fulfilling a limited demand. We need to keep a running total of how much total demand has piled up at every given moment. Fortunately, the Subscribers.Demand struct defines arithmetic operators, comparison operators, and range operators, to work with other Subscriber.Demand instances, as well as with Int. Thus it is easy to manipulate a demand as if it _were_ an Int.
 

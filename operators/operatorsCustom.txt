@@ -1,4 +1,5 @@
 #title "Custom Operators"
+#subtitle "making an operator, the hard way"
 
 # <%= title %>
 

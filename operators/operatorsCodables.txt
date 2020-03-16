@@ -1,4 +1,5 @@
 #title "Codables"
+#subtitle "encode and decode"
 
 # <%= title %>
 

@@ -4,7 +4,7 @@
 
 The `.sink` command makes a Subscribers.Sink object, and the `.assign` command makes a Subscribers.Assign object. However, both `.sink` and `.assign` wrap that object up in an AnyCancellable instance, returning that instance.
 
-I talked [earlier](startCompletions) about what AnyCancellable is. It's a class that acts as a _type eraser_ so that you don't have to deal with the nitty-gritty of what a Sink object or an Assign object really is; in effect, it provides a common type that could be a Sink or an Assign. Both Sink and Assign conform to the Cancellable protocol, meaning that they have a `cancel` method. AnyCancellable, too, has a `cancel` method, which calls `cancel` on the wrapped subscriber, giving us the ability to cancel the wrapped subscriber (and thus the entire pipeline) by way of the AnyCancellable wrapper.
+I talked [earlier](startCompletions) about what AnyCancellable is. It's a class that acts as a _type eraser_ so that you don't have to deal with the nitty-gritty of what a Sink object or an Assign object really is; in effect, it provides a common type that could be a Sink or an Assign. Both Sink and Assign conform to the Cancellable protocol, meaning that they have a `cancel` method. AnyCancellable, too, has a `cancel` method, because it, too, conforms to the Cancellable protocol; AnyCancellable's `cancel` calls `cancel` on the wrapped Cancellable subscriber, giving us the ability to cancel the wrapped subscriber (and thus the entire pipeline) by way of the AnyCancellable wrapper.
 
 Moreover, AnyCancellable has the remarkable property that it *automatically* calls `cancel()` on its wrapped subscriber when it itself goes out of existence. This means that the whole pipeline right back up to the publisher is cancelled when the wrapper is released. In effect, AnyCancellable gives us memory management for the entire pipeline, along with coherent messaging to the publisher that it no longer needs to produce any values.
 
@@ -26,7 +26,7 @@ When the app runs, no image is assigned to our image view, and we get an error m
 
 That's because our AnyCancellable (which we didn't even bother to capture) went out of existence and sent a `cancel()` call to the data task publisher before it had a chance to do any networking.
 
-That is why, as I've been at pains to demonstrate already, you should always follow a `.sink` or `.assign` call with a call to `.store(in:)`, so as to retain the AnyCancellable. `.store(in:)` is an AnyCancellable method. The parameter can be the address of a RangeReplaceableCollection, such as an Array, or of a Set. Typically, you will have prepared this as an instance property beforehand, thus guaranteeing that the subscriber will live as long as the owner of the instance property (typically a view controller).
+That is why, as I've been at pains to demonstrate already, you should always follow a `.sink` or `.assign` call with a call to `.store(in:)`, so as to retain the AnyCancellable. `.store(in:)` is an AnyCancellable method (because AnyCancellable conforms to the Cancellable protocol). The parameter can be the address of a RangeReplaceableCollection, such as an Array, or of a Set. Typically, you will have prepared this as an instance property beforehand, thus guaranteeing that the subscriber will live as long as the owner of the instance property (typically a view controller).
 
 So, real code would look like this:
 

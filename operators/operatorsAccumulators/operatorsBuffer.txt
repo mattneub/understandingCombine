@@ -25,7 +25,7 @@ Some examples will clarify, but first let's talk about the parameters:
   
   * `.customError` means fail; it takes an associated value that's a function producing an Error, which is sent downstream as a failure.
 
-To make sense of `.buffer`, we need a pipeline that exerts backpressure from below. Here's one:
+To make sense of `.buffer`, we need a pipeline that exerts [backpressure](operatorsFlatMap) from below. Here's one:
 
     let pub = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
         .scan(0) {i,_ in i+1}

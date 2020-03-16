@@ -3,6 +3,6 @@
 
 # <%= title %>
 
-<p style="text-align:right">by Matt Neuburg</p>
+<p style="text-align:right; margin-right:50px">by Matt Neuburg</p>
 
 <%= breadcrumbs() %>

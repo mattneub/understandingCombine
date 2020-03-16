@@ -11,25 +11,32 @@ def breadcrumbs()
   # do children
   s = "<div class='breadcrumbs'>"
   s = "<div class='toc'>" if toc
-  s << doOneLevel(body, thisnode)
+  s << doOneLevel(body, thisnode, toc)
   s << "</div>"
   s << "<div style='clear:both'></div>"
   s
 end
-def doOneLevel(node, thisnode)
+def doOneLevel(node, thisnode, toc)
   s = ""
   node.children.each do |line|
     name = line["text"]
-    title, path = html.getTitleAndPaths(name)
+    title, path, adr = html.getTitleAndPaths(name)
     link = html.getLink(title, name)
     if line == thisnode
-      s << "<p><b>" + title + "</b></p>\n"
+      s << "<p><b>" + title + "</b>"
     else
-      s << "<p>" + link + "</p>\n"
+      s << "<p>" + link
     end
+    if toc
+      subtitle = html.getOneDirective("subtitle", adr)
+      if !subtitle.nil?
+        s << "<br /><span class=\"subtitle\">" + subtitle + "</span>"
+      end
+    end
+    s << "</p>\n"
     if line.children.count > 0 && (thisnode.nil? || thisnode == line || thisnode.ancestors.include?(line))
       s << "<div class='toc_level'>\n"
-      s << doOneLevel(line, thisnode)
+      s << doOneLevel(line, thisnode, toc)
       s << "</div>\n"
     end
   end

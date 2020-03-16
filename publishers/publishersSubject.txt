@@ -1,4 +1,5 @@
 #title "Subject"
+#subtitle "PassthroughSubject and CurrentValueSubject<br />Subject as subscriber"
 
 # <%= title %>
 
@@ -67,7 +68,7 @@ class ViewController: UIViewController {
 
 Even though that's still largely a toy example, you can see that we've made `count` a private property; the publisher is separated from the maintenance of state. And it is up to us when and how we tell the Subject to emit a value; for example, we might emit only when `count` is an even number. And of course there is no law that says that a Subject's value needs to reflect _any_ property; we could be doing anything at all behind the scenes and publishing values for any reason whatever.
 
-Another important feature of a Subject is that it is a class. This means that a single Subject can be subscribed to by many subscribers simultaneously; it will broadcast its value to all of them.
+Another important feature of a Subject is that it is a class. This means that a single Subject can be subscribed to by many subscribers simultaneously; it will broadcast its value to all of them. I'll talk more about that [later](operatorsSplitters).
 
 A Subject also has the remarkable feature that you can subscribe it to another publisher, thus making it play the role of an operator within a pipeline. The dance is a little tricky because when you tell a publisher to `subscribe` a Subject you get an AnyCancellable that you need to retain if you don't want it to go out of existence.
 

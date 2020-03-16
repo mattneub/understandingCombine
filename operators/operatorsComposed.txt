@@ -1,4 +1,5 @@
 #title "Composed Operators"
+#subtitle "making an operator, the easy way"
 
 # <%= title %>
 
