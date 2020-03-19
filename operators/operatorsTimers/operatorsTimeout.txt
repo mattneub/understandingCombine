@@ -1,4 +1,5 @@
 #title "Timeout"
+#subtitle "not too slow"
 
 # <%= title %>
 

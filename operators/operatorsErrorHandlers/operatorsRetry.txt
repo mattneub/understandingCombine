@@ -1,4 +1,5 @@
 #title "Retry"
+#subtitle "turn failure into try again"
 
 # <%= title %>
 

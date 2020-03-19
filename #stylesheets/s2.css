@@ -112,8 +112,12 @@ div.toc_level {
 }
 .subtitle {
     font-size: 90%;
-    margin-left: 1em;
-    display: block;
+    code {
+        font-size: 90%;
+    }
+}
+.subtitle:before {
+    content: " — ";
 }
 @media only screen and (max-width: 1000px) {
     div.breadcrumbs {

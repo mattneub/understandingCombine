@@ -1,4 +1,5 @@
 #title "Debounce"
+#subtitle "wait for a pause"
 
 # <%= title %>
 

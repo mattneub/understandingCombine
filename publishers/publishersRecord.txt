@@ -1,4 +1,5 @@
 #title "Record"
+#subtitle "encapsulate the whole output of a pipeline"
 
 # <%= title %>
 

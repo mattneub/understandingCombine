@@ -30,7 +30,7 @@ def doOneLevel(node, thisnode, toc)
     if toc
       subtitle = html.getOneDirective("subtitle", adr)
       if !subtitle.nil?
-        s << "<br /><span class=\"subtitle\">" + subtitle + "</span>"
+        s << "<span class=\"subtitle\">" + subtitle + "</span>"
       end
     end
     s << "</p>\n"

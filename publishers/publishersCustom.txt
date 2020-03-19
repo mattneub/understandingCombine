@@ -1,5 +1,5 @@
 #title "Custom Publishers"
-#subtitle "the Publisher protocol<br />the Subscription protocol"
+#subtitle "the Publisher protocol; the Subscription protocol"
 
 # <%= title %>
 

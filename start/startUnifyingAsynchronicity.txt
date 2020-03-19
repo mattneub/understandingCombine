@@ -1,4 +1,5 @@
 #title "Unifying Asynchronicity"
+#subtitle "what Combine is all about"
 
 # <%= title %>
 

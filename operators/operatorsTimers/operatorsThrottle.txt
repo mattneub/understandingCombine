@@ -1,4 +1,5 @@
 #title "Throttle"
+#subtitle "not too fast"
 
 # <%= title %>
 

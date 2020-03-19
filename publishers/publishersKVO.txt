@@ -1,4 +1,5 @@
 #title "Key–Value Observing Publisher"
+#subtitle "use it wherever you were already using KVO"
 
 # <%= title %>
 

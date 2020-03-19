@@ -1,4 +1,5 @@
 #title "Pipelines"
+#subtitle "at last, some practical Combine examples!"
 
 # <%= title %>
 

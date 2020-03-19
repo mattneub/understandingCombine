@@ -1,4 +1,5 @@
 #title "Partitioners"
+#subtitle "subranges"
 
 # <%= title %>
 

@@ -1,4 +1,5 @@
 #title "Catch"
+#subtitle "turn failure into anything you like"
 
 # <%= title %>
 

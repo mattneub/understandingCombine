@@ -1,4 +1,5 @@
 #title "Value Publishers"
+#subtitle "Just, Optional, Result, Sequence, Empty, Fail"
 
 # <%= title %>
 

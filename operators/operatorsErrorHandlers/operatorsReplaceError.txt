@@ -1,4 +1,5 @@
 #title "ReplaceError"
+#subtitle "turn failure into success"
 
 # <%= title %>
 

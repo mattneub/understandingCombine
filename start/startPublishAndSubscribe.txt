@@ -1,4 +1,5 @@
 #title "Publish and Subscribe"
+#subtitle "the heart of the Combine architecture"
 
 # <%= title %>
 

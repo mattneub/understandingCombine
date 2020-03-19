@@ -1,5 +1,5 @@
 #title "Wrappers"
-#subtitle "eraseToAnyPublisher and makeConnectable"
+#subtitle "<code>eraseToAnyPublisher</code> and <code>makeConnectable</code>"
 
 # <%= title %>
 

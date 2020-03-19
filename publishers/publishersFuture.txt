@@ -1,4 +1,5 @@
 #title "Future and Deferred"
+#subtitle "turn any asynchronous code into a publisher"
 
 # <%= title %>
 

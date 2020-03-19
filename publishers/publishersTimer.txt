@@ -1,5 +1,5 @@
 #title "Timer Publisher"
-#subtitle "connect and autoconnect"
+#subtitle "repeated intervals; also, <code>connect</code> and <code>autoconnect</code>"
 
 # <%= title %>
 

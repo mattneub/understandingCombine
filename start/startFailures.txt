@@ -1,5 +1,5 @@
 #title "Failures"
-#subtitle "failure completions<br />transmutation of failures"
+#subtitle "<code>failure</code> completions; transmutation of failures; Never"
 
 # <%= title %>
 

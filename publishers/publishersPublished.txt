@@ -1,4 +1,5 @@
 #title "Published"
+#subtitle "a better KVO"
 
 # <%= title %>
 

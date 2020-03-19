@@ -1,5 +1,5 @@
 #title "Threaders"
-#subtitle "receive(on:) and subscribe(on:)"
+#subtitle "<code>receive(on:)</code> and <code>subscribe(on:)</code>"
 
 # <%= title %>
 

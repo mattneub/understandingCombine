@@ -1,4 +1,5 @@
 #title "Buffer"
+#subtitle "smoothe out the stream of values"
 
 # <%= title %>
 
@@ -10,14 +11,14 @@ Some examples will clarify, but first let's talk about the parameters:
 : The size of the buffer.
 
 `prefetch:`
-: The strategy for requesting values from upstream. There are two possibilities (the names do not describe the behavior very well):
+: The strategy (Publishers.PrefetchStrategy) for requesting values from upstream. There are two possibilities (the names do not describe the behavior very well):
 
-  * `.byRequest` means that the operator keeps asking for values.
+  * `.byRequest`, despite the name, means that the operator makes an `.unlimited` demand right at the start.
 
   * `.keepFull` means that the operator pauses as soon as a value arrives that can't go into the buffer. 
   
 `whenFull:`
-: The policy to be followed when a value arrives from upstream but the buffer is full. There are three possibilities:
+: The policy to be followed (Publishers.BufferingStrategy) when a value arrives from upstream but the buffer is full. There are three possibilities:
 
   * `.dropNewest` means throw away the new value that doesn't fit into the buffer. 
   
@@ -50,7 +51,7 @@ If there were no `.buffer` operator in the story, this pipeline would simply pro
 
 Here's what happened:
 
-1. The `.flatMap` starts by asking for a value, and after one-fifth of a second, it gets it. The `1` is now sitting in the `.flatMap`, waiting for two seconds to be published, exerting backpressure on the buffer.
+1. The buffer starts by asking for unlimited values, and the `.flatMap` starts by asking for one value. After one-fifth of a second, the first value arrives and the buffer passes it on to the `.flatMap`. The `1` is now sitting in the `.flatMap`, waiting for two seconds to be published, exerting backpressure on the buffer.
 
 2. Meanwhile, values keep arriving into the buffer: the `2`, the `3`, the `4`, the `5`... But now the buffer is full (because it only holds four values), and the `6` arrives. That's an overflow. We have told the buffer to `.dropNewest`, so the `6` is thrown away. And so on for the `7`, the `8`, and all the numbers up to `12`.
 
@@ -104,5 +105,5 @@ The buffer now follows a policy where it keeps asking for values _until there's 
 
 Finally, if we change `.dropNewest` to `.dropOldest`, the pipeline produces `1`, `3`, `5`, `7`, and so on, for reasons that should now be obvious.
 
-It's difficult to determine whether these behaviors are bugs or reflect the intended `.buffer` functionality. It's a curious beast and it seems unlikely that you'll use it. But there it is, for better or for worse.
+It's difficult to determine whether these behaviors are bugs or reflect the intended `.buffer` functionality. It's a curious beast and, given the oddities of its behavior, it seems unlikely that you'll use it. But there it is, for better or for worse.
 

@@ -1,4 +1,5 @@
 #title "AnyCancellable"
+#subtitle "retaining the subscriber with <code>store</code>"
 
 # <%= title %>
 

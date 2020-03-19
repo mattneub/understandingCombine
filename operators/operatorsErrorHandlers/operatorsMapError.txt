@@ -1,4 +1,5 @@
 #title "MapError"
+#subtitle "turn one error into another"
 
 # <%= title %>
 

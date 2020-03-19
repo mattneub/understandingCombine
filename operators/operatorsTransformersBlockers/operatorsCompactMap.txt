@@ -1,4 +1,5 @@
 #title "CompactMap"
+#subtitle "<code>nil</code> means block"
 
 # <%= title %>
 

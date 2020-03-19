@@ -1,5 +1,5 @@
 #title "FlatMap"
-#subtitle "erasing to AnyPublisher<br />serializing asynchronicity<br />exerting backpressure"
+#subtitle "erasing to AnyPublisher; serializing asynchronicity; exerting backpressure"
 
 # <%= title %>
 
@@ -127,7 +127,7 @@ That won't compile, because a data task publisher's Failure type is URLError; yo
         .replaceError(with: (data: Data(), response: URLResponse()))
         .flatMap { _ -> AnyPublisher<Int,Never> in
 
-The converse problem is that the upstream Failure type is Never, but you want to produce a publisher that can fail. In that case, use this `.setFailureType(to:)`, like this:
+The converse problem is that the upstream Failure type is Never, but you want to produce a publisher that can fail. In that case, use `.setFailureType(to:)`, like this:
 
     .setFailureType(to: Error.self)
 

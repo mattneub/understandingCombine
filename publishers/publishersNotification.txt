@@ -1,4 +1,5 @@
 #title "Notification Center Publisher"
+#subtitle "receiving notifications"
 
 # <%= title %>
 
