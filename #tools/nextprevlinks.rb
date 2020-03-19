@@ -7,5 +7,9 @@ def nextprevlinks()
   prev = "Prev: " + html.getLink(ptitle,p) if p
   nxt = ""
   nxt = "Next: " + html.getLink(ntitle, n) if n
-  "<p style='float:left; width:45%'>#{prev}</p><p style='float:right; text-align:right; width:45%'>#{nxt}</p>\n<div style='clear:both' />\n"
+  <<-DONE
+  <p class='prevlink'>#{prev}</p>
+  <p class='nextlink'>#{nxt}</p>
+  <div style='clear:both' />
+  DONE
 end
