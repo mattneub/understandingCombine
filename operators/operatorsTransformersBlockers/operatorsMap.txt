@@ -2,12 +2,14 @@
 
 # <%= title %>
 
-`.map` (Publishers.Map) takes a function (the _map function_) that accepts a value published from upstream, and produces a new value, which may be of some other type. It is frequently used to focus the incoming published value down to the part of that value you're really after: 
+`.map` (Publishers.Map) takes a function (the _map function_) that accepts a value published from upstream, and produces a new value, which may be of some other type. The new value is what is sent downstream; in effect, it replaces the upstream value.
+
+`.map` is frequently used to focus the incoming published value down to the part of that value you're really after: 
 
     URLSession.shared.dataTaskPublisher(for: url!)
         .map {$0.data}
 
-The upstream URLSession.DataTaskPublisher produces a tuple of type `(data: Data, response: URLResponse)`. It happens that we are not interested in the `response` part, so we strip it, leaving the `data` part, which is a Data object.
+The upstream URLSession.DataTaskPublisher produces a tuple of type `(data: Data, response: URLResponse)`. It happens that we are not interested in the `response` part, so we strip it, leaving the `data` part, which is a Data object that proceeds downstream.
 
 If the map function is of any complexity — anything more than a simple return statement — you might have to provide an `in` line stating the output type. For example, this won't compile:
 

@@ -4,9 +4,11 @@ $code-font-family: Menlo, Inconsolata, Monaco, Consolas, "Andale Mono", "Bitstre
 
 $breadcrumbs-width: 220px;
 
-// okay so I have no idea about this sticky footer stuff, 
-// I got it from https://css-tricks.com/couple-takes-sticky-footer/
-// we have to use flexbox, not grid, so that code can scroll
+/*
+okay so I have no idea about this sticky footer stuff, 
+I got it from https://css-tricks.com/couple-takes-sticky-footer/
+we have to use flexbox, not grid, so that code can scroll
+*/
 html {
     height: 100%;
 }
@@ -32,7 +34,6 @@ body {
 }
 div.normal_page {
     margin-left: $breadcrumbs-width + 30;
-    // min-height: 80vh; // 80% of viewport height, move footer down to bottom
 }
 h1 {
   text-align: center;
@@ -83,7 +84,6 @@ div.breadcrumbs {
     z-index: 1;
     background: white;
     width: $breadcrumbs-width;
-    
     p {
         margin-top: 5px;
         margin-bottom: 5px;
@@ -115,9 +115,9 @@ div.toc_level {
     code {
         font-size: 90%;
     }
-}
-.subtitle:before {
-    content: " — ";
+    &:before {
+        content: " — ";
+    }
 }
 @media only screen and (max-width: 1000px) {
     div.breadcrumbs {

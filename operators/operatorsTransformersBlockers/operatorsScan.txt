@@ -2,7 +2,7 @@
 
 # <%= title %>
 
-`.scan` (Publishers.Scan) is like [`.map`](operatorsMap), except that the map function takes _two_ parameters: it receives the value emitted by the upstream publisher, but it also receives the value that the map function itself produced _previously._ The first time `scan` is called, there is no previously produced value, so you have to supply that as the first parameter.
+`.scan` (Publishers.Scan) is like [`.map`](operatorsMap), in that it takes a map function that receives a value from upstream and returns a value that will be sent on downstream in place of the upstream value. However, this map function, unlike the `.map` operator's map function, takes _two_ parameters: it receives the value emitted by the upstream publisher, but it also receives the value that the function itself produced _previously._ The first time `scan` is called, there is obviously no previously produced value, so you have to supply that as the first parameter.
 
 For example, [recall](publishersTimer) that a Timer publisher publishes the current date–time. Suppose that instead what we're interested in is a count of how many times the Timer has fired. We can do that with `.scan`:
 
