@@ -119,6 +119,15 @@ div.toc_level {
         content: " — ";
     }
 }
+.prevlink {
+    float:left; 
+    width:45%;
+}
+.nextlink {
+    float:right;
+    text-align:right;
+    width:45%;
+}
 @media only screen and (max-width: 1000px) {
     div.breadcrumbs {
         visibility: hidden;

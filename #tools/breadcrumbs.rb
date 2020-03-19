@@ -13,7 +13,7 @@ def breadcrumbs()
   s = "<div class='toc'>" if toc
   s << doOneLevel(body, thisnode, toc)
   s << "</div>"
-  s << "<div style='clear:both'></div>"
+  s << "<div style='clear:both' />"
   s
 end
 def doOneLevel(node, thisnode, toc)
@@ -28,8 +28,7 @@ def doOneLevel(node, thisnode, toc)
       s << "<p>" + link
     end
     if toc
-      subtitle = html.getOneDirective("subtitle", adr)
-      if !subtitle.nil?
+      if subtitle = html.getOneDirective("subtitle", adr) # could be nil
         s << "<span class=\"subtitle\">" + subtitle + "</span>"
       end
     end

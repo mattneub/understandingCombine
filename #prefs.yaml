@@ -1,5 +1,5 @@
 --- 
 :bgcolor: FFFFEE
-:linkstylesheets: [s2]
-:template: secondtemplate
+:linkstylesheets: [stylesheet]
+:template: template
 :kramdown: 1
