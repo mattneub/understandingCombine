@@ -1,8 +1,10 @@
 #title "Buffer"
+#subtitle "smoothe out timing differences"
 
 # <%= title %>
 
-`.buffer` (Publishers.Buffer) accumulates values from upstream into its internal buffer, which is of predefined size, until the buffer fills up due to backpressure from downstream. At that point, it throws away values from upstream or throws an error, depending on how you've configured the operator. The buffer itself effectively behaves as a FIFO stack (also known as a queue).
+`.buffer` (Publishers.Buffer) is apparently intended to reconcile the timing between the upstream's production of values and the downstream's demand for those values.
+It accumulates values from upstream into its internal buffer, which is of predefined size, until the buffer fills up due to backpressure from downstream. At that point, it throws away values from upstream or throws an error, depending on how you've configured the operator. The buffer itself effectively behaves as a FIFO stack (also known as a queue).
 
 Some examples will clarify, but first let's talk about the parameters:
 
