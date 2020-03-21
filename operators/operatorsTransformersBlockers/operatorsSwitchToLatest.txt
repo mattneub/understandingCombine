@@ -1,4 +1,5 @@
 #title "SwitchToLatest"
+#subtitle "a cousin of <code>flatMap</code>"
 
 # <%= title %>
 

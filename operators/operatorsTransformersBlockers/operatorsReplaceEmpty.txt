@@ -1,5 +1,5 @@
 #title "No Values"
-#subtitle "ignoreOutput and replaceEmpty"
+#subtitle "block all values (<code>ignoreOutput</code>), and its opposite (<code>replaceEmpty</code>)"
 
 # <%= title %>
 

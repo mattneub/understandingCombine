@@ -1,4 +1,5 @@
 #title "RemoveDuplicates"
+#subtitle "block based on the previous value"
 
 # <%= title %>
 

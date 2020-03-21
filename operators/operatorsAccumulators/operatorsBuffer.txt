@@ -1,5 +1,4 @@
 #title "Buffer"
-#subtitle "smoothe out the stream of values"
 
 # <%= title %>
 
