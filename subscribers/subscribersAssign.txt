@@ -24,3 +24,31 @@ It isn't clear to me that the `.assign` subscriber does anything you couldn't do
 
 However, `.assign` is a nice way of expressing the common case where the purpose of the pipeline is to use the value to set a property of some object.
 
+On the other side of the coin, `.assign` can dangerous: you can end up with a retain cycle. This occurs in the common situation where what you're assigning to is a property of `self`. The example I've used [repeatedly](startFailures) is _not_ a case in point:
+
+~~~
+URLSession.shared.dataTaskPublisher(for: url)
+    .map {$0.data}
+    .replaceError(with: Data())
+    .compactMap { UIImage(data:$0) }
+    .receive(on: DispatchQueue.main)
+    .assign(to: \.image, on: self.iv)
+    .store(in:&self.storage)
+~~~
+
+In the first place, `self.iv` is not `self`. In the second place, a data task publisher either sends a failure or it delivers one value followed by a completion, so that either way, the entire pipeline is released in good order almost immediately. The problem arises, as far as I can tell, when the property _is_ a property of `self` _and_ the pipeline is never cancelled from upstream.
+
+The workaround is to use `.sink` instead of `.assign`, because you can use the capture list to specify that `self` is `weak` or `unowned`, breaking the cycle. So, assuming that `image` is a property of `self`, this might cause a retain cycle, depending on the behavior of the upstream publisher:
+
+~~~
+.assign(to: \.image, on: self)
+~~~
+
+If so, replace it with this:
+
+~~~
+.sink { [unowned self] in self.image = $0 }
+~~~
+
+The `unowned self` breaks the retain cycle, and `self` is able to go out of existence in the normal way.
+
