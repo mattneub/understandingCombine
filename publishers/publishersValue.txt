@@ -20,7 +20,7 @@ Sequence
 : A Sequence vends a publisher (Publishers.Sequence) through its `publisher` property. The publisher publishes all elements of the sequence. For example, `[1,2,3].publisher` publishes `1`, then `2`, then `3` (followed by a `.finished` completion).
 
 Empty
-: Empty is a publisher that does nothing. It is initialized with a `completeImmediately` parameter; if this parameter is `true`, then the publisher emits a `.finished` completion, but if it is `false`, it emits nothing whatever.
+: Empty is a publisher that does nothing. It is initialized with a `completeImmediately` parameter; if this parameter is `true`, then the publisher emits a `.finished` completion, but if it is `false`, it emits nothing whatsoever.
 
 Fail
 : Fail is a publisher that emits a `.failure` completion. It is initialized with an `error` parameter expressing the associated value of the `.failure`.
