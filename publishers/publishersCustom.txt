@@ -33,7 +33,7 @@ func receive<S>(subscriber: S)
 
 So we're going to have to make a Subscription. And that's not all. The Publisher and the Subscription, together, must go on fulfilling the obligations of a Publisher and a Subscription for as long as they both continue to operate. In sum, it isn't enough to conform to the Publisher protocol; we must also *behave* like a publisher! If you look at what a [subscriber](subscribersCustom) expects from its publisher, you can get a sense for what our obligations are:
 
-* After the Subscription is sent the `request` message asking for values to be delivered, then when a value is produced, the subscriber needs to be sent the `receive(_:)` method with that value.
+* After the Subscription is sent the `request` message asks for values to be delivered, then when a value is produced, the subscriber needs to be sent the `receive(_:)` method with that value.
 
 * If there can be a failure, then if there _is_ a failure, the subscriber needs to be sent `receive(completion:)` with the `.failure` case.
 
