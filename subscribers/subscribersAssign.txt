@@ -24,7 +24,7 @@ It isn't clear to me that the `.assign` subscriber does anything you couldn't do
 
 However, `.assign` is a nice way of expressing the common case where the purpose of the pipeline is to use the value to set a property of some object.
 
-On the other side of the coin, `.assign` can dangerous: you can end up with a retain cycle. This occurs in the common situation where what you're assigning to is a property of `self`. The example I've used [repeatedly](startFailures) is _not_ a case in point:
+On the other side of the coin, `.assign` can be dangerous: you can end up with a retain cycle. This occurs in the common situation where what you're assigning to is a property of `self`. The example I've used [repeatedly](startFailures) is _not_ a case in point:
 
 ~~~
 URLSession.shared.dataTaskPublisher(for: url)
