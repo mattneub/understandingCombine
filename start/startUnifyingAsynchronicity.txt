@@ -5,7 +5,7 @@
 
 One of the most serious issues you face when you're programming iOS with Cocoa Touch is the asynchronous event-driven nature of iOS programming. Signals come to you in different places at different times, and your app has to be ready to receive them and cope with them in a coherent way. In a view controller with a table view, you might implement `viewDidLoad`, `viewDidAppear`, `supportedInterfaceOrientations`, `tableView(_:cellForRowAt:)`, `deinit`, and many others, just to cope with the fact that you get different signals telling you about different events at different times.
 
-The issue is particularly severe with regard to signals that affect the _state_ of your application. For example, your application is probably maintaining some data. If that data needs to change in response to a signal, and if you don't manage that change coherently, you can end up with bad data and your app will behave incorrectly. Moreover, you typically have interface whose job is to reflect your data. You have to keep your interface synchronized with the data. If the data gets into a bad state or the synchronization between data and interface breaks down, your app will look wrong.
+The issue is particularly severe with regard to signals that affect the _state_ of your application. For example, your application is probably maintaining some data. If that data needs to change in response to a signal, and if you don't manage that change coherently, you can end up with bad data and your app will behave incorrectly. Moreover, you typically have an interface whose job is to reflect your data. You have to keep your interface synchronized with the data. If the data gets into a bad state or the synchronization between data and interface breaks down, your app will look wrong.
 
 If you've ever written an iOS app of any complexity at all — if you've ever said to yourself, "All these instance properties! How do I keep them all coordinated!?" — you know just what I'm talking about. You may find yourself confused about what your code does; you may find your code difficult to read and understand; you may find yourself doubting that your app really works as intended under all circumstances.
 
@@ -107,7 +107,7 @@ Using the Combine framework, both bits of code now have exactly the same structu
 
 (The `sink` call is also followed in both my examples by a `store` call, but I'll explain that in due course.)
 
-So there is a plainly a *single uniform syntax* being wrapped around the two different notions of registering for and receiving a notification, on the one hand, and performing a network operation, on the other.
+So there is plainly a *single uniform syntax* being wrapped around the two different notions of registering for and receiving a notification, on the one hand, and performing a network operation, on the other.
 
 Now, if that were _all_ that the Combine framework did, it still wouldn't be terribly interesting. Nothing is happening here that you can't do equally well in some other way, so why bother? Well, what I've said so far is only the beginning. Let's dive further into the _architecture_ of the Combine framework. I'll start by saying more about publishers and subscribers.
 
