@@ -1,8 +1,7 @@
 #title "Accumulators"
-#subtitle "summarize the values"
+# subtitle "capture values and wait"
 
 # <%= title %>
-# subtitle "capture values and wait"
 
 Accumulators
 : By _accumulators_, I mean operators that accumulate values from upstream without letting them pass through, waiting until something happens. As values arrive from upstream, these operators _accumulate_ them in some way — storing them in a buffer, or maintaining some intermediate value between arrivals. Then when the thing they've been waiting for happens, they emit a single value in response.

@@ -8,16 +8,16 @@ The term *value publisher* is something I've made up to cover several publishers
 Here are the publishers that I categorize in this way:
 
 Just
-: Just is a publisher initialized with a value. It publishes that value and stops. For example, `Just(10)` publishes the integer `10` (followed by a `.finished` completion).
+: Just is a publisher initialized with a value. It publishes that value and stops. For example, `Just(10)` publishes the integer `10` (followed by a `.finished` completion). The Failure type is Never.
 
 Optional
-: Optional.Publisher is a publisher initialized with an Optional value. It publishes the value wrapped by that Optional and stops. If the Optional is `nil`, the publisher does nothing. For example, `Optional.Publisher(Optional(10))` publishes `10` (followed by a `.finished` completion). But `Optional.Publisher(Optional<Int>.none)` just sends the `.finished` completion.
+: Optional.Publisher is a publisher initialized with an Optional value. It publishes the value wrapped by that Optional and stops. If the Optional is `nil`, the publisher does nothing. For example, `Optional.Publisher(Optional(10))` publishes `10` (followed by a `.finished` completion). But `Optional.Publisher(Optional<Int>.none)` just sends the `.finished` completion. That is an important difference from Just, which always sends a value before its `.finished` completion. The Failure type is Never.
 
 Result
-: A Result vends a publisher (Result.Publisher) through its `publisher` property. If the Result is `.success`, the publisher publishes the associated value. If the Result is `.failure`, the publisher sends a failure message with the associated Error value. For example, `Result.success(10).publisher` publishes `10` (followed by a `.finished` completion).
+: A Result vends a publisher (Result.Publisher) through its `publisher` property. A Result has an Error type, so unlike Just and Optional, the Failure type doesn't have to be Never. If the Result is `.success`, the publisher publishes the associated value. If the Result is `.failure`, the publisher sends a failure message with the associated Error value. For example, `Result.success(10).publisher` publishes `10` (followed by a `.finished` completion). 
 
 Sequence
-: A Sequence vends a publisher (Publishers.Sequence) through its `publisher` property. The publisher publishes all elements of the sequence. For example, `[1,2,3].publisher` publishes `1`, then `2`, then `3` (followed by a `.finished` completion).
+: A Sequence vends a publisher (Publishers.Sequence) through its `publisher` property. The publisher publishes all elements of the sequence. For example, `[1,2,3].publisher` publishes `1`, then `2`, then `3` (followed by a `.finished` completion). The Failure type is Never.
 
 Empty
 : Empty is a publisher that does nothing. It is initialized with a `completeImmediately` parameter; if this parameter is `true`, then the publisher emits a `.finished` completion, but if it is `false`, it emits nothing whatever.
