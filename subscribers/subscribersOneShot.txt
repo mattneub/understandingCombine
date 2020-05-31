@@ -1,0 +1,43 @@
+#title "One-Shot Subscribers"
+#subtitle "retaining the subscriber <em>without</em> <code>store</code>"
+
+# <%= title %>
+
+As I explained in the [previous section](subscribersAnyCancellable), we need to store our subscriber in persistent storage so that the pipeline lives long enough for the publisher to have a chance to publish at some time in the future, whenever that may be. After that, however, a publisher that only publishes once — a _one-shot publisher_ — has done its work, and can be permitted to go out of existence.
+
+In a situation like that, we only need our subscriber to persist long enough to receive a value or a completion (or both). It is a _one-shot subscriber_. I'm going to show you a little trick that I use to make a one-shot subscriber, without having to go to all the trouble of preparing an instance property and calling `store(in:)`.
+
+Let's start with our usual one-shot publisher, a data task publisher. This is the same code you're already so familiar with:
+
+    let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+    let pub : AnyPublisher<UIImage?,Never> =
+        URLSession.shared.dataTaskPublisher(for: url)
+            .map {$0.data}
+            .replaceError(with: Data())
+            .compactMap { UIImage(data:$0) }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+
+Now comes the interesting part. Watch closely:
+
+    var cancellable: AnyCancellable? // 1
+    cancellable = pub.sink(receiveCompletion: {_ in // 2
+        cancellable?.cancel() // 3
+    }) { image in
+        self.imageView.image = image
+    }
+
+Do you see what I did there? Perhaps not, so I'll explain it:
+
+1. First, I declare a _local_ AnyCancellable variable; for reasons having to do with the rules of Swift syntax, this needs to be an Optional.
+
+2. Then, I create my subscriber and set my AnyCancellable variable to that subscriber. Again, for reasons having to do with the rules of Swift syntax, my subscriber needs to be a Sink.
+
+3. Finally, in the subscriber itself, I cancel the AnyCancellable when I receive the completion.
+
+The cancellation in the third step actually does _two_ things quite apart from calling `cancel()` — things having to do with memory management:
+
+* By _referring_ to `cancellable` inside the asynchronous completion function of the Sink, I keep `cancellable` and the whole pipeline _alive_ long enough for a value to arrive from the subscriber.
+
+* By _cancelling_ `cancellable`, I permit the pipeline to go out of existence and prevent a retain cycle that would cause the surrounding view controller to leak.
+

@@ -1,0 +1,223 @@
+#title "Tricks and Tips"
+
+# <%= title %>
+
+The concepts of the Combine framework are not difficult, but _writing_ Combine code in Swift can be a daunting experience, because the Swift compiler seems to be peculiarly ill-equipped to deal with the typical format of a Combine pipeline chain. The result is that the compiler will very often emit mysterious error messages whose wording is vague and whose location doesn't seem to reflect where the real problem is. When the compiler is not helpful about what the issue is, practical development using Combine becomes hard.
+
+Having acquired some experience of Combine development, I've evolved a repertoire of tricks for easing the pain and getting work done. It might be useful if I share some of these, so here we go.
+
+## The Source of the Problem
+
+The most important question at every step in Combine programming is: What is the Input type that I am receiving from upstream, and what is the Output type that I am passing downstream? That's where the difficulty really lies.
+
+Nearly every commonly used operator takes a function parameter, which you will probably express as an anonymous function with "trailing closure" syntax. These trailing closures are the main source of the problem. A real-life Combine pipeline is typically a _chain_ of operators with trailing closures, along these lines (pseudocode):
+
+    publisher1.zip(publisher2) { what in
+        // ...
+        return what2
+    }.flatMap { what3 in
+        // ...
+        return what4
+    }.flatMap { what5 in
+        // ...
+        return what6
+    } // ...
+
+Each trailing closure takes some number of *parameters*, each of which has a type. And it *returns* a value, which also has some type. These are the types you need to be clear about — the parameter(s) having the Input type, and the returned value having the Output type. If you're like me, you'll find that you can rapidly become confused about what these types are.
+
+But — and this is why there's a problem — the compiler is often stodgily unwilling to help you. For example, if you select `what3` in the above code and look at the Quick Help inspector in Xcode in the hope of learning its type, you will be disappointed: nothing appears!
+
+Moreover, in many cases the compiler _itself_ seems to become confused about what types these are. It then asks *you* for more information. But information is just what you don't have; the reason there's a problem is that you don't _know_ the answers. If *you* don't know, and the *compiler* doesn't know, how on earth are you going to move forward?
+
+For example, if you've made a mistake and you select `what4` in the above code and look at the Quick Help inspector in Xcode, you might see nothing but `<<error type>>`. Well, thanks a lot, Xcode!
+
+So much for the problem. Now I'm going to start telling you the solution.
+
+## One Step at a Time
+
+Do not make any attempt to edit code in the _middle_ of a pipeline. For example, in the above code, don't start editing the contents of the first trailing closure (between `what` and `what2`) or the second trailing closure (between `what3` and `what4`). The reason is that the compiler will be trying to take into account the _whole_ pipeline, and this can affect its interpretation of what you're editing.
+
+Instead: **always work only on the _last_ operator in the pipeline. If there are later operators, _comment them out_ while you work.**
+
+For example, if you need to work on the first trailing closure in the above code, comment out everything that follows it:
+
+    publisher1.zip(publisher2) { what in
+        // ...
+        return what2
+    } 
+    /* 
+    .flatMap { what3 in
+        // ...
+        return what4
+    }.flatMap { what5 in
+        // ...
+        return what6
+    } // ...
+    */
+
+When you've fixed whatever the problem is in the first trailing closure, you can move the comment delimiters so that the pipeline now holds just the first trailing closure and the second trailing closure, and see whether the result compiles. If not, the second trailing closure is the last one, so you can work on it. And so on.
+
+## Assign the Pipeline
+
+Another primary step in working on any pipeline should be: **assign the pipeline to something.** Like this:
+
+    let head = publisher1.zip(publisher2) { what in
+        // ...
+        return what2
+    } 
+
+The reason is: **now you can select `head` and look at the Quick Help inspector to learn the output type that is flowing out the end of the pipeline.**
+
+Of course you can remove the assignment later. You might not _really_ need the variable `head` for anything, so when you're all done, you can get rid of it. But for development purposes, leave it there.
+
+## Erase the Type — Often
+
+In real life, the type of `head` may be complex and confusing. To fix that, **append `eraseToAnyPublisher()` to the right curly brace**. For example:
+
+    let head = publisher1.zip(publisher2) { what in
+        // ...
+        return what2
+    }.eraseToAnyPublisher()
+
+You should do that for _every_ anonymous function right curly brace, the whole way down the pipeline, as you develop it! This will simplify the type produced by the whole pipeline, as well as the type flowing from one operator to the next.
+
+## Learn the Input Type
+
+Let's say you're uncertain about the type of `what` in the first trailing closure in the above code. Here's the trick I use all the time in this situation: comment out the whole trailing closure contents or operator, and replace it with **a `.map` that returns its own incoming value directly**. For example:
+
+    let head = publisher1.zip(publisher2).map { what in
+        what
+    } 
+
+The reason that's useful is: **now you can select the _second_ `what` and look at the Quick Help inspector, and now it _will_ show the type of `what`.**
+
+I use that trick so much that I've defined a one-liner version of it as a code snippet:
+
+    .map { what in what }
+
+## Don't Use Dollar-Sign Parameters
+
+Do *not* represent the incoming parameter(s) with the magic names `$0` and so forth. Instead: **Give your parameters actual names.** 
+
+The reason is that if you do so, you'll have an easier time keeping track of what's what (if you'll pardon the expression); plus you can clarify for yourself, by the judicious use of meaningful names, what you believe is arriving from up the pipeline.
+
+## Supply an Explicit Return Type
+
+Consider the following:
+
+    let head = publisher1.zip(publisher2).map { what in
+        let what2 = what
+        return what2
+    }
+
+Incredibly, the Swift compiler cannot cope with that, and emits an unhelpful error message:
+
+    Generic parameter 'T' could not be inferred.
+
+This is very frustrating.
+The solution is: **append an arrow operator and explicit return type in the `in` line.**
+
+The interesting thing is that this trick is valuable _even if you don't know what the return type really is._ For example:
+
+    let head = publisher1.zip(publisher2).map { what -> Int in
+        let what2 = what
+        return what2
+    }
+
+The compiler *still* can't compile that, because what's being returned here is _not_ an Int. But here's the interesting part: the compiler's error message will be much more helpful! It now says:
+
+    Cannot convert return expression of type 'RealType' to return type 'Int'.
+
+(Instead of RealType, you will see the name of an actual type in your code.)
+
+Aha! So the compiler _does_ know the type — it's RealType. That's really weird. Do not ask me how it can be that the compiler *knows* the type when you get it *wrong*, but *doesn't* know the type when you *omit* it entirely; I have no idea. But never mind that. Now that you know the right type, _put that type in:_
+
+    let head = publisher1.zip(publisher2).map { what -> RealType in
+        let what2 = what
+        return what2
+    }
+
+Make this a rule in all your Combine code: **_always_ supply the return type, explicitly, in the `in` line of every trailing closure.** 
+
+And this isn't just to help yourself. It helps the compiler too. Even if the compiler _can_ infer the type, supply the return type explicitly anyway! The reason is that this will cause your code to compile much more quickly and reliably.
+
+(I find that you can wake up in the morning and discover that Combine code that compiled fine yesterday doesn't compile today; instead, Swift emits an error message saying that the code couldn't be type-checked "in reasonable time." Giving explicit types solves the problem.)
+
+## In a `.flatMap` Closure, Make the Return Type an AnyPublisher
+
+A `.flatMap` closure must return a publisher. That publisher will have some type. That type is likely to be big and complicated. The way to prevent that is to add `eraseToAnyPublisher()` to the end of whatever publisher you return. Therefore: **when you declare the return type in the `in` line, declare it as an AnyPublisher.**
+
+In declaring the type, you must state the Output and Failure types of this publisher. So your code will look something like this:
+
+    .flatMap { what -> AnyPublisher<String, Error> in
+        // do something
+        // return something — with eraseToAnyPublisher() at the end!
+    }
+
+In this way, you do for `.flatMap` what I was describing a moment ago: you supply an explicit return type, which helps the compiler. And this, in turn, allows the compiler to help you! If you get the declared return type wrong, the compiler will tell you that it can't convert the _right_ type to your _wrong_ type — and now, because the compiler has _told_ you what the right type is, you can change your wrong type to the right type, and you can compile.
+
+It will not have escaped your attention that this rule, together with the rule I gave earlier, means that every `.flatMap` call will involve _two_ calls to `eraseToAnyPublisher` — one for the returned value (a publisher), and one after the right curly brace:
+
+    .flatMap { what -> AnyPublisher<String, Error> in
+        // do something
+        // return something — with eraseToAnyPublisher() at the end!
+    }.eraseToAnyPublisher()
+
+Does that seem like a lot of erasing? I don't care! Just do what I'm telling you to do.
+
+## Use Utility Methods
+
+Every line of code inside an anonymous function in trailing closure syntax is an opportunity for you to become confused and to make a mistake. It makes your pipeline longer and harder to read and understand. Therefore:
+
+**Inside each anonymous function, do as little work as possible.**
+
+If there is a lot to do, move that work off into a utility method (perhaps a private method) that you can call from inside the anonymous function. That way, your anonymous functions will be short and to the point. This will make them easier to read and to edit.
+
+## Example!
+
+Here's an example of my own code. Don't try to figure out what this code does; you have no way of knowing that. Just look at the _form_ of the code. Each operator has a _short_ anonymous function with a named parameter and an _explicit_ return type:
+
+    let countriesPub = countriesPublisher() // 1
+    let logsPub = logsPublisher(for: site) // 2
+    let head = countriesPub.zip(logsPub) { countries, logs -> [LogEntity] in
+        var logs = self.restrictLogsToCurrentUser(logs) // 3
+        logs = self.mendLogsCountryNames(logs: logs, countries: countries) // 4
+        return logs
+    }.flatMap { logs -> AnyPublisher<LogEntity, Error> in
+        Publishers.Sequence(sequence: logs).eraseToAnyPublisher() // 5
+    }.flatMap { log -> AnyPublisher<LogEntity, Error> in
+        self.communicationRecipientsPublisher(for: log) // 6
+            .flatMap { recipients -> AnyPublisher<CommunicationRecipient, Error> in
+                Publishers.Sequence(sequence: recipients).eraseToAnyPublisher() // 7
+            }
+            .flatMap { recipient -> AnyPublisher<RecipientJoin, Error> in
+                self.associationPublisher(for: recipient) // 8
+        }.collect().map { joins -> LogEntity in
+            self.configuredLog(log, fromAssociations: joins) // 9
+        }.replaceEmpty(with: log).eraseToAnyPublisher() // 10
+    }.collect()
+
+Let me call attention to features of the lines I've commented with a number:
+
+1. A utility method generates a publisher (a Future, actually) and returns it as an AnyPublisher.
+
+2. Another utility method generates a publisher (a Future) and returns it as an AnyPublisher.
+
+3. A utility method processes the incoming array of LogEntity objects.
+
+4. Another utility method process the array some more.
+
+5. Even when a fairly simply publisher type is returned from a `.flatMap` function, I erase to AnyPublisher.
+
+6. Another utility method that generates a publisher (a Future) as an AnyPublisher.
+
+7. Again, I erase my returned publisher to AnyPublisher.
+
+8. Another utility method that generates a publisher (a Future) as an AnyPublisher.
+
+9. A utility method that returns a LogEntity.
+
+10. This is the end of the value returned by the last `.flatMap` — and I erase it to AnyPublisher.
+
+By using meaningful names and explicit types everywhere, I've made the _purpose_ of each step in the code clear, both to myself and to the compiler. The result is legible code that compiles quickly. You can _see_ the flow of Output types down the pipeline. The code is not cluttered with logic having nothing to do with the pipeline itself; all of that has been shunted off into utility methods.
+

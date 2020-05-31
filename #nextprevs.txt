@@ -11,6 +11,7 @@ subscribers
   subscribersSink
   subscribersAssign
   subscribersAnyCancellable
+  subscribersOneShot
   subscribersCustom
 publishers
   publishersNotification
@@ -73,3 +74,4 @@ operatorsStart
     operatorsAssertNoFailure
   operatorsComposed
   operatorsCustom
+tricksandtips

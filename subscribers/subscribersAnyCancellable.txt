@@ -9,7 +9,7 @@ I talked [earlier](startCompletions) about what AnyCancellable is. It's a class 
 
 Moreover, AnyCancellable has the remarkable property that it *automatically* calls `cancel()` on its wrapped subscriber when it itself goes out of existence. This means that the whole pipeline right back up to the publisher is cancelled when the wrapper is released. In effect, AnyCancellable gives us memory management for the entire pipeline, along with coherent messaging to the publisher that it no longer needs to produce any values.
 
-Conversely, you need to _retain_ the AnyCancellable object produced by `.sink` or `.assign` if you don't want to risk having the pipeline cancel itself prematurely. That's just what will happen if we write a pipeline like this, and stop:
+Conversely, you need to _retain_ the AnyCancellable object produced by `.sink` or `.assign` if you don't want to risk having the pipeline cancel itself prematurely. Premature cancellation is just what will happen if we write a pipeline like this, and stop:
 
 ~~~
 let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
@@ -77,4 +77,6 @@ pub.subscribe(assign)
 let any = AnyCancellable(assign)
 any.store(in:&self.storage)
 ~~~
+
+Having said all that, there are situations where this entire architecture may seem too heavyweight. Indeed, the situation I've just described _is_ such a situation! We know for a fact that a data task publisher will publish just once and then stop. It doesn't need to stick around in perpetuity, or even as long as the surrounding object; it just needs to stick around long enough for it to publish, that one time. So [next](subscribersOneShot) I'll describe an alternative architecture for what we may call a _one-shot subscriber._
 
