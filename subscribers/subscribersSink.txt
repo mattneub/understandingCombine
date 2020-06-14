@@ -47,3 +47,5 @@ If the failure type of the publisher just upstream of the sink is Never, meaning
 
 The salient feature of `.sink` is that you can do anything you want in its functions, especially the `receiveValue` function. A value has arrived at the end of the pipeline; what would you like to do with it? A `.sink` subscriber is the most flexible way to answer that question by responding to the arrival of a value.
 
+> **NOTE:** Sometimes, you'd like to do what `sink` does, but in an operator in the middle of the pipeline rather than in the subscriber at the end. A typical use case is that you want to respond secondarily to the arrival of a completion, either `.finished` or `.failure`, before the end of the pipeline. Combine has no `.ensure` operator similar to [PromiseKit](https://mxcl.dev/PromiseKit/reference/v6/Protocols/CatchMixin.html#/s:10PromiseKit10CatchMixinPAAE6ensure2on5flags_AA0A0Cy1TQzGSo17OS_dispatch_queueCSg_8Dispatch0K13WorkItemFlagsVSgyyctF), but you can do something similar by misusing [`.handleEvents`](operatorsHandleEvents) and implementing the `receiveCompletion:` parameter.
+
