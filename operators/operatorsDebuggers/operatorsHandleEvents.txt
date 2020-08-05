@@ -22,5 +22,4 @@ You can do whatever you like in whichever functions you supply, including printi
 
 Although I have categorized `.handleEvents` as a debugger operator, it can also be used as a mid-pipeline equivalent of [`.sink`](subscribersSink).
 
-> **WARNING:** My experience is that under certain circumstance, `.handleEvents` can alter the behavior of the pipeline, thus causing you to draw erroneous conclusions about how the pipeline behaves. I regard this as a serious bug (a [Heisenbug](https://en.wikipedia.org/wiki/Heisenbug)).
 
