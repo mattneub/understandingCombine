@@ -1,4 +1,4 @@
-#title "Operators"
+#title "Introducing Operators"
 #subtitle "transformations between publisher and subscriber"
 
 # <%= title %>

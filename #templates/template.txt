@@ -18,9 +18,9 @@ So are donations; please consider keeping me going by funding this work at
 <a href="http://www.paypal.me/mattneub">http://www.paypal.me/mattneub</a>.
 Or buy my books:
 the current editions are 
-<a href="http://shop.oreilly.com/product/0636920310068.do">iOS 13 Programming Fundamentals with Swift</a>
+<a href="https://www.oreilly.com/library/view/ios-14-programming/9781492092087/">iOS 14 Programming Fundamentals with Swift</a>
 and
-<a href="http://shop.oreilly.com/product/0636920310075.do">Programming iOS 13</a>.
+<a href="https://www.oreilly.com/library/view/programming-ios-14/9781492092162/">Programming iOS 14</a>.
 Thank you!
 </p>
 <hr />
