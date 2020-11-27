@@ -246,6 +246,17 @@ The solution is to put the `.replaceError` call _inside_ the map function, as pa
 
 Now what happens is that the second publisher fails and produces an empty data object, and then _it alone_ is cancelled. That's fine with us, because it already did its job. Meanwhile, the other two data tasks go right on working, and they produce their data. So that demonstrates how `.flatMap` can contain a failure within a *part* of the pipeline and replace it with a value, without causing the *whole* pipeline to terminate.
 
+There is one possible downside to that use of `.replaceError`, namely, that we have "swallowed" the error. No error is passing down the main pipeline, which is good because the main pipeline isn't cancelled; but no _information_ about the error is passing down the main pipeline either. A solution to that is to use [`.catch`](operatorsCatch) instead of `.replaceError` and produce a Result object, which carries either the value information in its `.success` case or the error information in its `.failure` case:
+
+    urls.map(URL.init(string:)).compactMap{$0}.publisher
+        .flatMap { url in
+            URLSession.shared.dataTaskPublisher(for: url)
+                .map { Result<Data,Error>.success($0.data) }
+                .catch { Just(Result<Data,Error>.failure($0)) }
+        }
+
+The value passing down the main pipeline is now a more complex object than before — it's a Result object, and subsequent operators will need to take account of that. But it is also a more communicative object: it hands subsequent operators the Data from the data task or else tells them *about* the error without in fact _being_ an error.
+
 <%= section("Exerting Backpressure") %>
 
 You may remember that I said `.flatMap` does two different, almost unrelated things. The first thing it does is to produce a publisher from its map function. It's now time to talk about the second thing.
