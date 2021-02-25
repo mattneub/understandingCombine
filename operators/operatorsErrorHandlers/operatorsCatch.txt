@@ -7,7 +7,7 @@
 
 * Like `.mapError`, `.catch` takes a map function, which won't be called unless a failure comes down the pipeline. (Otherwise, this operator just passes downstream whatever it receives from upstream.) If it is called, it receives the failure's error as parameter.
 
-* Like .`replaceError`, the map function returns a value and can convert the downstream failure type to Never.
+* Like `.replaceError`, the map function returns a value and can convert the downstream failure type to Never.
 
 * Like `.flatMap`, what the map function produces is actually a publisher; that publisher is retained and starts publishing, and it is the values produced by that publisher that proceed downstream. The Output type of the publisher must match the Output type of the upstream pipeline.
 

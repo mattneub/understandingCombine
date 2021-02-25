@@ -14,6 +14,8 @@
 
 `.tryDrop(while:)` (Publishers.TryDropWhile) is like `.drop(while:)` except that the function can throw. I think you know what happens if it does throw.
 
+(An additional `.drop` operator, `.drop(untilOutputFrom:)`, is treated [separately](operatorsDropUntilOutputFrom) under [partitioners](operatorsPartitioners).)
+
 You're probably wondering: what about `suffix(_:)`? How can we receive only the _last_ bunch of _n_ values emitted by the upstream publisher? There is no built-in `suffix` operator, but you could build one, sort of, using `collect`. Let's say we want only the last two values emitted by the upstream publisher:
 
         [1,2,3,4].publisher

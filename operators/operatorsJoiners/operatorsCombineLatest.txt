@@ -64,3 +64,35 @@ When *both* publishers have emitted a `.finished` completion, the operator emits
 Just as with `.zip`, there's variant of `.combineLatest` that takes a map function so that instead of publishing a tuple of the two latest values, you can combine however you like and publish that instead. And, as with `.zip`, this is really just a convenient way of making a Map whose upstream is a CombineLatest.
 
 Just as with `.zip`, there are additional publishers CombineLatest3 and CombineLatest4, so that you can join three or four publishers conveniently: just call `.combineLatest` with a comma-separated list of up to three publishers.
+
+<%= section("Implementing WithLatestFrom") %>
+
+A complaint that arises from time to time among RxSwift users is that there is no Combine equivalent of RxSwift's `.withLatestFrom` operator. It's like `.combineLatest`, emitting a tuple consisting of the newest contributions from each of two publishers; but it publishes only whenever the _first_ of the two publishers publishes (whereas `.combineLatest` publishes when _either_ of the two publishers publishes).
+
+It's a pity that this operator doesn't exist right out of the box, but it's fairly easy to emulate its behavior. After all, it effectively is the same as `.combineLatest` except that some of the values emitted by `.combineLatest` need to be filtered out and prevented from flowing further down the pipeline.
+
+Here's a fairly straightforward way to do that. When the first publisher publishes, we'll wrap its value in a tuple that also contains a timestamp. Then we'll do a `.combineLatest` with the second publisher — and then we'll immediately use [`.removeDuplicates`](operatorsRemoveDuplicates) to block the output from `.combineLatest` unless the timestamp has changed, indicating that the first publisher has published a new value. Finally, we'll strip out the timestamp so that only the actual values from the two publishers pass down the pipeline:
+
+    pub1.map {value in (value:value, date:Date()) }
+        .combineLatest(pub2)
+        .removeDuplicates { $0.0.date == $1.0.date }
+        .map { ($0.value, $1) }
+
+If that's something you do a lot, it's easy to wrap it up as a custom operator, as I'll explain [later](operatorsComposed):
+
+    extension Publisher {
+        func withLatestFrom<Other:Publisher>(_ other: Other)
+            -> AnyPublisher<(Self.Output, Other.Output), Failure>
+            where Self.Failure == Other.Failure {
+                self.map { value in (value:value, date:Date()) }
+                    .combineLatest(other)
+                    .removeDuplicates { $0.0.date == $1.0.date }
+                    .map { ($0.value, $1) }
+                    .eraseToAnyPublisher()
+        }
+    }
+
+Now our original code can be written more simply, as `pub1.withLatestFrom(pub2)`.
+
+
+

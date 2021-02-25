@@ -1,0 +1,13 @@
+#title "DropUntilOutputFrom"
+
+# <%= title %>
+
+`.drop(untilOutputFrom:)` (Publishers.DropUntilOutput) is not precisely a [joiner](operatorsJoiners); but it does involve input from two publishers, like a joiner, so it is more like a joiner than its [`.drop` cousins](operatorsPrefix), which are clearly [partitioners](operatorsPartitioners). Therefore I'm mentioning it here.
+
+What `.drop(untilOutputFrom:)` does is to cause all values from upstream to be suppressed, until some _other_ publisher emits a value. That value is ignored, and the subscription to that other publisher is dropped — and the values from upstream are now permitted to flow down the pipeline.
+
+Basically, this is a kind of switch, where a secondary publisher has the power to throw the switch and allow values to flow. In that sense, it is a quite like [`.zip`](operatorsZip) and [`.combineLatest`](operatorsCombineLatest), where nothing arrives downstream until _both_ publishers have published.
+
+The output type of the second publisher doesn't matter; its value is a dummy signal and is disregarded.
+
+If the second publisher emits a completion without having emitted a value, that completion propagates down the pipeline and the entire pipeline comes to an end without any value having come downstream from the first publisher. Thus the second publisher has the additional power of cancelling the entire pipeline before it ever gets going.
