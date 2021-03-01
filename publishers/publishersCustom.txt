@@ -208,3 +208,113 @@ Let's try it! My view controller's view contains a button, and the view controll
 
 We run the app and tap the button. The console displays `"button!"` — our publisher is working.
 
+<%= section("A Better UIControl Publisher") %>
+
+Now that our basic UIControl publisher is working, let's improve it. I can think of two improvements we might make:
+
+* Instead of insisting that the publisher respond to the control's `.primaryActionTriggered` control event, let's allow the caller to specify _any_ control event that this publisher should respond to.
+
+* Instead of returning the control typed as a UIControl, let's turn the ControlPublisher struct into a generic, so that the control that it returns is typed as whatever sort of control this really is.
+
+To allow the caller to specify the control event, we'll give ControlPublisher an `event` property and an `event` parameter in its initializer, defaulting to `.primaryActionTriggered` but permitting the caller to specify some other control event:
+
+    unowned let control : UIControl
+    let event : UIControl.Event
+    init(control:UIControl, for event:UIControl.Event) {
+        self.control = control
+        self.event = event
+    }
+
+In just the same way, our Inner now also has to have an `event` property and an `event` initializer parameter, and it pays attention to the `event` property when it adds the target and action in the `request` method:
+
+    func request(_ demand: Subscribers.Demand) {
+        self.sender?.addTarget(self, action: #selector(doAction), for: event)
+    }
+
+The UIControl extension that injects the `publisher` method now takes an optional `for:` parameter to specify the control event; it, too, defaults to `.primaryActionTriggered`:
+
+    func publisher(for event: UIControl.Event = .primaryActionTriggered) -> ControlPublisher {
+        ControlPublisher(control:self, for:event)
+    }
+
+To allow the ControlPublisher to be generic, we just replace our references to the UIControl type with a generic placeholder type T that is constrained to be a UIControl:
+
+    struct ControlPublisher<T:UIControl> : Publisher {
+        typealias Output = T
+        typealias Failure = Never
+        unowned let control : T
+        let event : UIControl.Event
+        init(control:T, for event:UIControl.Event = .primaryActionTriggered) {
+            self.control = control
+            self.event = event
+        }
+        // ... and so on ...
+
+Now we have to rewrite the UIControl extension _again_ — and this turns out to be the hard part. We want our `publisher` method to return a ControlPublisher whose generic placeholder is resolved to `Self`, the type of the UIControl on which the `publisher` method is being called. But you can't say `Self` in a mere class extension. Instead, you have to do a tricky little dance: you declare a protocol, make the class adopt that protocol, and inject the method using an extension _on the protocol_, where the term `Self` is legal:
+
+    protocol ControlWithPublisher : UIControl {}
+    extension UIControl : ControlWithPublisher {}
+    extension ControlWithPublisher {
+        func publisher(for event: UIControl.Event = .primaryActionTriggered) -> ControlPublisher<Self> {
+            ControlPublisher(control:self, for:event)
+        }
+    }
+
+And here's the full, revised implementation of ControlPublisher:
+
+~~~~
+struct ControlPublisher<T:UIControl> : Publisher {
+    typealias Output = T
+    typealias Failure = Never
+    unowned let control : T
+    let event : UIControl.Event
+    init(control:T, for event:UIControl.Event = .primaryActionTriggered) {
+        self.control = control
+        self.event = event
+    }
+    func receive<S>(subscriber: S) where S : Subscriber, S.Input == Output, S.Failure == Failure {
+        subscriber.receive(subscription: Inner(downstream: subscriber, sender: control, event: event))
+    }
+    class Inner <S:Subscriber>: NSObject, Subscription where S.Input == Output, S.Failure == Failure {
+        weak var sender : T?
+        let event : UIControl.Event
+        var downstream : S?
+        init(downstream: S, sender : T, event : UIControl.Event) {
+            self.downstream = downstream
+            self.sender = sender
+            self.event = event
+            super.init()
+        }
+        func request(_ demand: Subscribers.Demand) {
+            self.sender?.addTarget(self, action: #selector(doAction), for: event)
+        }
+        @objc func doAction(_ sender:UIControl) {
+            guard let sender = self.sender else {return}
+            _ = self.downstream?.receive(sender)
+        }
+        private func finish() {
+            self.sender?.removeTarget(self, action: #selector(doAction), for: event)
+            self.sender = nil
+            self.downstream = nil
+        }
+        func cancel() {
+            self.finish()
+        }
+        deinit {
+            self.finish()
+        }
+    }
+}
+~~~~
+
+The result is that we can write some really clean Combine code for responding to control events. Here, for example, we configure the start of a pipeline that produces a UITextField's text every time the user changes that text:
+
+    self.textField.publisher(for: .editingChanged)
+        .compactMap { $0.text }
+        // ...
+
+It doesn't get any better than that!
+
+> **NOTE:** I wish to acknowledge, for my UIControl publisher code, the inspiration of [Antoine van der Lee](https://www.avanderlee.com/swift/custom-combine-publisher/) and the direct assistance of [Tyler Prevost](https://stackoverflow.com/a/66414305/341994).
+
+
