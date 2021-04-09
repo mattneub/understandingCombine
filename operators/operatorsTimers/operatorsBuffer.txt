@@ -3,10 +3,72 @@
 
 # <%= title %>
 
-`.buffer` (Publishers.Buffer) is apparently intended to reconcile the timing between the upstream's production of values and the downstream's demand for those values.
-It accumulates values from upstream into its internal buffer, which is of predefined size, until the buffer fills up due to backpressure from downstream. At that point, it throws away values from upstream or throws an error, depending on how you've configured the operator. The buffer itself effectively behaves as a FIFO stack (also known as a queue).
+`.buffer` (Publishers.Buffer) is intended to reconcile the timing between the upstream's production of values and the downstream's demand for those values through the use of [backpressure](operatorsFlatMap). The idea is that the buffer responds to backpressure from downstream by accumulating values from upstream that would otherwise be lost, until such time as they can be delivered. The buffer itself effectively behaves as a FIFO stack (also known as a queue), releasing values to the downstream in the same order that they arrived from upstream.
 
-Some examples will clarify, but first let's talk about the parameters:
+I'll start with an artificial but very clear illustration of how a buffer can be useful. The idea is that we have a publisher that is likely to be emitting values at fairly frequent intervals, and we need to process each value through a `.flatMap` that uses [backpressure](operatorsFlatMap) to limit concurrency and that produces a publisher which, itself, may take considerable time to emit a value. I'll emulate that situation with a PassthroughSubject and a Timer, on the one hand, and a `.flatMap` with `maxPublishers` and a `.delay` on its publisher, on the other:
+
+    class ViewController: UIViewController {
+        let sub = PassthroughSubject<Int,Never>()
+        var storage = Set<AnyCancellable>()
+        var timer : Timer!
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            sub
+                .flatMap(maxPublishers:.max(3)) { i in
+                    return Just(i)
+                        .delay(for: 3, scheduler: DispatchQueue.main)
+                        .eraseToAnyPublisher()
+                }
+                .sink { print($0) }
+                .store(in: &storage)
+        
+            var count = 0
+            self.timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { 
+                _ in
+                count += 1
+                self.sub.send(count)
+            }
+        }
+    }
+
+The outcome is that _values are dropped;_ some values emitted by the PassthroughSubject publisher at the head of the pipeline never arrive at the `sink`, because the `.flatMap` was "busy" at the time they were emitted:
+
+    1
+    2
+    3
+    5
+    6
+    7
+    9
+    10
+    11
+    ...
+
+The solution is to put a `.buffer` in front of the `.flatMap`:
+
+        sub
+            .buffer(size: 20, prefetch: .keepFull, whenFull: .dropOldest)
+            .flatMap(maxPublishers:.max(3)) { i in
+            // ...
+
+The result is that _all_ the numeric values do in fact arrive at the `sink`!
+
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    ...
+
+Of course in real life we could still lose values if the buffer is not large enough to compensate, in the long run, for the disparity between the rate of value emission from the initial publisher and the rate of value emission from the backpressuring `.flatMap`. But in this example, the buffer _is_ large enough, so that no values are lost.
+
+Now let's get down to the nitty-gritty. We need to talk about the `.buffer` operator's parameters. The thing to understand here is that the `.buffer` operator accumulates values from upstream into its internal buffer, which is of predefined size, until the buffer fills up due to backpressure from downstream. At that point, it throws away values from upstream or throws an error, depending on how you've configured the operator. The point of the parameters is to dictate exactly how all that should happen:
 
 `size:`
 : The size of the buffer.
@@ -27,7 +89,7 @@ Some examples will clarify, but first let's talk about the parameters:
   
   * `.customError` means fail; it takes an associated value that's a function producing an Error, which is sent downstream as a failure.
 
-To make sense of `.buffer`, we need a pipeline that exerts [backpressure](operatorsFlatMap) from below. Here's one:
+Now I'll illustrate the meaning of the parameters by deliberately formulating some edge cases. As before, we need a pipeline that exerts backpressure from below. Here's one:
 
     let pub = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
         .scan(0) {i,_ in i+1}
@@ -36,9 +98,9 @@ To make sense of `.buffer`, we need a pipeline that exerts [backpressure](operat
             Just($0).delay(for: 2, scheduler: DispatchQueue.main)
         }
 
-At the top of the pipeline we have a publisher that produces values every one-fifth of a second. At the bottom we have a `.flatMap` with a `.max(1)` demand setting, so that it asks for just one value at a time, while transforming its received value into a publisher with a two-second `.delay`. This means that when a value arrives into the `.flatMap`, it sits there for two seconds before being published, at which point the `.flatMap` requests a new value.
+This should remind you of our earlier example. At the top of the pipeline we have a publisher that produces values every one-fifth of a second. At the bottom we have a `.flatMap` with a `.max(1)` demand setting, so that it asks for just one value at a time, while transforming its received value into a publisher with a two-second `.delay`. This means that when a value arrives into the `.flatMap`, it sits there for two seconds before being published, at which point the `.flatMap` requests a new value.
 
-If there were no `.buffer` operator in the story, this pipeline would simply produce one successive Int every two seconds. The backpressure from `.flatMap` applies directly to the publisher at the top: every time the `.flatMap` asks for a new value, the upstream produces the next value in the series. But now we have introduced a buffer between them — and the buffer can hold only four values at a time. What will happen? Here's what we get, one value every two seconds, at the end of the pipeline:
+If there were no `.buffer` operator in the story, this pipeline would simply produce one successive Int every two seconds. The backpressure from `.flatMap` applies directly to the publisher at the top: every time the `.flatMap` asks for a new value, the upstream produces the next value in the series. But now we have introduced a buffer between them — but the buffer can hold _only four values at a time._ What will happen? Here's what we get, one value every two seconds, at the end of the pipeline:
 
     1
     2
@@ -98,9 +160,9 @@ The output is:
     1 (after two seconds)
     11 (after three more seconds)
 
-While the values `2` through `10` were arriving, the pipeline was blocked by the `.flatMap`, which requests only one value at a time and doesn't request a new value until the two-second `.delay` has passed. So those values fell on deaf ears; they were thrown away. The `11`, on the other hand, was sent after the `.flatMap` had cleared, so that it was ready for a new value; there was an additional delay of one second before the `11` was sent, and then the `.delay` added two more seconds before the `11` reached the bottom of the pipeline.
+Again, this should remind you of the first example in this chapter. While the values `2` through `10` were arriving, the pipeline was blocked by the `.flatMap`, which requests only one value at a time and doesn't request a new value until the two-second `.delay` has passed. So those values fell on deaf ears; they were thrown away. The `11`, on the other hand, was sent after the `.flatMap` had cleared, so that it was ready for a new value; there was an additional delay of one second before the `11` was sent, and then the `.delay` added two more seconds before the `11` reached the bottom of the pipeline.
 
-Now let's insert a buffer:
+Now let's insert our buffer:
 
     self.subject
         .buffer(size: 4, prefetch: .keepFull, whenFull: .dropNewest)

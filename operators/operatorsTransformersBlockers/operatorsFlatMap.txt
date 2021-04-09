@@ -309,4 +309,5 @@ The URLs may arrive sequentially, but the data tasks all run _simultaneously_ â€
 
 Now no network request starts until the previous network request has completed. Only one request is posted to the URLSession at a time, and the results are guaranteed to arrive in the same order as the original URLs â€” in this case, that will be the data for _manny.jpg,_ empty data for _moe.jpg_ (because it's a bad URL), and the data for _jack.jpg._
 
+> **NOTE:** Using backpressure in that way can cause values emitted by the upstream publisher to be lost, because the `.flatMap` is still "busy" with the existing publisher when the new value would arrive from upstream. A possible solution to that is to use a [buffer](operatorsBuffer).
 
