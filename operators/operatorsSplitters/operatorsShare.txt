@@ -67,4 +67,4 @@ What happens if our shared publisher has multiple downstream pipelines subscribe
 
 On the other hand, if the _last_ remaining subscriber fails, its `cancel` *does* percolate all the way up to the Timer publisher, and the whole pipeline terminates.
 
-
+> **NOTE:** `.share` does not transmit <%= xref("SECexertingbackpressure", "backpressure") %> from downstream to upstream; it always performs an unlimited request to the upstream.
