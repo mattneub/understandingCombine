@@ -84,8 +84,8 @@ override func viewDidLoad() {
         .store(in:&self.storage)
     sub1.sink { print("sub1", $0)}
         .store(in:&self.storage)
-    let sub12 = PassthroughSubject<String,Never>()
-    topSubject.subscribe(sub12)
+    let sub2 = PassthroughSubject<String,Never>()
+    topSubject.subscribe(sub2)
         .store(in:&self.storage)
     sub1.sink { print("sub2", $0)}
         .store(in:&self.storage)
