@@ -11,14 +11,13 @@
 <% end %>
 <p class="header">
 This is <b><em>Understanding Combine</em></b>, written by Matt Neuburg.
-<em>It is a work in progress.</em>
 Corrections and suggestions are greatly appreciated (you can comment
 <a href="https://github.com/mattneub/understandingCombine/issues">here</a>).
 So are donations; please consider keeping me going by funding this work at
 <a href="http://www.paypal.me/mattneub">http://www.paypal.me/mattneub</a>.
 Or buy my books:
-the current editions are 
-<a href="https://www.oreilly.com/library/view/ios-14-programming/9781492092087/">iOS 14 Programming Fundamentals with Swift</a>
+the current (and final) editions are 
+<a href="https://learning.oreilly.com/library/view/ios-15-programming/9781098118495/">iOS 15 Programming Fundamentals with Swift</a>
 and
 <a href="https://www.oreilly.com/library/view/programming-ios-14/9781492092162/">Programming iOS 14</a>.
 Thank you!

@@ -1,5 +1,5 @@
 #title "FlatMap"
-#subtitle "producing a publisher within the pipeline; AnyPublisher; serializing asynchronicity; exerting backpressure"
+#subtitle "producing a publisher within the pipeline; AnyPublisher; serializing asynchronicity; failing without terminating; exerting backpressure"
 
 # <%= title %>
 

@@ -8,13 +8,15 @@
 
 `.tryPrefix(while:)` (Publishers.TryPrefixWhile) is like `.prefix(while)` except that the function can throw. If it does throw, this operator cancels the upstream and the error is passed downstream as a failure.
 
+(An additional `.prefix` operator, `.prefix(untilOutputFrom:)`, is treated [separately](operatorsPrefixUntilOutputFrom) under [joiners](operatorsJoiners).)
+
 `.dropFirst()` (Publishers.Drop) is the inverse of `.prefix(1)`: it swallows the first value received from upstream and then just passes along every subsequent value received from upstream.
 
 `.drop(while:)` (Publishers.DropWhile) takes a function that receives a value from upstream and returns a Bool. If the function returns `true`, it swallows the received value. If the function returns `false`, it passes the received value along downstream and never calls the function again; it just keeps passing received values downstream.
 
 `.tryDrop(while:)` (Publishers.TryDropWhile) is like `.drop(while:)` except that the function can throw. I think you know what happens if it does throw.
 
-(An additional `.drop` operator, `.drop(untilOutputFrom:)`, is treated [separately](operatorsDropUntilOutputFrom) under [partitioners](operatorsPartitioners).)
+(An additional `.drop` operator, `.drop(untilOutputFrom:)`, is treated [separately](operatorsDropUntilOutputFrom) under [joiners](operatorsJoiners).)
 
 You're probably wondering: what about `suffix(_:)`? How can we receive only the _last_ bunch of _n_ values emitted by the upstream publisher? There is no built-in `suffix` operator, but you could build one, sort of, using `collect`. Let's say we want only the last two values emitted by the upstream publisher:
 
@@ -22,6 +24,5 @@ You're probably wondering: what about `suffix(_:)`? How can we receive only the 
             .collect()
             .flatMap {$0.suffix(2).publisher} // 3, then 4, then `.finished`
 
-I say "sort of" because there's no way to implement `suffix` so as to pass along the last values _as they arrive,_ so this is not really comparable to what `prefix` does.
-
+I say "sort of" because there's no way to implement `suffix` so as to pass along the last values _as they arrive,_ so this is not really comparable to what `prefix` does. But then, unless you have a time machine in your pocket, there's generally no way to know, in advance, that the value now arriving is (say) the next-to-last value that will ever arrive.
 

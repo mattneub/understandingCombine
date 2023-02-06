@@ -1,0 +1,15 @@
+#title "PrefixUntilOutputFrom"
+
+# <%= title %>
+
+`.prefix(untilOutputFrom:)` (Publishers.PrefixUntilOutput) is not precisely a [joiner](operatorsJoiners); but it does involve input from two publishers, like a joiner, so it is more like a joiner than its [`.prefix` cousins](operatorsPrefix), which are clearly [partitioners](operatorsPartitioners). Therefore I'm mentioning it here.
+
+What `.prefix(untilOutputFrom:)` does is to allow all values from upstream pass through, until some _other_ publisher emits a value. That value is ignored, and the subscription to that other publisher is dropped — and any further values from upstream are now prevented from flowing down the pipeline.
+
+Basically, this is a kind of switch (or gate), where a secondary publisher has the power to throw the switch (or close the gate) and prevent values from flowing.
+
+The output type of the second publisher doesn't matter; its value is a dummy signal and is disregarded.
+
+The closing of the gate works by default in the simplest possible way: when a value is received from the second publisher, _the upstream publisher is cancelled._ However, if the second publisher sends a completion rather than a value, regardless of whether that completion is `.finished` or `.failure`, the upstream publisher _continues to publish_ (but its output is blocked by the `.prefix(untilOutputFrom:)` operator).
+
+The complementary operator is [`.drop(untilOutputFrom)`](operatorsDropUntilOutputFrom).

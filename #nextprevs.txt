@@ -49,6 +49,7 @@ operatorsStart
     operatorsCombineLatest
     operatorsAppend
     operatorsDropUntilOutputFrom
+    operatorsPrefixUntilOutputFrom
   operatorsSplitters
     operatorsShare
     operatorsMulticast
