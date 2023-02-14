@@ -21,9 +21,8 @@ Let's start with our usual one-shot publisher, a data task publisher. This is th
 Now comes the interesting part. Watch closely:
 
     var cancellable: AnyCancellable? // 1
-    cancellable = pub.sink(receiveCompletion: {_ in // 2
+    cancellable = pub.sink(receiveCompletion: {_ in }) { image in // 2 
         cancellable?.cancel() // 3
-    }) { image in
         self.imageView.image = image
     }
 
