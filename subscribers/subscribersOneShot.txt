@@ -22,8 +22,8 @@ Now comes the interesting part. Watch closely:
 
     var cancellable: AnyCancellable? // 1
     cancellable = pub.sink(receiveCompletion: {_ in }) { image in // 2 
-        cancellable?.cancel() // 3
         self.imageView.image = image
+        cancellable?.cancel() // 3
     }
 
 Do you see what I did there? Perhaps not, so I'll explain it:
@@ -32,11 +32,11 @@ Do you see what I did there? Perhaps not, so I'll explain it:
 
 2. Then, I create my subscriber and set my AnyCancellable variable to that subscriber. Again, for reasons having to do with the rules of Swift syntax, my subscriber needs to be a Sink.
 
-3. Finally, in the subscriber itself, I cancel the AnyCancellable when I receive the completion.
+3. Finally, in the subscriber itself, I cancel the AnyCancellable when I receive a value.
 
 The cancellation in the third step actually does _two_ things quite apart from calling `cancel()` — things having to do with memory management:
 
-* By _referring_ to `cancellable` inside the asynchronous completion function of the Sink, I keep `cancellable` and the whole pipeline _alive_ long enough for a value to arrive from the subscriber.
+* By _referring_ to `cancellable` inside the asynchronous receive function of the Sink, I keep `cancellable` and the whole pipeline _alive_ long enough for a value to arrive from the subscriber.
 
 * By _cancelling_ `cancellable`, I permit the pipeline to go out of existence and prevent a retain cycle that would cause the surrounding view controller to leak.
 
