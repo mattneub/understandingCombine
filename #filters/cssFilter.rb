@@ -1,4 +1,4 @@
 def cssFilter(adrPageTable)
-  # support for SASS
-  adrPageTable[:csstext] = Sass::Engine.new(adrPageTable[:csstext], :syntax => :scss, :style => :expanded).render
+  # support for Sass
+  adrPageTable[:csstext] = Sass.compile_string(adrPageTable[:csstext]).css
 end
