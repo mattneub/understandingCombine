@@ -26,4 +26,4 @@ For example:
         .scan(0) {i,_ in i+1}
         .throttle(for: 0.5, scheduler: DispatchQueue.main, latest: true)
 
-The values produced are `1`, `4`, `7`, `10`, and so on.
+The values produced are `1`, `3`, `6`, `8`, and so on.
