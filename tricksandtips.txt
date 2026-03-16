@@ -143,7 +143,7 @@ And this isn't just to help yourself. It helps the compiler too. Even if the com
 
 (I find that you can wake up in the morning and discover that Combine code that compiled fine yesterday doesn't compile today; instead, Swift emits an error message saying that the code couldn't be type-checked "in reasonable time." Giving explicit types solves the problem.)
 
-## In a `.flatMap` Closure, Make the Return Type an AnyPublisher
+## In a flatMap Closure, Make the Return Type an AnyPublisher
 
 A `.flatMap` closure must return a publisher. That publisher will have some type. That type is likely to be big and complicated. The way to prevent that is to add `eraseToAnyPublisher()` to the end of whatever publisher you return. Therefore: **when you declare the return type in the `in` line, declare it as an AnyPublisher.**
 

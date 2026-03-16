@@ -1,5 +1,4 @@
 ---
-:bgcolor: FFFFEE
-:linkstylesheets: [stylesheet]
-:template: template
+:linkstylesheets: [bulma-no-dark-mode, bulma-no-dark-mode.min, me]
+:template: templatenew
 :kramdown: 1

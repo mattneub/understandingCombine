@@ -13,7 +13,6 @@ def breadcrumbs()
   s = "<div class='toc'>" if toc
   s << doOneLevel(body, thisnode, toc)
   s << "</div>"
-  s << "<div style='clear:both' />"
   s
 end
 def doOneLevel(node, thisnode, toc)

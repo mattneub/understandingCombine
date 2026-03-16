@@ -1,0 +1,78 @@
+/* overwrite bulma defaults */
+
+:root {
+    --bulma-family-primary: Georgia, "Times New Roman", Times, serif;
+    --bulma-family-code: Menlo, Inconsolata, Monaco, Consolas, "Andale Mono", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
+    --bulma-body-weight: var(--bulma-weight-medium);
+    --bulma-size-normal: 1.1rem;
+    --bulma-pre-background: white;
+    background: #FFFFEE;
+}
+
+html {
+  -webkit-font-smoothing: auto;
+}
+
+.footer {
+    --bulma-footer-padding: 2rem 1.5rem 3rem;
+}
+
+/* toc/breadcrumbs indentation level */
+
+div.toc_level {
+    padding-left: 2em;
+}
+
+/* breadcrumbs box sticks to the top, has fixed width */
+
+.box.topsticker {
+     position: sticky; 
+     top: 0;
+     width: 300px;
+}
+
+/* separate toc level sections, but only on the table of contents page */
+
+div.toc_page div.toc_level {
+    padding-bottom: 1em;
+}
+
+/* subtitles, shown only on the table of contents page */
+
+.subtitle {
+    font-size: 90%;
+    code {
+        font-size: 90%;
+    }
+    &:before {
+        content: " — ";
+    }
+}
+
+/* supplement bulma styling */ 
+
+a[href] {
+  text-decoration: underline;
+}
+
+.content pre {
+    border: 1px solid #292929;
+    border-radius: 4px;
+}
+
+dt {
+    font-style: italic;
+    margin-top: 20px;
+}
+
+dd p {
+    margin-top: 10px;
+}
+
+hr {
+  background-color: gray;
+}
+
+h1 {
+    text-align: center;
+}

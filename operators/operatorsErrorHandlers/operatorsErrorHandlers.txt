@@ -8,34 +8,3 @@ Error Handlers
 
 The error handler _par excellence_ is `.mapError`, which does just what `.map` does, but for errors: if it receives a failure from upstream, it can send downstream a failure containing a different error object, even a different type of error object.
 
-{::comment}
-
-
-error handlers
-    mapError
-    setFailureType
-    replaceEmpty?
-    replaceError
-    catch
-    tryCatch
-    retry
-
-codables
-    decode
-    encode
-
-threaders
-    subscribe(on:)
-    receive(on:)
-
-????
-    makeConnectable
-
-debuggers
-    assertNoFailure
-    breakpoint
-    breakpointOnError
-    print
-    handleEvents
-
-{:/comment}

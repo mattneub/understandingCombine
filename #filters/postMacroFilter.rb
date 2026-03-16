@@ -3,6 +3,7 @@ def postMacroFilter(adrPageTable)
   if adrPageTable[:kramdown]
     adrPageTable[:postmacrotext] = Kramdown::Document.new(
       adrPageTable[:postmacrotext], :auto_ids => false, :entity_output => :numeric
-    ).to_html.gsub("&quot;", '"')
+    ).to_html
+    .gsub("&quot;", '"')
   end
 end

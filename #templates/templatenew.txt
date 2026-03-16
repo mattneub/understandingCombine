@@ -1,0 +1,55 @@
+#metaviewport "width=device-width, initial-scale=1"
+
+<%= pageheader() %>
+
+<section class="hero has-background-primary-90 is-small has-text-centered">
+  <div class="hero-body">
+    <p>
+      This is <b><em>Understanding Combine</em></b>, written by Matt Neuburg.
+      Corrections and suggestions are greatly appreciated (you can comment
+      <a href="https://github.com/mattneub/understandingCombine/issues">here</a>).
+      So are donations; please consider keeping me going by funding this work at
+      <a href="http://www.paypal.me/mattneub">http://www.paypal.me/mattneub</a>.
+      Or buy my books:
+      the current (and final) editions are 
+      <a href="https://learning.oreilly.com/library/view/ios-15-programming/9781098118495/">iOS 15        Programming Fundamentals with Swift</a>
+      and
+      <a href="https://www.oreilly.com/library/view/programming-ios-14/9781492092162/">Programming        iOS 14</a>.
+      Thank you!
+    </p>
+  </div>
+</section>
+
+<div class="columns">
+
+  <% if adrObject.simplename.to_s != "toc" %>
+    <div class="column is-narrow is-small is-hidden-mobile">
+      <div class="box topsticker">
+        <%= breadcrumbs() %>
+      </div><!-- box -->
+    </div><!-- column -->
+  <% end %><!-- if not toc -->
+
+  <div class="column">
+    <section class="section">
+      <div class="content is-normal has-text-black-00" markdown="1">
+        <p id="bodytext"></p>
+      </div><!-- content, markdown -->
+    </section>
+  </div><!-- column -->
+
+</div><!-- columns -->
+
+<footer class="footer">
+  <% if adrObject.simplename.to_s != "toc" %>
+    <%= nextprevlinks() %>
+    <hr />
+  <% end %>
+
+  <div class="is-size-7" markdown="1">
+    Written with [RubyFrontier](https://www.apeth.com/RubyFrontierDocs/default.html). 
+    CSS by [Bulma](https://bulma.io).
+  </div>
+</footer>
+
+<%= pagefooter() %>
