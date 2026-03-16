@@ -47,8 +47,8 @@ The workaround is to use `.sink` instead of `.assign`, because you can use the c
 If so, replace it with this:
 
 ~~~
-.sink { [unowned self] in self.image = $0 }
+.sink { [weak self] in self?.image = $0 }
 ~~~
 
-The `unowned self` breaks the retain cycle, and `self` is able to go out of existence in the normal way.
+The `weak self` breaks the retain cycle, and `self` is able to go out of existence in the normal way.
 
