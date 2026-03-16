@@ -107,7 +107,7 @@ Using the Combine framework, both bits of code now have exactly the same structu
 
 (The `sink` call is also followed in both my examples by a `store` call, but I'll explain that in due course.)
 
-So there is a plainly a *single uniform syntax* being wrapped around the two different notions of registering for and receiving a notification, on the one hand, and performing a network operation, on the other.
+So there is plainly a *single uniform syntax* being wrapped around the two different notions of registering for and receiving a notification, on the one hand, and performing a network operation, on the other.
 
 Now, if that were _all_ that the Combine framework did, it still wouldn't be terribly interesting. Nothing is happening here that you can't do equally well in some other way, so why bother? Well, what I've said so far is only the beginning. Let's dive further into the _architecture_ of the Combine framework. I'll start by saying more about publishers and subscribers.
 
