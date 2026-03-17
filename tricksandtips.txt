@@ -81,6 +81,19 @@ In real life, the type of `head` may be complex and confusing. To fix that, **ap
 
 You should do that for _every_ anonymous function right curly brace, the whole way down the pipeline, as you develop it! This will simplify the type produced by the whole pipeline, as well as the type flowing from one operator to the next.
 
+## Insert handleEvents
+
+To clarify what's flowing down the pipeline at any point, insert a `.handleEvents` operator, like this:
+
+    .handleEvents(
+        receiveOutput: { _ = $0 as String },
+        receiveCompletion: { _ = $0 as Subscribers.Completion<Error> }
+    )
+
+All you're doing in the anonymous functions here is casting the input to its actual type — the value type (the preceding publisher's Output type) in `receiveOutput`, and the failure type in `receiveCompletion`. And that's the whole point; in this way, you're documenting what those types are.
+
+But here's the really clever part: you don't actually need to _know_ what the types are. Just write the types as String and Error, as I've done in the example. If those types are wrong, the compiler will correct you, by _telling_ you what the _right_ types are! Now change the types to satisfy the compiler.
+
 ## Learn the Input Type
 
 Let's say you're uncertain about the type of `what` in the first trailing closure in the above code. Here's the trick I use all the time in this situation: comment out the whole trailing closure contents or operator, and replace it with **a `.map` that returns its own incoming value directly**. For example:
