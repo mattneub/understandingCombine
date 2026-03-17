@@ -36,7 +36,7 @@ wv.publisher(for: \.isLoading, options: .new)
         } else {
             self.activity.stopAnimating()
         }
-    }.store(in:&self.storage)
+    }.store(in: &self.storage)
 ~~~
 
 Unfortunately, the KeyValueObservingPublisher implementation is nowhere near as sophisticated as real key–value observing. 
@@ -91,7 +91,7 @@ let kvop = self.thingy.publisher(
 let initial = kvop.first()
     .map { KVO.initial($0) }
 let subsequent = kvop.dropFirst().collect(2)
-    .map { KVO.subsequent(prior:$0[0], new:$0[1])}
+    .map { KVO.subsequent(prior: $0[0], new: $0[1])}
 let realkvop = initial.merge(with: subsequent).eraseToAnyPublisher()
 ~~~
 

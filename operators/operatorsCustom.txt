@@ -101,15 +101,15 @@ I'll start with the struct which is the DoNothing operator object:
         }
         // When subscribed to, subscribe my Inner _upstream_
         func receive<S>(subscriber: S) 
-            where S : Subscriber, S.Input == Output, S.Failure == Failure {
-                self.upstream.subscribe(Inner(downstream:subscriber))
+            where S: Subscriber, S.Input == Output, S.Failure == Failure {
+                self.upstream.subscribe(Inner(downstream: subscriber))
         }
         // ... Inner goes here ...
     }
 
 Now let's write Inner. It must be initialized by the operator with (at least) the downstream subscriber:
 
-    class Inner<S:Subscriber, Input>: Subscriber, Subscription
+    class Inner<S: Subscriber, Input>: Subscriber, Subscription
     where S.Failure == Failure, S.Input == Input { // !
         var downstream: S?
         var upstream: Subscription?
@@ -161,7 +161,7 @@ As a final bit of icing on the cake, let's inject into Publisher an operator met
 
     extension Publisher {
         func doNothing() -> DoNothing<Self> {
-            return DoNothing(upstream:self)
+            return DoNothing(upstream: self)
         }
     }
 

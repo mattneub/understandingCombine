@@ -40,7 +40,7 @@ A variant on `.map` is `.tryMap` (Publishers.TryMap). It gives the map function 
 
 So `tryMap` is an opportunity to change downstream's error type as well as its value type:
 
-    enum MyError : Error { case oops }
+    enum MyError: Error { case oops }
     let pub = URLSession.shared.dataTaskPublisher(for: url!)
         .tryMap { tuple -> Data in
             let resp = tuple.response

@@ -12,8 +12,8 @@ Instead of _registering_ for a notification by calling some form of `addObserver
 ~~~
 NotificationCenter.default.publisher(for: .zipCodeDidChange)
     .compactMap { $0.userInfo?["zip"] as? String }
-    .assign(to: \.currentZip, on: self)
-    .store(in:&storage)
+    .sink { [weak self] in self?.currentZip = $0 }
+    .store(in: &storage)
 ~~~
 
 That code illustrates several advantages of using the Combine framework, as opposed to registering an observer:

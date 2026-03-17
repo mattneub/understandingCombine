@@ -13,5 +13,5 @@ In this way, a pipeline that does nothing is made to do something. For example, 
 
     myPublisher
         .map(Optional.init)
-        .replaceEmpty(with:nil)
+        .replaceEmpty(with: nil)
 

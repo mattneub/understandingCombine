@@ -29,7 +29,7 @@ The idea, you recall, is that we don't want the whole pipeline to fail just beca
     urls.map(URL.init(string:)).compactMap{$0}.publisher
         .flatMap { url in
             URLSession.shared.dataTaskPublisher(for: url)
-                .catch {_ in Just((data:Data(), response:URLResponse()))}
+                .catch {_ in Just((data: Data(), response: URLResponse()))}
         }
 
 In a sense, then, `.replaceError` is a convenience for a particularly simple case of `.catch`. But `.catch` is far more powerful. This is your opportunity to inject a whole new pipeline at the head of the downstream — replacing the upstream, which has already failed.

@@ -60,7 +60,7 @@ So now all you have to do is construct an array of publishers and serialize it. 
         "https://www.apeth.com/pep/jack.jpg"
     ].map(URL.init(string:))
         .compactMap{$0}
-        .map {URLSession.shared.dataTaskPublisher(for:$0)
+        .map {URLSession.shared.dataTaskPublisher(for: $0)
         .eraseToAnyPublisher()}
 
 If we now call `arr.serialize()!`, we get a publisher that produces the output of each data task publisher _in order_. Note that if one of the publishers produces a failure, the entire pipeline fails immediately; again, that's the price we pay for simplicity.

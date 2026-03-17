@@ -57,7 +57,7 @@ What we have now is an AnyPublisher instance property `myTimer` that any method,
         if !timerStarted {
             timerStarted = true
             self.myTimer.sink {_ in}
-                .store(in:&self.storage)
+                .store(in: &self.storage)
         }
     }
 

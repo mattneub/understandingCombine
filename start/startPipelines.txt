@@ -18,7 +18,7 @@ That's a picture of a pipeline.
 Let's create an example of an actual pipeline. First, recall this earlier code for fetching an image remotely from the internet:
 
 ~~~
-let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
 URLSession.shared.dataTaskPublisher(
     for: url)
     .sink(receiveCompletion: {_ in}) {
@@ -27,19 +27,19 @@ URLSession.shared.dataTaskPublisher(
                 self.iv.image = im
             }
         }
-    }.store(in:&self.storage)
+    }.store(in: &self.storage)
 ~~~
 
 That is a very short pipeline — it has no operators between the publisher and the subscriber. And it works, in the sense that we do in fact end up with a UIImage and assign it to an image view. But it is not very good Combine style. In real life, we would use some operators to transform the output of the data task publisher into an image _before_ we reach the `sink`, perhaps something like this:
 
 ~~~
 URLSession.shared.dataTaskPublisher(for: url)
-    .compactMap { UIImage(data:$0.data) }
+    .compactMap { UIImage(data: $0.data) }
     .receive(on: DispatchQueue.main)
     .sink(receiveCompletion: {_ in}) {
         self.iv.image = $0
     }
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 Now _that_ is a good example of a pipeline. What you see in that code is a chain of method calls. What you _don't_ see is that each operator method produces an operator *object* which effectively *subscribes* to the preceding publisher when the pipeline is completed. From the `dataTaskPublisher` call to the `sink` call, there is actually a chain of four objects:

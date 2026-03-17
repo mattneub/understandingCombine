@@ -13,7 +13,7 @@ Recall the toy example I used earlier to demonstrate `.zip`:
     [1,2,3].publisher
         .zip(
             ["a","b"].publisher
-                .flatMap(maxPublishers:.max(1)) {
+                .flatMap(maxPublishers: .max(1)) {
                     Just($0).delay(for: 1, scheduler: DispatchQueue.main)
                 }
         )
@@ -44,7 +44,7 @@ Now let's replace `.zip` with `.combineLatest`:
     [1,2,3].publisher
         .combineLatest(
             ["a","b"].publisher
-                .flatMap(maxPublishers:.max(1)) {
+                .flatMap(maxPublishers: .max(1)) {
                     Just($0).delay(for: 1, scheduler: DispatchQueue.main)
                 }
         )
@@ -73,7 +73,7 @@ It's a pity that this operator doesn't exist right out of the box, but it's fair
 
 Here's a fairly straightforward way to do that. When the first publisher publishes, we'll wrap its value in a tuple that also contains a timestamp. Then we'll do a `.combineLatest` with the second publisher — and then we'll immediately use [`.removeDuplicates`](operatorsRemoveDuplicates) to block the output from `.combineLatest` unless the timestamp has changed, indicating that the first publisher has published a new value. Finally, we'll strip out the timestamp so that only the actual values from the two publishers pass down the pipeline:
 
-    pub1.map {value in (value:value, date:Date()) }
+    pub1.map {value in (value: value, date: Date()) }
         .combineLatest(pub2)
         .removeDuplicates { $0.0.date == $1.0.date }
         .map { ($0.value, $1) }
@@ -81,10 +81,10 @@ Here's a fairly straightforward way to do that. When the first publisher publish
 If that's something you do a lot, it's easy to wrap it up as a custom operator, as I'll explain [later](operatorsComposed):
 
     extension Publisher {
-        func withLatestFrom<Other:Publisher>(_ other: Other)
+        func withLatestFrom<Other: Publisher>(_ other: Other)
             -> AnyPublisher<(Self.Output, Other.Output), Failure>
             where Self.Failure == Other.Failure {
-                self.map { value in (value:value, date:Date()) }
+                self.map { value in (value: value, date: Date()) }
                     .combineLatest(other)
                     .removeDuplicates { $0.0.date == $1.0.date }
                     .map { ($0.value, $1) }

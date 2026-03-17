@@ -12,11 +12,11 @@ Moreover, AnyCancellable has the remarkable property that it *automatically* cal
 Conversely, you need to _retain_ the AnyCancellable object produced by `.sink` or `.assign` if you don't want to risk having the pipeline cancel itself prematurely. Premature cancellation is just what will happen if we write a pipeline like this, and stop:
 
 ~~~
-let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data}
     .replaceError(with: Data())
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .assign(to: \.image, on: self.iv)
 ~~~
@@ -32,14 +32,14 @@ That is why, as I've been at pains to demonstrate already, you should always fol
 So, real code would look like this:
 
 ~~~
-let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data}
     .replaceError(with: Data())
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .assign(to: \.image, on: self.iv)
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 In that code, `self.storage` could be declared like this (this is what I usually do):
@@ -53,12 +53,12 @@ But alternatively it could be declared, for instance, like this:
 Just as an exercise, let's demonstrate to ourselves how the `.assign` operator wraps the Assign object in an AnyCancellable by doing the wrapping ourselves. (The `.sink` operator is obviously completely parallel.) First, I'll create the publisher end of the pipeline.
 
 ~~~
-let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
-let pub : AnyPublisher<UIImage?,Never> =
+let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
+let pub: AnyPublisher<UIImage?,Never> =
     URLSession.shared.dataTaskPublisher(for: url)
         .map {$0.data}
         .replaceError(with: Data())
-        .compactMap { UIImage(data:$0) }
+        .compactMap { UIImage(data: $0) }
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
 ~~~
@@ -75,7 +75,7 @@ Now I'll manually create an Assign object, subscribe it to my publisher, and wra
 let assign = Subscribers.Assign(object: self.iv, keyPath: \UIImageView.image)
 pub.subscribe(assign)
 let any = AnyCancellable(assign)
-any.store(in:&self.storage)
+any.store(in: &self.storage)
 ~~~
 
 Having said all that, there are situations where this entire architecture may seem too heavyweight. Indeed, the situation I've just described _is_ such a situation! We know for a fact that a data task publisher will publish just once and then stop. It doesn't need to stick around in perpetuity, or even as long as the surrounding object; it just needs to stick around long enough for it to publish, that one time. So [next](subscribersOneShot) I'll describe an alternative architecture for what we may call a _one-shot subscriber._

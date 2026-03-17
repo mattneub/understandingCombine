@@ -20,7 +20,7 @@ let s = "Nordhoff High School, Ojai, California"
 CLGeocoder().geocodeAddressString(s) { placemarks, error in
     guard let placemarks = placemarks else { return }
     let p = placemarks[0]
-    let mp = MKPlacemark(placemark:p)
+    let mp = MKPlacemark(placemark: p)
     if let coord = mp.location?.coordinate {
         // latitude: 34.4418801, longitude: -119.2671168
         // ...
@@ -33,7 +33,7 @@ That's an asynchronous task; everything starting with `placemarks, error in` is 
 Our Future will either publish a CLLocationCoordinate2D, if the geocoding succeeds, or it will emit an Error if the geocoding fails. The important thing is that in our completion function we _must_ call the promise function with a Result, no matter what. The elegant way to ensure that is to wrap all of our code in a Result initializer and then just call the promise function _once_ with that Result — because the compiler will ensure that every path of execution inside the Result initializer will either throw an error or return a coordinate:
 
 ~~~
-enum MyError : Error { case oops }
+enum MyError: Error { case oops }
 let future = Future<CLLocationCoordinate2D, Error> { promise in
     let s = "Nordhoff High School, Ojai, California"
     CLGeocoder().geocodeAddressString(s) { placemarks, error in
@@ -41,7 +41,7 @@ let future = Future<CLLocationCoordinate2D, Error> { promise in
             if let error = error { throw error }
             guard let placemarks = placemarks else { throw MyError.oops }
             let p = placemarks[0]
-            let mp = MKPlacemark(placemark:p)
+            let mp = MKPlacemark(placemark: p)
             if let coord = mp.location?.coordinate { return coord }
             throw MyError.oops
         }
@@ -71,7 +71,7 @@ let deferredFuture = Deferred {
                 if let error = error { throw error }
                 guard let placemarks = placemarks else { throw MyError.oops }
                 let p = placemarks[0]
-                let mp = MKPlacemark(placemark:p)
+                let mp = MKPlacemark(placemark: p)
                 if let coord = mp.location?.coordinate { return coord }
                 throw MyError.oops
             }

@@ -9,12 +9,12 @@ In a situation like that, we only need our subscriber to persist long enough to 
 
 Let's start with our usual one-shot publisher, a data task publisher. This is the same code you're already so familiar with:
 
-    let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
-    let pub : AnyPublisher<UIImage?,Never> =
+    let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
+    let pub: AnyPublisher<UIImage?,Never> =
         URLSession.shared.dataTaskPublisher(for: url)
             .map {$0.data}
             .replaceError(with: Data())
-            .compactMap { UIImage(data:$0) }
+            .compactMap { UIImage(data: $0) }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
 

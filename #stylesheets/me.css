@@ -19,6 +19,10 @@ html {
     --bulma-footer-padding: 2rem 1.5rem 3rem;
 }
 
+.bulma-columns {
+  margin-bottom: 0 !important;
+}
+
 /* toc/breadcrumbs indentation level */
 
 div.toc_level {

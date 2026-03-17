@@ -14,7 +14,7 @@ I'll just repeat the example I developed in the [previous chapter](startTypes):
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data}
     .replaceError(with: Data())
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .assign(to: \.image, on: self.iv)
 ~~~

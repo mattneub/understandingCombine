@@ -24,7 +24,7 @@ override func viewDidLoad() {
         name: UIWindowScene.didEnterBackgroundNotification,
         object: nil)
 }
-@objc func doSaveData(_ n : Notification) { // 2
+@objc func doSaveData(_ n: Notification) { // 2
     // do something here
 }
 ~~~
@@ -43,7 +43,7 @@ Now here's a completely different bit of code. When our view controller loads, w
 @IBOutlet weak var iv: UIImageView!
 override func viewDidLoad() {
     super.viewDidLoad()
-    let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+    let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
     URLSession.shared.dataTask(with: url) { data, response, error in // 2
         if let data = data, let im = UIImage(data: data) { 
             DispatchQueue.main.async {
@@ -76,7 +76,7 @@ override func viewDidLoad() {
         for: UIWindowScene.didEnterBackgroundNotification)
         .sink { _ in // 2
             // do something here
-    }.store(in:&self.storage)
+    }.store(in: &self.storage)
 ~~~
 
 Second, the downloading and displaying of the image file:
@@ -86,7 +86,7 @@ Second, the downloading and displaying of the image file:
 var storage = Set<AnyCancellable>()
 override func viewDidLoad() {
     super.viewDidLoad()
-    let url = URL(string:"https://www.apeth.com/pep/manny.jpg")!
+    let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
     URLSession.shared.dataTaskPublisher( // 1
         for: url)
         .sink(receiveCompletion: {_ in}) { // 2
@@ -95,7 +95,7 @@ override func viewDidLoad() {
                     self.iv.image = im
                 }
             }
-    }.store(in:&self.storage)
+    }.store(in: &self.storage)
 }
 ~~~
 

@@ -29,7 +29,7 @@ For example, here's a heavily instrumented pipeline:
         .print()
         .sink(receiveCompletion: {print($0)})
             {print($0)}
-            .store(in:&self.storage)
+            .store(in: &self.storage)
 
 The output in the console is:
 
@@ -60,7 +60,7 @@ That's totally incomprehensible. By adding prefix strings, we can completely cla
         .print("after")
         .sink(receiveCompletion: {print("DONE:", $0)})
             {print("VAL:",$0)}
-            .store(in:&self.storage)
+            .store(in: &self.storage)
 
 The output is:
 

@@ -34,10 +34,10 @@ Thus, inside the `.flatMap` operator's map function, we can create a publisher b
 To illustrate, I'll create an artifical toy example; this is probably not the way you'd do this in real life, but it demonstrates how value publishers can pop up in the middle of a pipeline:
 
 ~~~
-enum MyError : Error { case tooBig }
+enum MyError: Error { case tooBig }
 (1...10).publisher
     .setFailureType(to: Error.self)
-    .flatMap { (i:Int) -> AnyPublisher<Int,Error> in
+    .flatMap { (i: Int) -> AnyPublisher<Int,Error> in
         if i < 5 {
             return Just(i).setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
@@ -45,8 +45,8 @@ enum MyError : Error { case tooBig }
             return Fail<Int,Error>(error: MyError.tooBig)
                 .eraseToAnyPublisher()
         }
-}.sink(receiveCompletion: {print($0)}, receiveValue: {print($0)})
-.store(in:&self.storage)
+}.sink(receiveCompletion: { print($0) }, receiveValue: { print($0) })
+.store(in: &self.storage)
 ~~~
 
 We start with a publisher that emits the sequence of Ints `1` thru `10`. We want to pass these values down the pipeline as they arrive, but after we've received `4` we want to pass an error instead. A Sequence publisher's error type is Never, so we start by using `.setFailureType` to change the downstream pipeline's Failure type to Error. Now we're ready for `.flatMap`.

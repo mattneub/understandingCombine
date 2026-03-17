@@ -34,7 +34,7 @@ The implication is that, at every point along a pipeline where a subscriber meet
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data}
     .replaceError(with: Data())
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .assign(to: \.image, on: self.iv)
 ~~~

@@ -41,7 +41,7 @@ NotificationCenter.default.publisher(
     .sink { _ in
         print("we're going into the background!")
     }
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 We might configure that pipeline in our view controller's `viewDidLoad`. And that is _all_ we have to do, because when our view controller goes out of existence, the pipeline will be cancelled automatically and the notification center publisher will stop publishing.
@@ -56,7 +56,7 @@ NotificationCenter.default.publisher(
     .sink { _ in
         print("we're going into the background!")
     }
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 That publisher stands ready to notify us, by producing a value, any time our window scene goes into the background, as many times as needed, forever — meaning as long as the app runs and the pipeline exists.
@@ -65,12 +65,12 @@ But some publishers provide only a finite number of values and then stop; their 
 
 ~~~
 URLSession.shared.dataTaskPublisher(for: url)
-    .compactMap { UIImage(data:$0.data) }
+    .compactMap { UIImage(data: $0.data) }
     .receive(on: DispatchQueue.main)
     .sink(receiveCompletion: {_ in}) {
         self.iv.image = $0
     }
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 That publisher, by default, is going to go out on the Internet _once_ and try to download the data from the URL it is given. The publisher either succeeds or fails in providing an image, but either way, having made the attempt, its job is done.

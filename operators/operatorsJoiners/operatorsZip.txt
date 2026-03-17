@@ -13,7 +13,7 @@ Demonstrating `.zip` adequately with a toy example is a little tricky because, t
     [1,2,3].publisher
         .zip(
             ["a","b"].publisher
-                .flatMap(maxPublishers:.max(1)) {
+                .flatMap(maxPublishers: .max(1)) {
                     Just($0).delay(for: 1, scheduler: DispatchQueue.main)
                 }
         )
@@ -49,7 +49,7 @@ The convenience form of `.zip` is very nice, because you might not want to pass 
     [1,2,3].publisher
         .zip(
             [100,200].publisher
-                .flatMap(maxPublishers:.max(1)) {
+                .flatMap(maxPublishers: .max(1)) {
                     Just($0).delay(for: 1, scheduler: DispatchQueue.main)
                 }
         ) { $0 + $1 }

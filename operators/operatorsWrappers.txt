@@ -14,16 +14,16 @@ For example:
 
     let pub = URLSession.shared.dataTaskPublisher(for: url)
         .receive(on: DispatchQueue.main)
-        .map {$0.data}
+        .map { $0.data }
         .replaceError(with: Data())
-        .compactMap { UIImage(data:$0) }
+        .compactMap { UIImage(data: $0) }
         .eraseToAnyPublisher()
         .makeConnectable()
 
 Now `pub` is a ConnectablePublisher wrapping an AnyPublisher whose types are UIImage and Never. Let's suppose we now come along and subscribe to `pub`:
 
-    pub.sink {print($0)}
-        .store(in:&self.storage)
+    pub.sink { print($0) }
+        .store(in: &self.storage)
 
 Nothing happens. And nothing is going to happen until we say `pub.connect()`.
 When we _do_ say `pub.connect()`, a Cancellable object will be returned. It's a good idea to treat this like the AnyCancellable produced by `.sink` and `.assign`, namely, to call `store(in:)` on it, so that it doesn't go out of scope and automatically cancel the pipeline before it has a chance to get started:

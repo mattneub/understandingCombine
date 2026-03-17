@@ -151,10 +151,10 @@ To simplify and generalize the presentation, I'll start by writing some utility 
 
 So I'll characterize the outcome as a Result, where `.success` is a Bool saying whether we already have authorization, and `.failure` means we should just give up:
 
-    enum NoPoint : Error { case userRefusedAuthorization }
+    enum NoPoint: Error { case userRefusedAuthorization }
     func checkAccess() -> Result<Bool, Error> {
         Result<Bool, Error> {
-            let status = CNContactStore.authorizationStatus(for:.contacts)
+            let status = CNContactStore.authorizationStatus(for: .contacts)
             switch status {
             case .authorized: return true
             case .notDetermined: return false
@@ -167,7 +167,7 @@ Next here's a function that actually checks for authorization. This is an asynch
 
     func requestAccessFuture() -> Future<Bool, Error> {
         Future<Bool, Error> { promise in
-            CNContactStore().requestAccess(for:.contacts) { ok, err in
+            CNContactStore().requestAccess(for: .contacts) { ok, err in
                 if ok {
                     promise(.success(ok))
                 } else {
@@ -278,7 +278,7 @@ We start with a "one-two punch" — two integers that arrive into the `.flatMap`
 Now we'll change the example to use a `maxPublishers:` value of `.max(1)`:
 
     [1,2].publisher
-        .flatMap(maxPublishers:.max(1)) { _ in
+        .flatMap(maxPublishers: .max(1)) { _ in
             Just(Date())
                 .delay(for: .seconds(10), scheduler: DispatchQueue.main)
         }
@@ -305,7 +305,7 @@ For a more practical example, let's return to the idea of fetching over the netw
 The URLs may arrive sequentially, but the data tasks all run _simultaneously_ — they are all started immediately, and their results may arrive in any order, depending on how long each network request takes to complete. That might not be what we want. (For instance, we might feel that it puts an unnecessary strain on the network.) Simply using `maxPublishers:` solves the problem:
 
     urls.map(URL.init(string:)).compactMap{$0}.publisher
-        .flatMap(maxPublishers:.max(1)) { url in
+        .flatMap(maxPublishers: .max(1)) { url in
 
 Now no network request starts until the previous network request has completed. Only one request is posted to the URLSession at a time, and the results are guaranteed to arrive in the same order as the original URLs — in this case, that will be the data for _manny.jpg,_ empty data for _moe.jpg_ (because it's a bad URL), and the data for _jack.jpg._
 

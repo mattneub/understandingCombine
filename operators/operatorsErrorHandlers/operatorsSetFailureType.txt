@@ -9,7 +9,7 @@ You do _not_ need to use `.setFailureType` if you're going to use an operator wh
 For example, this code is legal (and works as expected):
 
     [1,2,3].publisher
-        .tryMap { (i:Int) -> Int in
+        .tryMap { (i: Int) -> Int in
             if i > 2 { throw MyError.oops }
             return i
         }
@@ -19,7 +19,7 @@ The situations where you need `.setFailureType` are those where you want to prod
 
     NotificationCenter.default.publisher(
         for: UIApplication.didBecomeActiveNotification)
-            .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
+            .timeout(0.1, scheduler: DispatchQueue.main) {MyError.oops}
             // compile error
 
 The problem is that you can't return an error to be sent down the pipeline if that error doesn't match the upstream failure type. To fix that, you use `.setFailureType` beforehand:
@@ -27,7 +27,7 @@ The problem is that you can't return an error to be sent down the pipeline if th
         NotificationCenter.default.publisher(
             for: UIApplication.didBecomeActiveNotification)
                 .setFailureType(to: Error.self)
-                    .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
+                    .timeout(0.1, scheduler: DispatchQueue.main) {MyError.oops}
 
 I gave some more realistic examples in the discussion of `.flatMap`, [earlier](operatorsFlatMap).
 

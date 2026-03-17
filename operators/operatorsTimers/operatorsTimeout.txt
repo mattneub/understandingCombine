@@ -22,6 +22,6 @@ The parameters are (see [.delay](operatorsDelay) for more information about the 
 If you want to produce an Error, it needs to be of the same type as the upstream pipeline. For example, if the upstream pipeline's Failure type is Never, you can't supply an error function; to fix that, you'll use `.setFailureType` _before_ this operator:
 
     .setFailureType(to: Error.self)
-    .timeout(0.1, scheduler:DispatchQueue.main) {MyError.oops}
+    .timeout(0.1, scheduler: DispatchQueue.main) { MyError.oops }
 
 

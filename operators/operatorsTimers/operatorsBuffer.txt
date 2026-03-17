@@ -10,11 +10,11 @@ I'll start with an artificial but very clear illustration of how a buffer can be
     class ViewController: UIViewController {
         let sub = PassthroughSubject<Int,Never>()
         var storage = Set<AnyCancellable>()
-        var timer : Timer!
+        var timer: Timer!
         override func viewDidLoad() {
             super.viewDidLoad()
             sub
-                .flatMap(maxPublishers:.max(3)) { i in
+                .flatMap(maxPublishers: .max(3)) { i in
                     return Just(i)
                         .delay(for: 3, scheduler: DispatchQueue.main)
                         .eraseToAnyPublisher()
@@ -48,7 +48,7 @@ The solution is to put a `.buffer` in front of the `.flatMap`:
 
         sub
             .buffer(size: 20, prefetch: .keepFull, whenFull: .dropOldest)
-            .flatMap(maxPublishers:.max(3)) { i in
+            .flatMap(maxPublishers: .max(3)) { i in
             // ...
 
 The result is that _all_ the numeric values do in fact arrive at the `sink`!
@@ -94,7 +94,7 @@ Now I'll illustrate the meaning of the parameters by deliberately formulating so
     let pub = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
         .scan(0) {i,_ in i+1}
         .buffer(size: 4, prefetch: .byRequest, whenFull: .dropNewest)
-        .flatMap(maxPublishers:.max(1)) {
+        .flatMap(maxPublishers: .max(1)) {
             Just($0).delay(for: 2, scheduler: DispatchQueue.main)
         }
 
@@ -144,7 +144,7 @@ Here's what happened:
 So much for the `.byRequest` strategy. Now let's illustrate the `.keepFull` strategy. I'll use a completely different example (suggested by Stack Overflow user [New Dev](https://stackoverflow.com/a/63257257/341994)). We have a PassthroughSubject (`self.subject`):
 
     self.subject
-        .flatMap(maxPublishers:.max(1)) {
+        .flatMap(maxPublishers: .max(1)) {
             Just($0).delay(for: 2, scheduler: DispatchQueue.main)
         }
         .sink { print($0) }.store(in: &self.storage)
@@ -166,7 +166,7 @@ Now let's insert our buffer:
 
     self.subject
         .buffer(size: 4, prefetch: .keepFull, whenFull: .dropNewest)
-        .flatMap(maxPublishers:.max(1)) {
+        .flatMap(maxPublishers: .max(1)) {
             Just($0).delay(for: 2, scheduler: DispatchQueue.main)
         }
         .sink { print($0) }.store(in: &self.storage)

@@ -30,10 +30,10 @@ On the other side of the coin, `.assign` can be dangerous: you can end up with a
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data}
     .replaceError(with: Data())
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .assign(to: \.image, on: self.iv)
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 In the first place, `self.iv` is not `self`. In the second place, a data task publisher either sends a failure or it delivers one value followed by a completion, so that either way, the entire pipeline is released in good order almost immediately. The problem arises, as far as I can tell, when the property _is_ a property of `self` _and_ the pipeline is never cancelled from upstream.

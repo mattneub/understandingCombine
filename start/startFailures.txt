@@ -25,12 +25,12 @@ To demonstrate, let's go back to our example pipeline:
 
 ~~~
 URLSession.shared.dataTaskPublisher(for: url)
-    .compactMap { UIImage(data:$0.data) }
+    .compactMap { UIImage(data: $0.data) }
     .receive(on: DispatchQueue.main)
     .sink(receiveCompletion: {_ in}) {
         self.iv.image = $0
     }
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 A data task publisher can fail with a URLError. (For example, the URL might be bad, or the network might be down.) Thus there are _three_ possible scenarios for what this pipeline might do:
@@ -54,12 +54,12 @@ To illustrate, let's say for purposes of demonstration that we don't care about 
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data} // *
     .replaceError(with: Data()) // *
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .sink() { // *
         self.iv.image = $0
     }
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 Let's analyze that code. First, we use the `map` operator to eliminate the `response` part of the data task publisher's value, so that all we have, if we have anything at all, is some Data. But we might _not_ have anything at all; we might have a failure instead. So we now use the `replaceError` operator so that a failure, too, is transformed into some Data — some empty Data. Now no failure can proceed down the pipeline from this point! We are guaranteed that _some_ Data object will emerge from the `replaceError` operator, either the data from the data task or an empty Data that we produced with the `replaceError` operator.
@@ -80,10 +80,10 @@ But now we can go even further. Because no failure is possible, we are allowed t
 URLSession.shared.dataTaskPublisher(for: url)
     .map {$0.data}
     .replaceError(with: Data())
-    .compactMap { UIImage(data:$0) }
+    .compactMap { UIImage(data: $0) }
     .receive(on: DispatchQueue.main)
     .assign(to: \.image, on: self.iv) // *
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 ~~~
 
 There is something extraordinarily beautiful about what we've just done. We've created a pipeline all the way from the URLSession to our image view! If the URLSession's data task succeeds in fetching an image from the network, that image just flows right into our image view, _automatically_. The operators are doing all the work; our pipeline functions as a direct connection from the network to the `image` property of our image view in the interface. In a sense, our interface is constructing itself by means of the pipeline. This illustrates the essence of the Combine framework.

@@ -6,16 +6,16 @@
 What would it take to write your own publisher? The Publisher protocol itself is extremely simple; it requires just one method:
 
     func receive<S>(subscriber: S) 
-        where S : Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
+        where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
 
 The idea here is we that are being asked to let ourselves be subscribed to by a Subscriber (whose types must match our own, as I discussed [earlier](startTypes)). And it is easy to write a skeleton publisher that conforms to the protocol requirements:
 
 ~~~
-struct MyCoolPublisher : Publisher {
+struct MyCoolPublisher: Publisher {
     typealias Output = String
     typealias Failure = Never
     func receive<S>(subscriber: S) 
-        where S:Subscriber, S.Input == Output, S.Failure == Failure {
+        where S: Subscriber, S.Input == Output, S.Failure == Failure {
             // now what?
     }
 }
@@ -25,9 +25,9 @@ The problem is the implementation of `receive(subscriber:)`. As I say in the com
 
 ~~~
 func receive<S>(subscriber: S) 
-    where S:Subscriber, S.Input == Output, S.Failure == Failure {
+    where S: Subscriber, S.Input == Output, S.Failure == Failure {
         let subscription = // make a Subscription
-        subscriber.receive(subscription:subscription)
+        subscriber.receive(subscription: subscription)
 }
 ~~~
 
@@ -46,17 +46,17 @@ Clearly these obligations can be quite involved. And equally clearly, the bulk o
 By convention, the Subscription class is usually a nested class called Inner. And we can see immediately at least one thing our Inner class will certainly need to do: it must keep a reference to the Subscriber so that it can send it values! So we can fill out our skeleton a little by giving Inner a Subscriber instance variable, which I like to call `downstream`, and by conforming to the Subscription protocol requirements:
 
 ~~~
-struct MyCoolPublisher : Publisher {
+struct MyCoolPublisher: Publisher {
     typealias Output = String
     typealias Failure = Never
     func receive<S>(subscriber: S) 
-        where S:Subscriber, S.Input == Output, S.Failure == Failure {
-            subscriber.receive(subscription:Inner(downstream:subscriber))
+        where S: Subscriber, S.Input == Output, S.Failure == Failure {
+            subscriber.receive(subscription: Inner(downstream: subscriber))
     }
-    class Inner<S> : Subscription 
-        where S:Subscriber, S.Input == Output, S.Failure == Failure {
-            var downstream : S?
-            init(downstream:S) {
+    class Inner<S>: Subscription 
+        where S: Subscriber, S.Input == Output, S.Failure == Failure {
+            var downstream: S?
+            init(downstream: S) {
                 self.downstream = downstream
             }
             func request(_ demand: Subscribers.Demand) {
@@ -128,20 +128,20 @@ I'll posit a Publisher struct called ControlPublisher. Its job will be to emit a
 
 In order to make itself the target of control events from the control, the Subscription is going to need to maintain a reference to the control; and so the Publisher itself will need to be initialized with the control, so it can pass it to the Subscription. Here's an initial sketch, based on the boilerplate we've already developed:
 
-    struct ControlPublisher : Publisher {
+    struct ControlPublisher: Publisher {
         typealias Output = UIControl
         typealias Failure = Never
-        unowned let control : UIControl
-        init(control:UIControl) { self.control = control }
+        unowned let control: UIControl
+        init(control: UIControl) { self.control = control }
         func receive<S>(subscriber: S) 
-            where S : Subscriber, S.Input == Output, S.Failure == Failure {
+            where S: Subscriber, S.Input == Output, S.Failure == Failure {
                 subscriber.receive(subscription: 
                     Inner(downstream: subscriber, sender: self.control))
         }
-        class Inner <S:Subscriber>: NSObject, Subscription 
+        class Inner <S: Subscriber>: NSObject, Subscription 
             where S.Input == Output, S.Failure == Failure {
-                weak var sender : UIControl?
-                var downstream : S?
+                weak var sender: UIControl?
+                var downstream: S?
                 init(downstream: S, sender: UIControl) {
                     self.downstream = downstream
                     self.sender = sender
@@ -163,13 +163,13 @@ Now let's start filling in the blanks. First, what should happen when our `reque
             action: #selector(doAction), 
             for: .primaryActionTriggered)
     }
-    @objc func doAction(_ sender:UIControl) {
+    @objc func doAction(_ sender: UIControl) {
         // ?
     }
 
 So what should we do when the control event fires and our `doAction` is called? We should pass a value down to the subscriber:
 
-    @objc func doAction(_ sender:UIControl) {
+    @objc func doAction(_ sender: UIControl) {
         guard let sender = self.sender else {return}
         _ = self.downstream?.receive(sender)
     }
@@ -196,7 +196,7 @@ Our publisher is finished! I'll make it available to every UIControl by injectin
 
     extension UIControl {
         func publisher() -> ControlPublisher {
-            ControlPublisher(control:self)
+            ControlPublisher(control: self)
         }
     }
 
@@ -204,7 +204,7 @@ Let's try it! My view controller's view contains a button, and the view controll
 
     self.myButton.publisher()
         .sink { _ in print("button!") }
-            .store(in:&self.storage)
+            .store(in: &self.storage)
 
 We run the app and tap the button. The console displays `"button!"` — our publisher is working.
 
@@ -218,9 +218,9 @@ Now that our basic UIControl publisher is working, let's improve it. I can think
 
 To allow the caller to specify the control event, we'll give ControlPublisher an `event` property and an `event` parameter in its initializer, defaulting to `.primaryActionTriggered` but permitting the caller to specify some other control event:
 
-    unowned let control : UIControl
-    let event : UIControl.Event
-    init(control:UIControl, for event:UIControl.Event) {
+    unowned let control: UIControl
+    let event: UIControl.Event
+    init(control: UIControl, for event: UIControl.Event) {
         self.control = control
         self.event = event
     }
@@ -234,17 +234,17 @@ In just the same way, our Inner now also has to have an `event` property and an 
 The UIControl extension that injects the `publisher` method now takes an optional `for:` parameter to specify the control event; it, too, defaults to `.primaryActionTriggered`:
 
     func publisher(for event: UIControl.Event = .primaryActionTriggered) -> ControlPublisher {
-        ControlPublisher(control:self, for:event)
+        ControlPublisher(control: self, for: event)
     }
 
 To allow the ControlPublisher to be generic, we just replace our references to the UIControl type with a generic placeholder type T that is constrained to be a UIControl:
 
-    struct ControlPublisher<T:UIControl> : Publisher {
+    struct ControlPublisher<T: UIControl>: Publisher {
         typealias Output = T
         typealias Failure = Never
-        unowned let control : T
-        let event : UIControl.Event
-        init(control:T, for event:UIControl.Event = .primaryActionTriggered) {
+        unowned let control: T
+        let event: UIControl.Event
+        init(control: T, for event: UIControl.Event = .primaryActionTriggered) {
             self.control = control
             self.event = event
         }
@@ -252,34 +252,34 @@ To allow the ControlPublisher to be generic, we just replace our references to t
 
 Now we have to rewrite the UIControl extension _again_ — and this turns out to be the hard part. We want our `publisher` method to return a ControlPublisher whose generic placeholder is resolved to `Self`, the type of the UIControl on which the `publisher` method is being called. But you can't say `Self` in a mere class extension. Instead, you have to do a tricky little dance: you declare a protocol, make the class adopt that protocol, and inject the method using an extension _on the protocol_, where the term `Self` is legal:
 
-    protocol ControlWithPublisher : UIControl {}
-    extension UIControl : ControlWithPublisher {}
+    protocol ControlWithPublisher: UIControl {}
+    extension UIControl: ControlWithPublisher {}
     extension ControlWithPublisher {
         func publisher(for event: UIControl.Event = .primaryActionTriggered) -> ControlPublisher<Self> {
-            ControlPublisher(control:self, for:event)
+            ControlPublisher(control: self, for: event)
         }
     }
 
 And here's the full, revised implementation of ControlPublisher:
 
 ~~~~
-struct ControlPublisher<T:UIControl> : Publisher {
+struct ControlPublisher<T: UIControl>: Publisher {
     typealias Output = T
     typealias Failure = Never
-    unowned let control : T
-    let event : UIControl.Event
-    init(control:T, for event:UIControl.Event = .primaryActionTriggered) {
+    unowned let control: T
+    let event: UIControl.Event
+    init(control: T, for event: UIControl.Event = .primaryActionTriggered) {
         self.control = control
         self.event = event
     }
-    func receive<S>(subscriber: S) where S : Subscriber, S.Input == Output, S.Failure == Failure {
+    func receive<S>(subscriber: S) where S: Subscriber, S.Input == Output, S.Failure == Failure {
         subscriber.receive(subscription: Inner(downstream: subscriber, sender: control, event: event))
     }
-    class Inner <S:Subscriber>: NSObject, Subscription where S.Input == Output, S.Failure == Failure {
-        weak var sender : T?
-        let event : UIControl.Event
-        var downstream : S?
-        init(downstream: S, sender : T, event : UIControl.Event) {
+    class Inner <S: Subscriber>: NSObject, Subscription where S.Input == Output, S.Failure == Failure {
+        weak var sender: T?
+        let event: UIControl.Event
+        var downstream: S?
+        init(downstream: S, sender: T, event: UIControl.Event) {
             self.downstream = downstream
             self.sender = sender
             self.event = event
@@ -288,7 +288,7 @@ struct ControlPublisher<T:UIControl> : Publisher {
         func request(_ demand: Subscribers.Demand) {
             self.sender?.addTarget(self, action: #selector(doAction), for: event)
         }
-        @objc func doAction(_ sender:UIControl) {
+        @objc func doAction(_ sender: UIControl) {
             guard let sender = self.sender else {return}
             _ = self.downstream?.receive(sender)
         }

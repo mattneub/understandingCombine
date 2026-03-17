@@ -10,8 +10,8 @@ I'll write a very simple subscriber — so simple, in fact, that it's downright 
 The chief thing that a subscriber needs to cope with is the fact that its communication with its publisher takes place entirely by way of a Subscription object. The subscriber needs an instance property referring to that Subscription object, so that it has a way to talk to the publisher. So I'll start by giving my subscriber that instance property; I'll also give it a Bool property flagging whether we've terminated due to completion or cancellation:
 
 ~~~
-class Printer<Input, Failure:Error> {
-    var subscription : Subscription?
+class Printer<Input, Failure: Error> {
+    var subscription: Subscription?
     var completed = false
 }
 ~~~
@@ -21,7 +21,7 @@ You'll notice that my Printer class is a generic, parameterized on the two types
 Now, Subscriber is a protocol. So I'll add an extension declaring adoption of that protocol:
 
 ~~~
-extension Printer : Subscriber {
+extension Printer: Subscriber {
     // ...?
 }
 ~~~
@@ -82,7 +82,7 @@ func receive(completion: Subscribers.Completion<Failure>) {
 That's the end of the extension making our class conform to Subscriber! I'll also make it conform to Cancellable, just like Sink and Assign. The only requirement here is the `cancel` method so that we can be told to send a `cancel` message up to the publisher by way of the Subscription; this might be because other code wants to [tear down the pipeline](startCompletions) or because we are wrapped in an [AnyCancellable](subscribersAnyCancellable) that is going out of existence. I'll also clean up just as I did on receiving a completion:
 
 ~~~
-extension Printer : Cancellable {
+extension Printer: Cancellable {
     func cancel() {
         self.subscription?.cancel()
         self.subscription = nil
@@ -98,7 +98,7 @@ let pub = [1, 2, 3].publisher
 let sub = Printer<Int, Never>()
 pub.subscribe(sub)
 AnyCancellable(sub)
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 // prints 1, then 2, then 3
 ~~~
 
@@ -111,7 +111,7 @@ let pub = [1, 2, 3].publisher
 let sub = Printer<Int, Never>() // use backpressure to request only one value
 pub.subscribe(sub)
 AnyCancellable(sub)
-    .store(in:&self.storage)
+    .store(in: &self.storage)
 // prints 1 and stops
 ~~~
 

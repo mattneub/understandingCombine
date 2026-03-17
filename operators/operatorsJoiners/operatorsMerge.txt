@@ -14,7 +14,7 @@ Here's a toy example:
             .scan(0) {i,_ in i+1}
             .eraseToAnyPublisher()
     }
-    let merged = makeTimer().merge(with:makeTimer())
+    let merged = makeTimer().merge(with: makeTimer())
 
 Now `merged` is a publisher that produces this output:
 
@@ -35,7 +35,7 @@ And indeed those operators really are just convenience operators, as they do not
     func makeTimer() -> AnyPublisher<Int,Never> {
         Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
-            .scan(Int.random(in:1...10)) {i,_ in i+1}
+            .scan(Int.random(in: 1...10)) {i,_ in i+1}
             .eraseToAnyPublisher()
     }
     let arr = (1...5).map {_ in makeTimer()}
