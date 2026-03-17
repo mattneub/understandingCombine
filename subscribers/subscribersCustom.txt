@@ -104,7 +104,22 @@ AnyCancellable(sub)
 
 You'll notice I didn't write a publisher method that generates a Printer; therefore I have to do all the work manually, initializing a Printer of the correct type for this publisher, subscribing to the publisher, and wrapping the subscriber in an AnyCancellable and storing it.
 
-An interesting exercise is to tweak the functionality of the subscriber to explore what happens. For example, when I receive the Subscription, suppose I respond with a `.max(1)` demand, and when I receive an input, I respond with a `.none` demand — using backpressure to request only one value in total. Then no matter how many values this publisher would _like_ to produce, it will only produce one:
+An interesting exercise is to tweak the functionality of the subscriber to explore what happens. For example, when I receive the Subscription, suppose I respond with a `.max(1)` demand, and when I receive an input, I respond with a `.none` demand — using backpressure to request only one value in total:
+
+~~~
+func receive(subscription: Subscription) {
+    if self.subscription == nil && !self.completed {
+        self.subscription = subscription
+        subscription.request(.max(1)) // *
+    }
+}
+func receive(_ input: Input) -> Subscribers.Demand {
+    print(input)
+    return .none // *
+}
+~~~
+
+Then no matter how many values this publisher would _like_ to produce, it will only produce one:
 
 ~~~
 let pub = [1, 2, 3].publisher
