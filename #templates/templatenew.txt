@@ -2,8 +2,8 @@
 
 <%= pageheader() %>
 
-<section class="hero has-background-primary-90 is-small has-text-centered">
-  <div class="hero-body">
+<section class="bulma-hero bulma-has-background-primary-soft bulma-is-small bulma-has-text-centered">
+  <div class="bulma-hero-body">
     <p>
       This is <b><em>Understanding Combine</em></b>, written by Matt Neuburg.
       Corrections and suggestions are greatly appreciated (you can comment
@@ -20,19 +20,19 @@
   </div>
 </section>
 
-<div class="columns">
+<div class="bulma-columns bulma-has-background-warning-soft">
 
   <% if adrObject.simplename.to_s != "toc" %>
-    <div class="column is-narrow is-small is-hidden-mobile">
-      <div class="box topsticker">
+    <div class="bulma-column bulma-is-narrow bulma-is-small bulma-is-hidden-mobile">
+      <div class="bulma-box topsticker">
         <%= breadcrumbs() %>
       </div><!-- box -->
     </div><!-- column -->
   <% end %><!-- if not toc -->
 
-  <div class="column">
-    <section class="section">
-      <div class="content is-normal has-text-black-00" markdown="1">
+  <div class="bulma-column">
+    <section class="bulma-section">
+      <div class="bulma-content bulma-is-normal" markdown="1">
         <p id="bodytext"></p>
       </div><!-- content, markdown -->
     </section>
@@ -40,13 +40,13 @@
 
 </div><!-- columns -->
 
-<footer class="footer">
+<footer class="bulma-footer">
   <% if adrObject.simplename.to_s != "toc" %>
     <%= nextprevlinks() %>
     <hr />
   <% end %>
 
-  <div class="is-size-7" markdown="1">
+  <div class="bulma-is-size-7" markdown="1">
     Written with [RubyFrontier](https://www.apeth.com/RubyFrontierDocs/default.html). 
     CSS by [Bulma](https://bulma.io).
   </div>

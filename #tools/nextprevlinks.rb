@@ -9,20 +9,20 @@ def nextprevlinks()
   nxt = "Next: " + html.getLink(ntitle, n) if n
   # Now written with the expectation that (1) Bulma is environment and (2) we want the toc link
   <<-DONE
-  <nav class="level">
+  <nav class="bulma-level">
 
-   <div class="level-left">
-   <div class="level-item">
+   <div class="bulma-level-left">
+   <div class="bulma-level-item">
    <p>#{prev}</p>
    </div>
    </div>
 
-   <div class="level-item has-text-centered">
+   <div class="bulma-level-item bulma-has-text-centered">
    <p><a href="toc">Table of Contents</a></p>
    </div>
 
-   <div class="level-right">
-   <div class="level-item">
+   <div class="bulma-level-right">
+   <div class="bulma-level-item">
    <p>#{nxt}</p>
    </div>
    </div>

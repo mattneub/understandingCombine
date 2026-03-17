@@ -1,4 +1,4 @@
 ---
-:linkstylesheets: [bulma-no-dark-mode, bulma-no-dark-mode.min, me]
+:linkstylesheets: [bulma-prefixed, me]
 :template: templatenew
 :kramdown: 1

@@ -5,15 +5,17 @@
     --bulma-family-code: Menlo, Inconsolata, Monaco, Consolas, "Andale Mono", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
     --bulma-body-weight: var(--bulma-weight-medium);
     --bulma-size-normal: 1.1rem;
-    --bulma-pre-background: white;
-    background: #FFFFEE;
+    --bulma-pre-background: var(--bulma-scheme-main);
+    --bulma-warning-h: 60deg;
+    --bulma-warning-s: 90%;
+    /* background: #FFFFEE; */
 }
 
 html {
   -webkit-font-smoothing: auto;
 }
 
-.footer {
+.bulma-footer {
     --bulma-footer-padding: 2rem 1.5rem 3rem;
 }
 
@@ -25,7 +27,7 @@ div.toc_level {
 
 /* breadcrumbs box sticks to the top, has fixed width */
 
-.box.topsticker {
+.bulma-box.topsticker {
      position: sticky; 
      top: 0;
      width: 300px;
@@ -55,7 +57,7 @@ a[href] {
   text-decoration: underline;
 }
 
-.content pre {
+.bulma-content pre {
     border: 1px solid #292929;
     border-radius: 4px;
 }
