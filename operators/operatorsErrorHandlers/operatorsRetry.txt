@@ -18,26 +18,25 @@ Unfortunately, the `.retry` operator gives you no way to specify a delay before 
 
 But that's not an ideal solution, because the `.delay` runs regardless of whether there's an error or not. What we'd like to do is insert the `.delay` operator only if there was a failure.
 
-That problem can be solved through the use of `.catch`. The `.catch` operator's function runs only if there is an error from upstream. When we return a publisher from that function, it replaces the upstream publisher and becomes the new publisher. But _what_ publisher should we return?
+That problem can be solved through the use of [`.catch`](operatorsCatch). The `.catch` operator's function runs only if there is an error from upstream. When we return a publisher from that function, it replaces the upstream publisher and becomes the new publisher. But _what_ publisher should we return?
 
-Well, we _could_ just make another data task publisher:
+    let pub = URLSession.shared.dataTaskPublisher(for: url)
+        .catch {
+            // what goes here?
+            .delay(for: 3, scheduler: DispatchQueue.main)
+        }
+        .retry(3)
 
-    URLSession.shared.dataTaskPublisher(for: url)
-        .catch { _ in
-            URLSession.shared.dataTaskPublisher(for: url)
+Well, if the `.catch` function runs, we want what passes down the pipeline to the `.retry` operator to be a failure; that, after all, is the whole point of using `.retry` in the first place. The simplest possible publisher expressing failure is the [Fail value publisher](publishersValue). An error has arrived into the `.catch` block; we turn right around and pass the same error out of the `.catch` block, wrapped in a Fail, and delayed by a `.delay`:
+
+    let pub = URLSession.shared.dataTaskPublisher(for: url)
+        .catch {
+            Fail(error: $0)
                 .delay(for: 3, scheduler: DispatchQueue.main)
-        }.retry(3)
+        }
+        .retry(3)
 
-However, that's messy, and it disobeys the `.retry` count: we connect and fail, we substitute the new data task publisher, we connect and fail _again_, and _now_ we start retrying, so that if we keep failing we end up with five connections instead of four. We can fix that by making a reference to the initial data task publisher with `share()` applied to it:
+That works correctly. If the initial data task publisher fails with an error, the `catch` function runs and returns a new publisher, a Fail that publishes the very same error, with a `.delay` attached to it, to be handled by the `.retry`. If the data task publisher succeeds, the `.catch` is skipped, the `.retry` is skipped, and the value from the data task publisher passes on down the pipeline.
 
-    let pub = URLSession.shared.dataTaskPublisher(for: url).share()
-
-Now we can use `pub` in two places: as the upstream of the `.catch` operator, and as the upstream of the `.delay` operator inside the `.catch` function:
-
-    let pub = URLSession.shared.dataTaskPublisher(for: url).share()
-    let head = pub.catch {_ in 
-        pub.delay(for: 3, scheduler: DispatchQueue.main)
-    }.retry(3)
-
-That works correctly. If the initial data task publisher fails, the `catch` function runs and returns a new publisher, namely the very same data task publisher with a `.delay` attached to it.
+> I owe this approach entirely to reader `@moreindirection`.
 
