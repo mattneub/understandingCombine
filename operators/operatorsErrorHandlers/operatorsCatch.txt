@@ -36,8 +36,8 @@ In a sense, then, `.replaceError` is a convenience for a particularly simple cas
 
 For instance, imagine a two-player game where Player 1 racks up a score for a while, but then makes some error that causes play to pass to Player 2, who gets to decrease that score. We might represent the players as PassthroughSubject instance properties; we also represent the score as a Published instance property, which has a pipeline of its own that updates the display of the score in the interface:
 
-    var player1 = PassthroughSubject<Int,MyError>()
-    var player2 = PassthroughSubject<Int,MyError>()
+    var player1 = PassthroughSubject<Int, MyError>()
+    var player2 = PassthroughSubject<Int, MyError>()
     @Published var total = 0
 
 When the game begins, we configure pipelines from the interface to the player properties. If Player 1 scores, we call:
@@ -56,7 +56,7 @@ That's our signal that we should switch from listening to Player 1 to listening 
 
     let pub = self.player1
         .catch {_ in self.player2 }
-        .catch {_ in Empty<Int,Never>() }
+        .catch {_ in Empty<Int, Never>() }
         .map {self.total + $0}
         .assign(to: \.total, on: self)
 

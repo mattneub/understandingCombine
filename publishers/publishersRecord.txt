@@ -31,7 +31,7 @@ Inside a Record publisher is a recording object (Record.Recording). This is actu
 
 We can also form a recording _interactively_ — that is, we can actually _run_ a pipeline and form a recording out of the values and completion that pop out the end of the pipeline. To do so, we can call the recording's `receive(_:)` (with each successive value) and `receive(completion:)`. Those are both Subscriber methods, but a Recording is _not_ a Subscriber; I find that a little odd. But we can call those methods manually instead; for instance, we can use a sink:
 
-    var recording = Record<Int,Error>.Recording()
+    var recording = Record<Int, Error>.Recording()
     pipeline
         .sink(receiveCompletion: { recording.receive(completion: $0) }) { 
             recording.receive($0) 
@@ -42,16 +42,16 @@ Our pipeline runs, and the values and completion that it produces are stored in 
 
     let pub = (1...10).publisher
         .setFailureType(to: Error.self)
-        .flatMap { i -> AnyPublisher<Int,Error> in
+        .flatMap { i -> AnyPublisher<Int, Error> in
             if i < 5 {
                 return Just(i).setFailureType(to: Error.self)
                     .eraseToAnyPublisher()
             } else {
-                return Fail<Int,Error>(error: MyError.tooBig)
+                return Fail<Int, Error>(error: MyError.tooBig)
                     .eraseToAnyPublisher()
             }
         }
-    var recording = Record<Int,Error>.Recording()
+    var recording = Record<Int, Error>.Recording()
     pub.sink(receiveCompletion: { recording.receive(completion: $0) }) { 
         recording.receive($0) 
     }.store(in: &self.storage)
@@ -73,8 +73,8 @@ And sure enough, we get the same results as before:
 Actually, we can create the recording and embed it in a Record in a single move, like this:
 
     let pub = // same as before
-    let rec = Record<Int,Error> { r in
-        var recording = Record<Int,Error>.Recording()
+    let rec = Record<Int, Error> { r in
+        var recording = Record<Int, Error>.Recording()
         pub
             .sink(receiveCompletion: { recording.receive(completion: $0) }) { 
                 recording.receive($0) 

@@ -57,7 +57,7 @@ As you can see, it's as if we had two completely different publishers; the strea
 A [Subject](publishersSubject) is *already* a kind of splitter.
 I'll modify our experimental example to demonstrate. We now have a PassthroughSubject instance property:
 
-    let mySubject = PassthroughSubject<Int,Never>()
+    let mySubject = PassthroughSubject<Int, Never>()
 
 We modify our publisher so that it calls `send` on that Subject, passing through the values that the publisher produces:
 

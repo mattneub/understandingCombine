@@ -54,7 +54,7 @@ Just as an exercise, let's demonstrate to ourselves how the `.assign` operator w
 
 ~~~
 let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
-let pub: AnyPublisher<UIImage?,Never> =
+let pub: AnyPublisher<UIImage?, Never> =
     URLSession.shared.dataTaskPublisher(for: url)
         .map {$0.data}
         .replaceError(with: Data())

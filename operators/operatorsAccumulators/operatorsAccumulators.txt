@@ -29,7 +29,7 @@ One solution is to turn the `.failure` completion into a `.finished` completion,
             if i < 0 { throw MyError.oops }
             return i
         }
-        .catch { _ in Empty<Int,MyError>(completeImmediately: true) }
+        .catch { _ in Empty<Int, MyError>(completeImmediately: true) }
         .count()
 
 Now the `count` operator emits `3` and completes in good order.

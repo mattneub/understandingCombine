@@ -8,7 +8,7 @@
 I'll start with an artificial but very clear illustration of how a buffer can be useful. The idea is that we have a publisher that is likely to be emitting values at fairly frequent intervals, and we need to process each value through a `.flatMap` that uses [backpressure](operatorsFlatMap) to limit concurrency and that produces a publisher which, itself, may take considerable time to emit a value. I'll emulate that situation with a PassthroughSubject and a Timer, on the one hand, and a `.flatMap` with `maxPublishers` and a `.delay` on its publisher, on the other:
 
     class ViewController: UIViewController {
-        let sub = PassthroughSubject<Int,Never>()
+        let sub = PassthroughSubject<Int, Never>()
         var storage = Set<AnyCancellable>()
         var timer: Timer!
         override func viewDidLoad() {

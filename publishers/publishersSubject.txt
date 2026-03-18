@@ -19,7 +19,7 @@ To illustrate, here's the [example](publishersPublished) of a `@Published` prope
 
 ~~~
 class ViewController2: UIViewController {
-    let countPublisher = CurrentValueSubject<Int,Never>(0)
+    let countPublisher = CurrentValueSubject<Int, Never>(0)
     @IBAction func doButton(_ sender: Any) {
         self.countPublisher.value += 1
     }
@@ -76,15 +76,15 @@ To demonstrate, here's an artificial example:
 
 ~~~
 var storage = Set<AnyCancellable>()
-let topSubject = PassthroughSubject<String,Never>()
+let topSubject = PassthroughSubject<String, Never>()
 override func viewDidLoad() {
     super.viewDidLoad()
-    let sub1 = PassthroughSubject<String,Never>()
+    let sub1 = PassthroughSubject<String, Never>()
     topSubject.subscribe(sub1)
         .store(in: &self.storage)
     sub1.sink { print("sub1", $0)}
         .store(in: &self.storage)
-    let sub2 = PassthroughSubject<String,Never>()
+    let sub2 = PassthroughSubject<String, Never>()
     topSubject.subscribe(sub2)
         .store(in: &self.storage)
     sub2.sink { print("sub2", $0)}

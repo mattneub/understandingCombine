@@ -42,7 +42,7 @@ func makeTimer() {
     self.timerCancellable.first?.cancel()
     let timerPublisher = Timer.publish(every: 0.5, on: .main, in: .common)
     let timerPipeline = 
-        Subscribers.Sink<Date,Never>(receiveCompletion: {_ in}) {
+        Subscribers.Sink<Date, Never>(receiveCompletion: {_ in}) {
             [unowned self] _ in self.checkFraction()
         }
     timerPublisher.subscribe(timerPipeline)

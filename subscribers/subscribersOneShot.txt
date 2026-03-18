@@ -10,7 +10,7 @@ In a situation like that, we only need our subscriber to persist long enough to 
 Let's start with our usual one-shot publisher, a data task publisher. This is the same code you're already so familiar with:
 
     let url = URL(string: "https://www.apeth.com/pep/manny.jpg")!
-    let pub: AnyPublisher<UIImage?,Never> =
+    let pub: AnyPublisher<UIImage?, Never> =
         URLSession.shared.dataTaskPublisher(for: url)
             .map {$0.data}
             .replaceError(with: Data())
@@ -22,7 +22,7 @@ Now comes the interesting part. Watch closely:
 
     var cancellable: AnyCancellable? // 1
     cancellable = pub.sink(receiveCompletion: {_ in // 2
-        cancellable?.cancel() // 3
+        withExtendedLifetime(cancellable) { _ in } // 3
     }) { image in
         self.imageView.image = image
     }
@@ -33,11 +33,7 @@ Do you see what I did there? Perhaps not, so I'll explain it:
 
 2. Then, I create my subscriber and set my AnyCancellable variable to that subscriber. Again, for reasons having to do with the rules of Swift syntax, my subscriber needs to be a Sink.
 
-3. Finally, in the subscriber itself, I cancel the AnyCancellable when I receive the completion.
+3. Finally, in the subscriber itself, I call `withExtendedLifetime(cancellable)` inside the asynchronous completion function. This keeps `cancellable` and the whole pipeline _alive_ long enough for a value to arrive from the subscriber. At that point, the completion handler is called, the `withExtendedLifetime` anonymous function is called (and does nothing), and `cancellable` is released, permitting the pipeline to go out of existence in good order.
 
-The cancellation in the third step actually does _two_ things quite apart from calling `cancel()` — things having to do with memory management:
-
-* By _referring_ to `cancellable` inside the asynchronous completion function of the Sink, I keep `cancellable` and the whole pipeline _alive_ long enough for a value to arrive from the subscriber.
-
-* By _cancelling_ `cancellable`, I permit the pipeline to go out of existence and prevent a retain cycle that would cause the surrounding view controller to leak.
+> This use of `withExtendedLifetime` was suggested to me by reader `@Helam24`.
 

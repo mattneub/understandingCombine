@@ -39,7 +39,7 @@ To illustrate, I'll extend the inner pipeline a little:
         .flatMap { _ in
             Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
-                .scan(0) {count,date in count + 1}
+                .scan(0) {count, date in count + 1}
         }
 
 Every time the user taps the button, the series of integers `1`, `2`, `3` start flowing down rest of the pipeline, one per second. If the series is already flowing because this is not the first time the user tapped the button, the pipeline produces multiple series interleaved with one another.
@@ -56,7 +56,7 @@ For this reason, it is good practice to end the inner pipeline with a call to `e
         .flatMap { _ in
             Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
-                .scan(0) {count,date in count + 1}
+                .scan(0) {count, date in count + 1}
                 .eraseToAnyPublisher()
         }
 
@@ -68,7 +68,7 @@ And you _will_ need to reason about it if the map function does anything other t
         .flatMap { _ in // compile error
             let p = Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
-                .scan(0) {count,date in count + 1}
+                .scan(0) {count, date in count + 1}
                 .eraseToAnyPublisher()
             return p
         }
@@ -76,10 +76,10 @@ And you _will_ need to reason about it if the map function does anything other t
 To work around this, we have to state the output publisher type explicitly in our `in` line:
 
     self.myButton.publisher()
-        .flatMap { _ -> AnyPublisher<Int,Never> in
+        .flatMap { _ -> AnyPublisher<Int, Never> in
             let p = Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
-                .scan(0) {count,date in count + 1}
+                .scan(0) {count, date in count + 1}
                 .eraseToAnyPublisher()
             return p
         }
@@ -88,16 +88,16 @@ That is a lot easier to do when you use `eraseToAnyPublisher`. Also, `eraseToAny
 
     var alreadyProduced = false
     self.myButton.publisher()
-        .flatMap { _ -> AnyPublisher<Int,Never> in
+        .flatMap { _ -> AnyPublisher<Int, Never> in
             let p = Timer.publish(every: 1, on: .main, in: .common)
                 .autoconnect()
-                .scan(0) {count,date in count + 1}
+                .scan(0) {count, date in count + 1}
                 .eraseToAnyPublisher()
             if !alreadyProduced {
                 alreadyProduced = true
                 return p
             } else {
-                return Empty<Int,Never>(completeImmediately: true)
+                return Empty<Int, Never>(completeImmediately: true)
                     .eraseToAnyPublisher()
             }
         }
@@ -119,13 +119,13 @@ That can pose issues if the Failure type of the publisher produced by the map fu
 For example, suppose (just for the sake of argument) that our pipeline starts with a data task publisher instead of a UIControl publisher:
 
     URLSession.shared.dataTaskPublisher(for: url)
-        .flatMap { _ -> AnyPublisher<Int,Never> in
+        .flatMap { _ -> AnyPublisher<Int, Never> in
 
 That won't compile, because a data task publisher's Failure type is URLError; you can't produce a publisher with a Never failure into a pipeline with a Failure type of URLError. The simple solution is replace the Failure type with Never, _before_ the `.flatMap` call. One way to do that is with `.replaceError(with:)`, supplying a dummy value of the correct output type:
 
     URLSession.shared.dataTaskPublisher(for: url)
         .replaceError(with: (data: Data(), response: URLResponse()))
-        .flatMap { _ -> AnyPublisher<Int,Never> in
+        .flatMap { _ -> AnyPublisher<Int, Never> in
 
 The converse problem is that the upstream Failure type is Never, but you want to produce a publisher that can fail. In that case, use `.setFailureType(to:)`, like this:
 
@@ -183,7 +183,7 @@ Okay! Now all I have to do is write a pipeline that hooks up calls to those two 
         .setFailureType(to: Error.self)
         .flatMap { _ in
             checkAccess().publisher
-        }.flatMap { gotAccess -> AnyPublisher<Bool,Error> in
+        }.flatMap { gotAccess -> AnyPublisher<Bool, Error> in
             if gotAccess {
                 return Just(true)
                     .setFailureType(to: Error.self)
@@ -251,8 +251,8 @@ There is one possible downside to that use of `.replaceError`, namely, that we h
     urls.map(URL.init(string:)).compactMap{$0}.publisher
         .flatMap { url in
             URLSession.shared.dataTaskPublisher(for: url)
-                .map { Result<Data,Error>.success($0.data) }
-                .catch { Just(Result<Data,Error>.failure($0)) }
+                .map { Result<Data, Error>.success($0.data) }
+                .catch { Just(Result<Data, Error>.failure($0)) }
         }
 
 The value passing down the main pipeline is now a more complex object than before — it's a Result object, and subsequent operators will need to take account of that. But it is also a more communicative object: it hands subsequent operators the Data from the data task or else tells them *about* the error without in fact _being_ an error.

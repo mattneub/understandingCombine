@@ -8,7 +8,7 @@ This goes on until *both* upstream publishers have sent a `.finished` completion
 
 Here's a toy example:
 
-    func makeTimer() -> AnyPublisher<Int,Never> {
+    func makeTimer() -> AnyPublisher<Int, Never> {
         Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .scan(0) {i,_ in i+1}
@@ -32,7 +32,7 @@ As a convenience, operators are provided for joining three, four, five, six, sev
 
 And indeed those operators really are just convenience operators, as they do nothing you couldn't have done for yourself by a repeated application of a simple `.merge(with:)`. Just to prove it, I'll create a five-way merge by looping:
 
-    func makeTimer() -> AnyPublisher<Int,Never> {
+    func makeTimer() -> AnyPublisher<Int, Never> {
         Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .scan(Int.random(in: 1...10)) {i,_ in i+1}

@@ -37,12 +37,12 @@ To illustrate, I'll create an artifical toy example; this is probably not the wa
 enum MyError: Error { case tooBig }
 (1...10).publisher
     .setFailureType(to: Error.self)
-    .flatMap { (i: Int) -> AnyPublisher<Int,Error> in
+    .flatMap { (i: Int) -> AnyPublisher<Int, Error> in
         if i < 5 {
             return Just(i).setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
         } else {
-            return Fail<Int,Error>(error: MyError.tooBig)
+            return Fail<Int, Error>(error: MyError.tooBig)
                 .eraseToAnyPublisher()
         }
 }.sink(receiveCompletion: { print($0) }, receiveValue: { print($0) })
@@ -59,7 +59,7 @@ In the map function, we receive an Int, which we call `i`. Our plan is to produc
             // produce a Fail
         }
 
-Everything else is simply a matter of getting our code to compile. First, Just and Fail are two different kinds of publisher, so we need to erase the difference between them with `.eraseToAnyPublisher`, so that both wings of the condition produce the same type, namely an `AnyPublisher<Int,Error>`:
+Everything else is simply a matter of getting our code to compile. First, Just and Fail are two different kinds of publisher, so we need to erase the difference between them with `.eraseToAnyPublisher`, so that both wings of the condition produce the same type, namely an `AnyPublisher<Int, Error>`:
 
         if i < 5 {
             // produce Just(i).eraseToAnyPublisher()
@@ -68,7 +68,7 @@ Everything else is simply a matter of getting our code to compile. First, Just a
         }
 
 
-But our code still doesn't compile, because we need the AnyPublishers produced by the two wings to be parameterized on the same Output and Failure types; the Output will obviously be `Int`, and we've already decided the Failure type will be Error. Configuring the Fail is easy: we just declare that it is a `Fail<Int,Error>`. But our Just's types are `<Int, Never>`; a Just's Failure type is _always_ Never. So we use `.setFailureType` _again_ to change the Failure type to Error _again_. Now our code compiles!
+But our code still doesn't compile, because we need the AnyPublishers produced by the two wings to be parameterized on the same Output and Failure types; the Output will obviously be `Int`, and we've already decided the Failure type will be Error. Configuring the Fail is easy: we just declare that it is a `Fail<Int, Error>`. But our Just's types are `<Int, Never>`; a Just's Failure type is _always_ Never. So we use `.setFailureType` _again_ to change the Failure type to Error _again_. Now our code compiles!
 
 And the result is exactly as we hoped:
 

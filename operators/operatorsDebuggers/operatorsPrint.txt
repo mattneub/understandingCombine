@@ -59,7 +59,7 @@ That's totally incomprehensible. By adding prefix strings, we can completely cla
         }
         .print("after")
         .sink(receiveCompletion: {print("DONE:", $0)})
-            {print("VAL:",$0)}
+            {print("VAL:", $0)}
             .store(in: &self.storage)
 
 The output is:

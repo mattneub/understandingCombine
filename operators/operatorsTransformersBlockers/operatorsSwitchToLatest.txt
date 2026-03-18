@@ -20,7 +20,7 @@ Here's a case in point: a resettable timer. In one of my apps, which is a game, 
 Presume that I've got an instance variable that's a [PassthroughSubject](publishersSubject), called `userMoved`. It doesn't really matter what kind of thing it emits; it happens it's a Bool, but that fact won't even emerge in the example. The important thing is that when the user makes a valid move, I tell the PassthroughSubject to `send`. The pipeline starts with that PassthroughSubject, so every time the user moves, a signal comes down the pipeline. I use the `.map` operator to respond to that signal by producing a Timer publisher, and I use `.switchToLatest` to throw out the previous Timer publisher (if there is one) and replace it with the new one:
 
     self.userMoved
-        .map { _ -> AnyPublisher<Date,Never> in
+        .map { _ -> AnyPublisher<Date, Never> in
             let t = Timer.publish(every: 10, on: .main, in: .common)
             _ = t.connect()
             return AnyPublisher(t)
