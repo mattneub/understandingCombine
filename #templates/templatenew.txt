@@ -1,55 +1,40 @@
-#metaviewport "width=device-width, initial-scale=1"
 
-<%= pageheader() %>
+-# 
+  haml template, except that the tool calls are erb because they are evalutated separately later
+  (i.e. we don't want haml to try to evaluate them)
+  notice also that we have no template directives; I think you can't do that in a haml template
+  
+= pageheader()
 
-<section class="bulma-hero bulma-has-background-primary-soft bulma-is-small bulma-has-text-centered">
-  <div class="bulma-hero-body">
-    <p>
+%section.bulma-hero.bulma-has-background-primary-soft.bulma-is-small.bulma-has-text-centered
+  .bulma-hero-body
+    %p{:markdown => "1"}
       This is <b><em>Understanding Combine</em></b>, written by Matt Neuburg.
-      Corrections and suggestions are greatly appreciated (you can comment
-      <a href="https://github.com/mattneub/understandingCombine/issues">here</a>).
+      Corrections and suggestions are greatly appreciated (you can comment [here](issues)).
       So are donations; please consider keeping me going by funding this work at
-      <a href="http://www.paypal.me/mattneub">http://www.paypal.me/mattneub</a>.
-      Or buy my books:
-      the current (and final) editions are 
-      <a href="https://learning.oreilly.com/library/view/ios-15-programming/9781098118495/">iOS 15        Programming Fundamentals with Swift</a>
-      and
-      <a href="https://www.oreilly.com/library/view/programming-ios-14/9781492092162/">Programming        iOS 14</a>.
-      Thank you!
-    </p>
-  </div>
-</section>
+      <http://www.paypal.me/mattneub>. Or buy my books:
+      the current (and final) editions are [iOS 15 Programming Fundamentals with Swift](ios15)
+      and [Programming iOS 14](ios14). Thank you!
 
-<div class="bulma-columns bulma-has-background-warning-soft">
+.bulma-columns.bulma-has-background-warning-soft
 
-  <% if adrObject.simplename.to_s != "toc" %>
-    <div class="bulma-column bulma-is-narrow bulma-is-small bulma-is-hidden-mobile">
-      <div class="bulma-box topsticker">
+  - if adrPageTable[:adrObject].simplename.to_s != "toc"
+    .bulma-column.bulma-is-narrow.bulma-is-small.bulma-is-hidden-mobile
+      .bulma-box.topsticker
         <%= breadcrumbs() %>
-      </div><!-- box -->
-    </div><!-- column -->
-  <% end %><!-- if not toc -->
 
-  <div class="bulma-column">
-    <section class="bulma-section">
-      <div class="bulma-content bulma-is-normal" markdown="1">
-        <p id="bodytext"></p>
-      </div><!-- content, markdown -->
-    </section>
-  </div><!-- column -->
+  .bulma-column
+    %section.bulma-section
+      .bulma-content.bulma-is-normal{:markdown => "1"}
+        %p#bodytext
 
-</div><!-- columns -->
-
-<footer class="bulma-footer">
-  <% if adrObject.simplename.to_s != "toc" %>
+%footer.bulma-footer
+  - if adrPageTable[:adrObject].simplename.to_s != "toc"
     <%= nextprevlinks() %>
-    <hr />
-  <% end %>
+    %hr
 
-  <div class="bulma-is-size-7" markdown="1">
+  .bulma-is-size-7{:markdown => "1"}
     Written with [RubyFrontier](https://www.apeth.com/RubyFrontierDocs/default.html). 
     CSS by [Bulma](https://bulma.io).
-  </div>
-</footer>
 
-<%= pagefooter() %>
+= pagefooter()

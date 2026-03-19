@@ -9,11 +9,11 @@ def breadcrumbs()
   top = doc.root
   body = top.first_element_child
   # do children
-  s = "<div class='breadcrumbs'>"
-  s = "<div class='toc'>" if toc
+  s = "<div class=\"breadcrumbs\">\n"
+  s = "<div class=\"toc\">\n" if toc
   s << doOneLevel(body, thisnode, toc)
-  s << "</div>"
-  s
+  s << "</div>\n"
+  return s
 end
 def doOneLevel(node, thisnode, toc)
   s = ""
@@ -33,10 +33,11 @@ def doOneLevel(node, thisnode, toc)
     end
     s << "</p>\n"
     if line.children.count > 0 && (thisnode.nil? || thisnode == line || thisnode.ancestors.include?(line))
-      s << "<div class='toc_level'>\n"
+      s << "<div class=\"toc_level\">\n"
       s << doOneLevel(line, thisnode, toc)
       s << "</div>\n"
     end
   end
   s
 end
+

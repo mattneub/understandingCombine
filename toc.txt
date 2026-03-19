@@ -1,10 +1,16 @@
 #title "Understanding Combine"
-#breadcrumbs false
+#embeddedhaml true
 
-# <%= title %>
+<%%%
 
-<p class="has-text-right">by Matt Neuburg</p>
+%h1
+  = adrPageTable[:title]
 
-<div class="toc_page">
-<%= breadcrumbs() %>
-</div>
+%p.bulma-has-text-right
+  by Matt Neuburg
+
+.toc_page
+  <%= breadcrumbs() %>
+
+%%%>
+

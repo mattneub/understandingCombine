@@ -1,4 +1,7 @@
 ---
 :linkstylesheets: [bulma-prefixed, me]
 :template: templatenew
+:hamltemplate: true
 :kramdown: 1
+:metaviewport: "width=device-width, initial-scale=1"
+
