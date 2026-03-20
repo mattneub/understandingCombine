@@ -1,9 +1,0 @@
-<!DOCTYPE html>
-<html>
-<head>
-<%= metatags() %>
-<%= linkstylesheets() %>
-<%= linkjavascripts() %>
-<title><%= title %></title>
-</head>
-<%= bodytag() %>

@@ -3,8 +3,9 @@
   haml template, except that the tool calls are erb because they are evalutated separately later
   (i.e. we don't want haml to try to evaluate them)
   notice also that we have no template directives; I think you can't do that in a haml template
+  (though I suppose that's up to the operative filter)
   
-= pageheader()
+= pageheader(html5: true)
 
 %section.bulma-hero.bulma-has-background-primary-soft.bulma-is-small.bulma-has-text-centered
   .bulma-hero-body
